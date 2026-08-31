@@ -2,17 +2,12 @@
 return {
   {
     "nvim-telescope/telescope.nvim",
-    tag = "0.1.8",
-    -- branch = "0.1.x",
     dependencies = {
       "nvim-lua/plenary.nvim",
+      "nvim-telescope/telescope-file-browser.nvim",
       {
         "nvim-telescope/telescope-fzf-native.nvim",
         build = "make",
-        config = function()
-          -- require("telescope").load_extension("fzf_native")
-        end,
-        -- build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release",
       },
     },
     config = function()
@@ -39,6 +34,11 @@ return {
             override_file_sorter = true,    -- override the file sorter
             case_mode = "smart_case",
           },
+          ["ui-select"] = {
+            require("telescope.themes").get_dropdown({
+              -- even more opts
+            }),
+          },
         },
         pickers = {
           colorscheme = {
@@ -58,11 +58,14 @@ return {
         },
       })
 
-      -- require("telescope").load_extension("fzf")
+      -- load extensions (depois do setup, senão dá erro e interrompe o resto do config)
+      pcall(require("telescope").load_extension, "fzf")
       require("telescope").load_extension("zoxide")
+      require("telescope").load_extension("file_browser")
+      require("telescope").load_extension("ui-select")
+
       -- telescope setup
       local builtin = require("telescope.builtin")
-      vim.keymap.set("n", "<leader>jk", ":Telescope find_files<CR>", {})
       vim.keymap.set("n", "<leader>fb", ":Telescope file_browser<cr>", {})
       vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
       vim.keymap.set("n", "<leader>fd", builtin.diagnostics, {})
@@ -71,10 +74,21 @@ return {
       vim.keymap.set("n", "<leader>fz", ":Telescope zoxide list<CR>", {})
       vim.keymap.set("n", "<leader>fv", builtin.help_tags, {})
       vim.keymap.set("n", "<leader>fp", builtin.builtin, {})
-
+      -- Habits (GotoFile, RecentFiles, GotoAction, RecentLocations, FindInPath-word, Switcher)
+      vim.keymap.set("n", "<leader>fr", builtin.oldfiles, {})
+      vim.keymap.set("n", "<leader>fa", builtin.commands, {})
+      vim.keymap.set("n", "<leader>fl", builtin.jumplist, {})
+      vim.keymap.set("n", "<leader>fw", builtin.grep_string, {})
+      vim.keymap.set("n", "<leader>fu", builtin.buffers, {})
       vim.keymap.set(
         "n",
         "<leader>jk",
+        "<cmd>lua require'telescope.builtin'.find_files({ find_command = {'rg', '--files', '--hidden', '-g', '!.git' }})<cr>",
+        {}
+      )
+      vim.keymap.set(
+        "n",
+        "<leader>ff",
         "<cmd>lua require'telescope.builtin'.find_files({ find_command = {'rg', '--files', '--hidden', '-g', '!.git' }})<cr>",
         {}
       )
@@ -86,19 +100,5 @@ return {
   },
   {
     "nvim-telescope/telescope-ui-select.nvim",
-    config = function()
-      require("telescope").setup({
-        extensions = {
-          ["ui-select"] = {
-            require("telescope.themes").get_dropdown({
-              -- even more opts
-            }),
-          },
-        },
-      })
-      -- To get ui-select loaded and working with telescope, you need to call
-      -- load_extension, somewhere after setup function:
-      require("telescope").load_extension("ui-select")
-    end,
   },
 }

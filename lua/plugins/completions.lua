@@ -2,6 +2,7 @@ return {
   {
     "kdheepak/cmp-latex-symbols",
   },
+
   {
     "saghen/blink.cmp",
     dependencies = {
@@ -10,50 +11,220 @@ return {
         version = "v2.*",
         config = function()
           local luasnip = require("luasnip")
+          local km = vim.keymap.set
 
-          luasnip.add_snippets("markdown", require("snippets.notes"))
-          luasnip.add_snippets("text", require("snippets.notes"))
-          luasnip.add_snippets("tex", require("snippets.latex"))
-          luasnip.add_snippets("zig", require("snippets.zig"))
-          luasnip.add_snippets("c", require("snippets.c"))
-          luasnip.add_snippets("cpp", require("snippets.cpp"))
-          luasnip.add_snippets("cpp", require("snippets.c"))
-        end
+          local function load_snippets(filetype, module)
+            local ok, snippets = pcall(require, module)
+
+            if not ok then
+              vim.notify(
+                string.format(
+                  "Failed to load snippets '%s' for filetype '%s': %s",
+                  module,
+                  filetype,
+                  snippets
+                ),
+                vim.log.levels.ERROR
+              )
+              return
+            end
+
+            luasnip.add_snippets(filetype, snippets)
+          end
+
+          load_snippets("markdown", "snippets.all")
+          load_snippets("text", "snippets.all")
+          load_snippets("tex", "snippets.latex")
+          load_snippets("zig", "snippets.zig")
+          load_snippets("c", "snippets.c")
+          load_snippets("cpp", "snippets.cpp")
+          load_snippets("cpp", "snippets.c")
+          load_snippets("python", "snippets.python")
+          load_snippets("java", "snippets.java")
+
+          -- Global snippets
+          load_snippets("all", "snippets.all")
+
+          luasnip.filetype_extend("python", { "all" })
+          luasnip.filetype_extend("c", { "all" })
+          luasnip.filetype_extend("cpp", { "all" })
+          luasnip.filetype_extend("zig", { "all" })
+          luasnip.filetype_extend("lua", { "all" })
+          luasnip.filetype_extend("javascript", { "all" })
+          luasnip.filetype_extend("typescript", { "all" })
+          luasnip.filetype_extend("rust", { "all" })
+          luasnip.filetype_extend("go", { "all" })
+          luasnip.filetype_extend("sh", { "all" })
+          luasnip.filetype_extend("markdown", { "all" })
+          luasnip.filetype_extend("tex", { "all" })
+
+          -- Fallback mappings for LuaSnip.
+          -- blink.cmp normally handles these mappings itself.
+          km("i", "<Tab>", function()
+            if luasnip.choice_active() then
+              luasnip.change_choice(1)
+            elseif luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              return "<Tab>"
+            end
+          end, {
+            expr = true,
+            silent = true,
+            desc = "Expand or jump to next snippet field",
+          })
+
+          km("s", "<Tab>", function()
+            if luasnip.choice_active() then
+              luasnip.change_choice(1)
+            elseif luasnip.jumpable(1) then
+              luasnip.jump(1)
+            end
+          end, {
+            silent = true,
+            desc = "Jump to next snippet field",
+          })
+
+          km({ "i", "s" }, "<S-Tab>", function()
+            if luasnip.choice_active() then
+              luasnip.change_choice(-1)
+            elseif luasnip.jumpable(-1) then
+              luasnip.jump(-1)
+            end
+          end, {
+            silent = true,
+            desc = "Jump to previous snippet field",
+          })
+        end,
       },
     },
+
     version = "1.*",
 
     ---@module 'blink.cmp'
     opts = {
       keymap = {
-        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
-        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
-        ["<CR>"] = { "select_and_accept", "fallback" },
-        ["<C-e>"] = { "hide", "fallback" },
+        -- Accept completion with Tab without showing the menu,
+        -- unless the cursor is right before a closing char that
+        -- tabout.nvim handles (), ], ', ", ` — in that case, defer
+        -- to tabout.nvim via "fallback" instead of forcing an accept.
+        ["<Tab>"] = {
+          function(cmp)
+            if cmp.snippet_active() then
+              return cmp.snippet_forward()
+            end
+
+            local col = vim.api.nvim_win_get_cursor(0)[2]
+            local line = vim.api.nvim_get_current_line()
+            local next_char = line:sub(col + 1, col + 1)
+            local tabout_chars = {
+              ["'"] = true,
+              ['"'] = true,
+              ["`"] = true,
+              [")"] = true,
+              ["]"] = true,
+            }
+
+            if tabout_chars[next_char] then
+              return false -- defer to "fallback" -> tabout.nvim
+            end
+
+            return cmp.select_and_accept({
+              force = true,
+            })
+          end,
+          "fallback",
+        },
+
+        -- Move backward through snippet fields.
+        ["<S-Tab>"] = {
+          "snippet_backward",
+          "fallback",
+        },
+
+        -- Accept the selected completion.
+        ["<CR>"] = {
+          "select_and_accept",
+          "fallback",
+        },
+
+        -- Hide the completion menu.
+        ["<C-e>"] = {
+          "hide",
+          "fallback",
+        },
+
+        -- Show the completion menu manually.
+        ["<C-space>"] = {
+          "show",
+          "fallback",
+        },
+
+        -- Some terminals send <C-space> as <C-@>.
+        ["<C-@>"] = {
+          "show",
+          "fallback",
+        },
+
+        -- -- Backup manual trigger.
+        -- ["<C-j>"] = {
+        --   "show",
+        --   "fallback",
+        -- },
+
+        -- Free <C-k> for the user's own mapping.
+        ["gp"] = {
+          "show_signature",
+          "fallback",
+        },
+
+        -- Cycle through completion candidates by inserting them directly
+        -- into the buffer, without opening the popup menu (IntelliJ-style).
+        ["<C-n>"] = {
+          "insert_next",
+          "fallback",
+        },
+
+        ["<C-p>"] = {
+          "insert_prev",
+          "fallback",
+        },
       },
 
       appearance = {
         nerd_font_variant = "mono",
       },
+
       signature = {
         enabled = true,
+        auto_show = false,
         window = {
           show_documentation = false,
         },
       },
+
       completion = {
         trigger = {
           show_on_insert_on_trigger_character = false,
           show_on_accept_on_trigger_character = false,
-          show_on_blocked_trigger_characters = { "{", "(", "}", ")" },
+
+          show_on_blocked_trigger_characters = {
+            "{",
+            "(",
+            "}",
+            ")",
+          },
         },
+
         documentation = {
           auto_show = true,
           auto_show_delay_ms = 200,
         },
+
         menu = {
-          auto_show = true,
+          auto_show = false,
           scrollbar = false,
+
           draw = {
             columns = {
               { "kind_icon" },
@@ -62,21 +233,23 @@ return {
               { "label_description", gap = 1 },
               { "source_name",       gap = 1 },
             },
+
             components = {
               kind_icon = {
                 ellipsis = false,
                 width = { fill = true },
+
                 text = function(ctx)
                   local kind_icons = {
-                    Function = "λ", -- Lambda symbol for functions
-                    Method = "∂", -- Lambda symbol for methods
-                    Field = "󰀫", -- Lambda symbol for methods
-                    Variable = "󰀫", -- Lambda symbol for methods
-                    Property = "󰀫", -- Lambda symbol for methods
-                    Keyword = "k", -- Lambda symbol for methods
-                    Struct = "Π", -- Lambda symbol for methods
-                    Enum = "τ", -- Lambda symbol for methods
-                    EnumMember = "τ", -- Lambda symbol for methods
+                    Function = "λ",
+                    Method = "∂",
+                    Field = "󰀫",
+                    Variable = "󰀫",
+                    Property = "󰀫",
+                    Keyword = "k",
+                    Struct = "Π",
+                    Enum = "τ",
+                    EnumMember = "τ",
                     Snippet = "⊂",
                     Text = "τ",
                     Module = "⌠",
@@ -84,36 +257,51 @@ return {
                   }
 
                   local icon = kind_icons[ctx.kind]
+
                   if icon == nil then
                     icon = ctx.kind_icon
                   end
+
                   return icon
                 end,
               },
             },
           },
         },
+
+        -- Keep the first completion available for Tab.
+        list = {
+          selection = {
+            preselect = true,
+            auto_insert = false,
+          },
+          cycle = {
+            from_bottom = true, -- wrap to the first item after the last
+            from_top = true,    -- wrap to the last item after the first
+          },
+        },
       },
+
       snippets = {
         preset = "luasnip",
-        -- Function to use when expanding LSP provided snippets
-        expand = function(snippet)
-          vim.snippet.expand(snippet)
-        end,
-        -- Function to use when checking if a snippet is active
-        active = function(filter)
-          return vim.snippet.active(filter)
-        end,
-        -- Function to use when jumping between tab stops in a snippet, where direction can be negative or positive
-        jump = function(direction)
-          vim.snippet.jump(direction)
-        end,
       },
+
       sources = {
-        default = { "lsp", "path", "snippets", "buffer" },
+        default = {
+          "lsp",
+          "path",
+          "snippets",
+          "buffer",
+        },
       },
-      fuzzy = { implementation = "prefer_rust_with_warning" },
+
+      fuzzy = {
+        implementation = "prefer_rust_with_warning",
+      },
     },
-    opts_extend = { "sources.default" },
+
+    opts_extend = {
+      "sources.default",
+    },
   },
 }

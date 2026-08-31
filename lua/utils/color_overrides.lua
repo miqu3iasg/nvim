@@ -60,9 +60,9 @@ function M.black_metal_theme_overrides()
   -- vim.api.nvim_set_hl(0, "Normal", { bg = "#222222" })
   -- vim.api.nvim_set_hl(0, "NormalNC", { bg = bg_color })
 
-  vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#888888", bg = "#222222" })
-  vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#888888", bg = "#222222" })
-  vim.api.nvim_set_hl(0, "LineNr", { fg = "#d6d2c8" })
+  -- vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#888888", bg = "#222222" })
+  -- vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#888888", bg = "#222222" })
+  -- vim.api.nvim_set_hl(0, "LineNr", { fg = "#d6d2c8" })
 
   -- accent = "#9c9b98"
   -- vim.api.nvim_set_hl(0, "Statement", { fg = accent })
@@ -93,6 +93,48 @@ function M.black_metal_theme_overrides()
   --
   -- -- Example: Replace `#ff0000` (red) with `#00ff00` (green)
   -- replace_color("#9b8d7f", "#CDb7d2")
+end
+
+function M.oscura_theme_overrides()
+  local hl = vim.api.nvim_set_hl
+  local black = "#000000"
+
+  -- fundo geral
+  hl(0, "Normal", { bg = black })
+  hl(0, "NormalNC", { bg = black })
+  hl(0, "NormalFloat", { bg = black })
+  hl(0, "EndOfBuffer", { bg = black })
+
+  -- gutter (line numbers)
+  hl(0, "SignColumn", { bg = black })
+  hl(0, "FoldColumn", { bg = black })
+
+  local lineNr = vim.api.nvim_get_hl(0, { name = "LineNr" })
+  hl(0, "LineNr", { fg = lineNr.fg, bg = black })
+
+  local cursorLineNr = vim.api.nvim_get_hl(0, { name = "CursorLineNr" })
+  hl(0, "CursorLineNr", { fg = cursorLineNr.fg, bg = black, bold = cursorLineNr.bold })
+
+  -- Telescope: prompt
+  hl(0, "TelescopeNormal", { bg = black })
+  hl(0, "TelescopeBorder", { fg = "#888888", bg = black })
+  hl(0, "TelescopePromptNormal", { bg = black })
+  hl(0, "TelescopePromptBorder", { fg = "#888888", bg = black })
+  hl(0, "TelescopePromptTitle", { fg = "#d6d2c8", bg = black })
+
+  -- Telescope: results
+  hl(0, "TelescopeResultsNormal", { bg = black })
+  hl(0, "TelescopeResultsBorder", { fg = "#888888", bg = black })
+  hl(0, "TelescopeResultsTitle", { fg = "#d6d2c8", bg = black })
+  hl(0, "TelescopeSelection", { bg = "#1e1e1e", fg = "#d6d2c8" })
+  hl(0, "TelescopeSelectionCaret", { bg = "#1e1e1e", fg = "#9b8d7f" })
+  hl(0, "TelescopeMatching", { fg = "#9b8d7f", bold = true })
+
+  -- Telescope: preview
+  hl(0, "TelescopePreviewNormal", { bg = black })
+  hl(0, "TelescopePreviewBorder", { fg = "#888888", bg = black })
+  hl(0, "TelescopePreviewTitle", { fg = "#d6d2c8", bg = black })
+  hl(0, "TelescopePreviewLine", { bg = "#1e1e1e" })
 end
 
 function M.vague_status_colors()
@@ -135,6 +177,8 @@ function M.setup_colorscheme_overrides()
         M.zenbones_theme_overrides()
       elseif colorscheme == "cosec-twilight" then
         -- M.cosec_twilight_overrides()
+      elseif colorscheme == "oscura" then
+        M.oscura_theme_overrides()
       end
     end,
   })
@@ -150,11 +194,11 @@ function M.setup_colorscheme_overrides()
 end
 
 -- setup some commands for manually setting values
-vim.api.nvim_create_user_command("MyLine", M.my_line_colors, {})
-vim.api.nvim_create_user_command("VagueStatus", M.vague_status_colors, {})
-vim.api.nvim_create_user_command("VagueLine", M.vague_line_colors, {})
-vim.api.nvim_create_user_command("DefStatus", function()
-  require("lualine").setup({ options = { theme = "auto" } })
-end, {})
+-- vim.api.nvim_create_user_command("MyLine", M.my_line_colors, {})
+-- vim.api.nvim_create_user_command("VagueStatus", M.vague_status_colors, {})
+-- vim.api.nvim_create_user_command("VagueLine", M.vague_line_colors, {})
+-- vim.api.nvim_create_user_command("DefStatus", function()
+--   require("lualine").setup({ options = { theme = "auto" } })
+-- end, {})
 
 return M

@@ -1,3 +1,0 @@
-return {
-  "qadzek/link.vim"
-}

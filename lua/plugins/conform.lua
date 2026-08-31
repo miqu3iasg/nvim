@@ -7,8 +7,9 @@ return {
         purescript = { "purstidy", stop_after_first = true },
         lua = { "stylua", stop_after_first = true },
         ocaml = { "ocamlformat", stop_after_first = true },
-        python = { "black" },
+        python = { "ruff_format" },
         rust = { "rustfmt" },
+        java = { "google-java-format" },
         javascript = { "prettier", stop_after_first = true },
         javascriptreact = { "prettier", stop_after_first = true },
         typescript = { "prettier", stop_after_first = true },
@@ -26,6 +27,11 @@ return {
         asm = { "asmfmt" },
         css = { "prettier", stop_after_first = true },
         fennel = { "fnlfmt" }
+      },
+      formatters = {
+        ["google-java-format"] = {
+          prepend_args = { "--skip-javadoc-formatting" },
+        },
       },
       format_on_save = function(_)
         if vim.g.disable_autoformat then

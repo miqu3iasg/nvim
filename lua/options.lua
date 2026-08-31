@@ -1,98 +1,120 @@
--- general settings
-vim.cmd("set number")
-vim.cmd("set relativenumber")
-vim.cmd("set ts=2")
-vim.cmd("set cmdheight=0")
-vim.cmd("set termguicolors")
-vim.cmd("set scrolloff=5")
-vim.cmd("autocmd FileType sql setlocal noautoindent")
-vim.cmd("autocmd FileType sql setlocal nosmartindent")
-vim.cmd("autocmd FileType sql setlocal nocindent")
-vim.cmd("set signcolumn=no")
-vim.cmd("set foldmethod=expr")
-vim.cmd("set foldexpr=nvim_treesitter#foldexpr()")
-vim.cmd("set foldlevel=99")
-vim.cmd("set foldnestmax=1")
-vim.cmd("set foldopen-=hor")
-vim.cmd("set splitright")
-
+-- General behavior
+vim.g.netrw_banner = 0
+vim.opt.hidden = true
+vim.opt.autoread = true
+vim.opt.history = 10000
+vim.opt.encoding = "utf-8"
+vim.opt.fileencoding = "utf-8"
+vim.opt.timeoutlen = 500
+vim.opt.ttimeoutlen = 30
+vim.opt.updatetime = 300
+vim.opt.switchbuf = "uselast"
 vim.opt.exrc = true
-vim.o.scrolloff = 5
+vim.opt.secure = true
+
+-- Search and completion
 vim.opt.ignorecase = true
-vim.g.zig_fmt_parse_errors = 0
+vim.opt.smartcase = true
+vim.opt.wildignorecase = true
+vim.opt.wildignore:append("*/.git/*")
+vim.opt.completeopt = "menuone,noselect,preview"
+vim.opt.inccommand = "split"
 
-vim.diagnostic.config({
-  virtual_text = true,
+-- Native fuzzy file/buffer finding via command-line
+vim.opt.path:append("**")
+vim.opt.wildignore:append({
+  "*/node_modules/*", "*/target/*", "*/dist/*",
 })
-
--- minor visual changes to panes
-vim.opt.fillchars =
-{ vert = " ", horiz = " ", horizup = " ", horizdown = " ", vertleft = " ", vertright = " ", verthoriz = " " }
-
-vim.opt.guicursor = "n-v-c:block-blinkon1-CursorInsert,i:block-CursorInsert"
-
-vim.api.nvim_create_user_command("Setwd", function()
-  vim.cmd("cd " .. vim.fn.expand("%:p:h"))
-end, {})
-
-local utils = require("utils")
-local os_name = utils.get_os()
-
-if os_name == "windows" then
-  vim.cmd("set shell=powershell")
+vim.opt.wildmenu = true
+vim.opt.wildmode = "noselect:lastused,full"
+if vim.fn.has("nvim-0.11") == 1 then
+  vim.opt.wildoptions = "pum,fuzzy"
 else
-  vim.cmd("set shell=/bin/zsh")
+  vim.opt.wildoptions = "pum"
 end
+vim.opt.pumheight = 15
 
-vim.cmd("set shellcmdflag=-c")
-vim.cmd("set shellquote=")
-vim.cmd("set shellxquote=")
+-- Editing
+vim.opt.backspace = "indent,eol,start"
+vim.opt.belloff = "all"
+vim.opt.matchpairs:append("<:>")
+vim.opt.nrformats:remove("octal")
+vim.opt.isfname:append("@-@")
+vim.opt.clipboard:append("unnamedplus")
 
--- stop right-shift when errors/warning appear
-vim.o.signcolumn = "no"
-vim.o.completeopt = "menuone,noselect,preview"
-
+-- Indentation
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
 vim.bo.softtabstop = 2
 
--- vim.lsp.set_log_level("warn")
+-- Window layout
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+vim.opt.winminwidth = 0
+vim.opt.winminheight = 0
+vim.opt.laststatus = 0
 
-vim.cmd([[
-autocmd! DiagnosticChanged * lua vim.diagnostic.setloclist({open = false}) ]])
+-- Display
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.scrolloff = 15
+vim.opt.cmdheight = 0
+vim.opt.signcolumn = "no"
+vim.opt.termguicolors = true
+vim.opt.fillchars = { eob = " " }
+vim.opt.shortmess:append("acFWIS")
+vim.opt.display:append("lastline")
 
-function OpenInObsidian()
-  local file = vim.fn.expand("%:p")
-  if file:match("%.md$") then
-    local vault = "notes"
-    local vault_path = vim.fn.expand("~/notes")
-    local relative_path = file:gsub(vault_path, "")
-    -- local relative_path = file:gsub(vault_path, "")
-    local obsidian_url = "obsidian://open?vault=" .. vault .. "&file=" .. vim.fn.fnameescape(relative_path)
-    if os_name == "mac" then
-      vim.fn.system({ "open", obsidian_url })
-    else
-      vim.fn.system({ "xdg-open", obsidian_url })
-    end
-  else
-    vim.cmd("silent edit " .. vim.fn.fnameescape(file))
-  end
+-- Folding
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldlevel = 99
+vim.opt.foldnestmax = 1
+vim.opt.foldopen:remove("hor")
+
+-- Persistence
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
+vim.opt.undofile = true
+
+-- Mouse
+vim.opt.mouse = ""
+vim.opt.mousescroll = "ver:0,hor:0"
+
+-- Cursor
+vim.opt.guicursor = "n-v-c:block-blinkon1-CursorInsert,i:block-CursorInsert"
+
+-- Shell
+local ok, utils = pcall(require, "utils")
+local os_name = ok and utils.get_os() or "linux"
+if os_name == "windows" then
+  vim.opt.shell = "powershell"
+else
+  vim.opt.shell = "/bin/zsh"
 end
+vim.opt.shellcmdflag = "-c"
+vim.opt.shellquote = ""
+vim.opt.shellxquote = ""
 
-vim.api.nvim_create_user_command("OpenInObsidian", OpenInObsidian, { desc = "opens the current buffer in obsidian" })
+-- Language-specific settings
+vim.g.zig_fmt_parse_errors = 0
 
-vim.api.nvim_create_user_command("FormatDisable", function(_)
-  vim.g.disable_autoformat = true
-end, {
-  desc = "Disable autoformat-on-save",
+-- Diagnostics
+vim.diagnostic.config({
+  virtual_text = false,
+  underline = true,
+  severity_sort = true,
+  update_in_insert = false,
+  float = {
+    border = "single",
+    source = true,
+  },
 })
 
-vim.api.nvim_create_user_command("FormatEnable", function()
-  vim.b.disable_autoformat = false
-  vim.g.disable_autoformat = false
-end, {
-  desc = "Re-enable autoformat-on-save",
-})
-
-vim.api.nvim_command("autocmd VimResized * wincmd =")
+-- Keep diagnostic messages out of the buffer
+vim.api.nvim_set_hl(0, "DiagnosticVirtualTextError", { link = "DiagnosticError" })
+vim.api.nvim_set_hl(0, "DiagnosticVirtualTextWarn", { link = "DiagnosticWarn" })
+vim.api.nvim_set_hl(0, "DiagnosticVirtualTextHint", { link = "DiagnosticHint" })
+vim.api.nvim_set_hl(0, "DiagnosticVirtualTextInfo", { link = "DiagnosticInfo" })
