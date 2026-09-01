@@ -20,8 +20,6 @@ km("n", "<leader>nf", function()
   vim.cmd("edit " .. vim.fn.fnameescape(file))
 end, { desc = "Create new file" })
 
-km("n", "<leader>nb", "<cmd>enew<CR>", { desc = "New empty buffer (:enew)" })
-
 km("n", "<leader>np", function()
   local dir = vim.fn.input("New folder: ", vim.fn.expand("%:p:h") .. "/", "dir")
   if dir ~= "" then
@@ -43,6 +41,8 @@ km("n", "<leader>nk", function()
     print("Deleted: " .. file)
   end
 end, { desc = "Delete current file" })
+
+km("n", "<leader>.", ":pwd<CR>", { desc = "Show current working directory" })
 
 -- Soft delete: moves the file into a trash dir under nvim's own data
 -- path instead of removing it permanently. Complements <leader>nk --

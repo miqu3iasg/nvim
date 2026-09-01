@@ -118,3 +118,22 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.tbl_extend("force", opts, { desc = "Previous item (preview)" }))
   end,
 })
+
+-- Navigation
+km("n", "]q", ":cnext<CR>", { desc = "Next quickfix item" })
+km("n", "[q", ":cprevious<CR>", { desc = "Previous quickfix item" })
+km("n", "]Q", ":clast<CR>", { desc = "Last quickfix item" })
+km("n", "[Q", ":cfirst<CR>", { desc = "First quickfix item" })
+km("n", "]l", ":lnext<CR>", { desc = "Next loclist item" })
+km("n", "[l", ":lprevious<CR>", { desc = "Previous loclist item" })
+km("n", "]L", ":llast<CR>", { desc = "Last loclist item" })
+km("n", "[L", ":lfirst<CR>", { desc = "First loclist item" })
+
+-- Navigation between merge/diff conflict markers
+km({ "n" }, "]=", function()
+  vim.fn.search([[^\(@@ .* @@\|[<=>|]\{7}[<=>|]\@!\)]], "W")
+end, { desc = "Next conflict marker" })
+
+km({ "n" }, "[=", function()
+  vim.fn.search([[^\(@@ .* @@\|[<=>|]\{7}[<=>|]\@!\)]], "bW")
+end, { desc = "Previous conflict marker" })

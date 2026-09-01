@@ -25,6 +25,8 @@ end, { desc = "Close other windows and buffers" })
 km("n", "L", ":bnext<CR>", { desc = "Next buffer/tab" })
 km("n", "H", ":bprevious<CR>", { desc = "Previous buffer/tab" })
 
+km("n", "<leader><Space>", "<C-6>", { desc = "Toggle between last two buffers" })
+
 -- Marks
 -- explicit, even though redundant with native `m` — kept visible here for
 -- discoverability and as a diagnostic data point (just for redundancy, to reinforce)

@@ -15,6 +15,16 @@ km("n", "g#", "g#zzzv", { desc = "Search partial word backward and center cursor
 km("n", "}", "}zz", { desc = "Jump to next paragraph and center cursor" })
 km("n", "{", "{zz", { desc = "Jump to previous paragraph and center cursor" })
 
+-- Highlight the word under the cursor
+km("n", "<leader>hw", function()
+  local word = vim.fn.expand("<cword>")
+  if word == "" then
+    vim.cmd("match none")
+    return
+  end
+  vim.cmd([[match Search /\M\<]] .. word .. [[\>/]])
+end, { desc = "Highlight word under cursor" })
+
 -- Search word/WORD under cursor without jumping (properly escaped for regex-special chars)
 km("n", "<leader>sw", function()
   local word = vim.fn.escape(vim.fn.expand("<cword>"), "\\/.*$^~[]")
@@ -32,7 +42,6 @@ end, { desc = "Search WORD under cursor" })
 km("v", "*", [[y/\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection forward" })
 km("v", "#", [[y?\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection backward" })
 
-km("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 km("n", "<Esc>", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 
 -- Native fuzzy file/buffer finding (options set in options.lua: wildoptions=pum,fuzzy)
@@ -72,21 +81,10 @@ local function sub_prompt(scope, text, use_boundary)
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Left><Left><Left>", true, false, true), "n", false)
 end
 
-km("n", "cu", function()
-  sub_prompt("%s", vim.fn.expand("<cword>"), true)
-end, { desc = "Substitute word in buffer" })
-
-km("n", "cU", function()
-  sub_prompt("%s", vim.fn.expand("<cWORD>"), false)
-end, { desc = "Substitute WORD in buffer" })
-
-km("n", "cd", function()
-  sub_prompt("s", vim.fn.expand("<cword>"), true)
-end, { desc = "Substitute word in line" })
-
-km("n", "cD", function()
-  sub_prompt("s", vim.fn.expand("<cWORD>"), false)
-end, { desc = "Substitute WORD in line" })
+km("n", "cu", function() sub_prompt("%s", vim.fn.expand("<cword>"), true) end, { desc = "Substitute word in buffer" })
+km("n", "cU", function() sub_prompt("%s", vim.fn.expand("<cWORD>"), false) end, { desc = "Substitute WORD in buffer" })
+km("n", "cd", function() sub_prompt("s", vim.fn.expand("<cword>"), true) end, { desc = "Substitute word in line" })
+km("n", "cD", function() sub_prompt("s", vim.fn.expand("<cWORD>"), false) end, { desc = "Substitute WORD in line" })
 
 -- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)
 km("n", "<leader>cn", "*``cgn", { desc = "Change next occurrence of word under cursor (repeat with .)" })
@@ -104,3 +102,21 @@ end, { desc = "Grep word under cursor across project (quickfix)" })
 
 km("n", "<leader>sr", ":cdo s/<C-r><C-w>//gc | update<Left><Left><Left><Left><Left><Left><Left><Left><Left>",
   { desc = "Substitute across all quickfix files" })
+
+-- Grep in the current buffer (loclist)
+km("n", "ZS", function()
+  vim.cmd([[lvimgrep /\M\<]] .. vim.fn.expand("<cword>") .. [[\>/j %]])
+  vim.cmd("lwindow")
+end, { desc = "Grep word under cursor in buffer" })
+
+km("n", "ZD", function()
+  vim.cmd([[lvimgrep /\M]] .. vim.fn.expand("<cWORD>") .. [[/j %]])
+  vim.cmd("lwindow")
+end, { desc = "Grep WORD under cursor in buffer" })
+
+km("n", "ZC", function()
+  local pattern = vim.fn.input("Vimgrep: ")
+  if pattern == "" then return end
+  local ok = pcall(vim.cmd, "lvimgrep /" .. pattern .. "/j %")
+  if ok then vim.cmd("lwindow") else vim.notify("No match: " .. pattern, vim.log.levels.WARN) end
+end, { desc = "Vimgrep in current buffer" })
