@@ -8,6 +8,11 @@ km("n", "<leader>vn", function()
   vim.wo.relativenumber = vim.wo.number
 end, { desc = "Toggle line numbers" })
 
+km("n", "<leader>vr", function()
+  vim.wo.number = true
+  vim.wo.relativenumber = not vim.wo.relativenumber
+end, { desc = "Toggle relative/absolute line numbers" })
+
 km("n", "<leader>vw", function()
   vim.wo.wrap = not vim.wo.wrap
 end, { desc = "Toggle line wrap" })

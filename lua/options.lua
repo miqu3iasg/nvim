@@ -56,8 +56,8 @@ vim.opt.winminheight = 0
 vim.opt.laststatus = 0
 
 -- Display
-vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.number = false
+vim.opt.relativenumber = false
 vim.opt.scrolloff = 15
 vim.opt.cmdheight = 0
 vim.opt.signcolumn = "no"

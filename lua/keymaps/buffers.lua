@@ -25,6 +25,7 @@ end, { desc = "Close other windows and buffers" })
 km("n", "L", ":bnext<CR>", { desc = "Next buffer/tab" })
 km("n", "H", ":bprevious<CR>", { desc = "Previous buffer/tab" })
 
+-- Buffer navigation
 km("n", "<leader><Space>", "<C-6>", { desc = "Toggle between last two buffers" })
 
 -- Marks

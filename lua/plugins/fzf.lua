@@ -4,7 +4,7 @@ return {
   ---@type fzf-lua.Config|{}
   ---@diagnostic disable: missing-fields
   opts = {
-    fzf_colors = false,
+    fzf_colors = true,
     file_icons = false,
     winopts = {
       split = function()
@@ -25,6 +25,7 @@ return {
   },
   ---@diagnostic enable: missing-fields
   keys = {
+    { "<leader>w", "<cmd>FzfLua<cr>",                 desc = "Fzf" },
     { "<leader>i", "<cmd>FzfLua files<cr>",           desc = "Fzf: Files (cwd)" },
     { "<leader>I", "<cmd>FzfLua files cwd=%:p:h<cr>", desc = "Fzf: Files (buffer dir)" },
     { "<leader>u", "<cmd>FzfLua blines<cr>",          desc = "Fzf: Lines (buffer atual)" },

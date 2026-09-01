@@ -10,17 +10,28 @@ local colors = {
   fg_0 = "#3b3b3b",
   fg_1 = "#808080",
   fg_2 = "#b9b9b9",
-  fg_3 = "#ffffff",
+  fg_3 = "#d8d8d8",
+
+  -- cores dedicadas aos line numbers, bem próximas do bg
+  linenr = "#3a3a3a",
+  linenr_cur = "#585858",
+  linenr_above = "#2e2e2e",
+
+  -- cor dedicada às bordas de janela, low contrast contra o bg
+  border = "#2a2a2a",
+
+  -- cor dedicada aos comentários, mais escura e próxima do bg
+  comment = "#4a4a4a",
 
   red = "#d75f5f",
-  green = "#5faf5f",
+  green = "#7a9c7a",
   yellow = "#878700",
   blue = "#5f87ff",
   magenta = "#d787af",
   cyan = "#5fafaf",
 
   br_red = "#ff5f5f",
-  br_green = "#87d787",
+  br_green = "#93b093",
   br_yellow = "#ffd751",
   br_blue = "#5fafff",
   br_magenta = "#d75fd7",
@@ -65,7 +76,7 @@ hi("Cursor", {
 })
 
 hi("CursorLineNr", {
-  fg = colors.fg_2,
+  fg = colors.linenr_cur,
 })
 
 hi("Directory", {
@@ -95,11 +106,11 @@ hi("ErrorMsg", {
 })
 
 hi("LineNr", {
-  fg = colors.fg_2,
+  fg = colors.linenr,
 })
 
 hi("LineNrAbove", {
-  fg = colors.fg_1,
+  fg = colors.linenr_above,
 })
 
 hi("MatchParen", {
@@ -133,7 +144,7 @@ hi("QuickFixLine", {
 })
 
 hi("WarningMsg", {
-  fg = colors.br_yellow,
+  fg = colors.fg_2,
   nocombine = true,
 })
 
@@ -172,7 +183,22 @@ hi("EndOfBuffer", {
 })
 
 hi("VertSplit", {
-  link = "NonText",
+  fg = colors.border,
+  bg = colors.bg,
+})
+
+hi("WinSeparator", {
+  fg = colors.border,
+  bg = colors.bg,
+})
+
+hi("FloatBorder", {
+  fg = colors.border,
+  bg = colors.bg,
+})
+
+hi("NormalFloat", {
+  bg = colors.bg,
 })
 
 hi("Folded", {
@@ -222,7 +248,7 @@ hi("Terminal", {
 -- Completion menu
 hi("Pmenu", {
   bg = colors.bg,
-  fg = colors.blue,
+  fg = colors.fg_2,
   nocombine = true,
 })
 
@@ -340,12 +366,30 @@ hi("Todo", {
 
 hi("Comment", {
   bg = colors.bg,
-  fg = colors.fg_1,
+  fg = colors.comment,
 })
 
 hi("Special", {
   bg = colors.bg,
   fg = colors.fg_2,
+})
+
+-- Pontuação / delimitadores: (){}[];., etc. usam o mesmo branco suave
+-- que o resto do tema, em vez de branco puro
+hi("Delimiter", {
+  fg = colors.fg_3,
+})
+
+hi("@punctuation.bracket", {
+  fg = colors.fg_3,
+})
+
+hi("@punctuation.delimiter", {
+  fg = colors.fg_3,
+})
+
+hi("@punctuation.special", {
+  fg = colors.fg_3,
 })
 
 hi("Link", {
