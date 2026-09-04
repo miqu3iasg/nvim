@@ -19,7 +19,7 @@ require("macros")
 
 utils.color_overrides.setup_colorscheme_overrides()
 
-vim.cmd.colorscheme("burzum")
+vim.cmd.colorscheme("gorgoroth")
 
 utils.fix_telescope_parens_win()
 

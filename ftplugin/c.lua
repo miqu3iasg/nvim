@@ -1,3 +1,4 @@
+-- ftplugin/c.lua
 -- Following the linux kernel coding style.
 -- Ref: https://www.kernel.org/doc/html/v4.10/process/coding-style.html
 --
@@ -30,5 +31,5 @@ vim.opt_local.cinoptions = ":0,l1,t0,g0,(0"
 vim.opt_local.formatoptions:append("croql")
 
 -- Flag trailing whitespace, which coding-style.rst explicitly calls out
-vim.opt_local.list = true
+vim.opt_local.list = false
 vim.opt_local.listchars = "tab:> ,trail:-,extends:>,precedes:<"

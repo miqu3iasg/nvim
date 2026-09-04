@@ -32,6 +32,9 @@ return {
         ["google-java-format"] = {
           prepend_args = { "--skip-javadoc-formatting" },
         },
+        clang_format = {
+          prepend_args = { "--style=file" },
+        },
       },
       format_on_save = function(_)
         if vim.g.disable_autoformat then

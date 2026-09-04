@@ -45,10 +45,8 @@ km("v", "<leader>=", "=gv", { desc = "Indent selection" })
 
 -- Formatting
 km("n", "<leader>k", function()
-  if next(vim.lsp.get_clients({ bufnr = 0 })) then
-    vim.lsp.buf.format({ async = true })
-  end
-end, { desc = "Format buffer (LSP)" })
+  require("conform").format({ async = true, lsp_format = "fallback" })
+end, { desc = "Format buffer (conform, fallback to LSP)" })
 
 -- Editing
 km("n", "J", "mzJ`z", { desc = "Join lines, keep cursor position" })
