@@ -100,6 +100,27 @@ local function build_sol_with_header(_, _)
   return sn(nil, nodes)
 end
 
+-- "ivm" scaffolding (basic #include <stdio.h> + int main) prefixed with the
+-- standard file header. Same idea as build_sol_with_header, but for a plain
+-- main instead of the solve()/main() judge scaffold.
+local function build_ivm_with_header(_, _)
+  local nodes = {
+    d(1, build_header, {}),
+    t({
+      "",
+      "",
+      "#include <stdio.h>",
+      "",
+      "int main(void) {",
+      "    ",
+    }),
+    i(2),
+    t({ "", "", "    return 0;", "}" }),
+  }
+
+  return sn(nil, nodes)
+end
+
 return {
   -- Control flow
 
@@ -342,6 +363,10 @@ return {
     }),
     i(1),
     t({ "", "", "    return 0;", "}" }),
+  }),
+
+  s("ivmh", {
+    d(1, build_ivm_with_header, {}),
   }),
 
   -- Variables

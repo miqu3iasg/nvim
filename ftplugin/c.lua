@@ -17,7 +17,6 @@ vim.opt_local.softtabstop = 8
 -- limit", not a hard cap -- exceeding it is fine when it improves
 -- readability)
 vim.opt_local.textwidth = 80
-vim.opt_local.colorcolumn = "81"
 
 -- Syntax-aware auto-indentation for C (braces, switch/case, etc.).
 -- The kernel doc only ships an official Emacs config for this

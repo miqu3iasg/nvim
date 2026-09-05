@@ -22,8 +22,15 @@ km("n", "<leader>bo", function()
   end
 end, { desc = "Close other windows and buffers" })
 
+-- Buffer navigation: bound to both H/L and Tab/S-Tab intentionally.
+-- H/L are fast, one-handed, and consistent with vim motion muscle memory.
+-- Tab/S-Tab mirror the common editor convention (browser tabs, etc.)
+-- and stay free of the Shift-chord H/L requires. Keeping both gives
+-- flexibility depending on hand position/context, not an oversight.
 km("n", "L", ":bnext<CR>", { desc = "Next buffer/tab" })
 km("n", "H", ":bprevious<CR>", { desc = "Previous buffer/tab" })
+km("n", "<Tab>", ":bnext<CR>", { desc = "Next buffer" })
+km("n", "<S-Tab>", ":bprevious<CR>", { desc = "Previous buffer" })
 
 -- Buffer navigation
 km("n", "<leader><Space>", "<C-6>", { desc = "Toggle between last two buffers" })

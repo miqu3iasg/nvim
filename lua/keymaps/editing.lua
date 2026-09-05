@@ -32,11 +32,6 @@ km("n", "gh", "v^", { desc = "Select to start of line" })
 km("n", "gV", "`[v`]", { desc = "Reselect last changed text" })
 
 -- Indentation
-km("v", "<", "<gv", { desc = "Indent selection left" })
-km("v", ">", ">gv", { desc = "Indent selection right" })
-
-km("n", "<Tab>", ">>", { desc = "Indent line right" })
-km("n", "<S-Tab>", "<<", { desc = "Indent line left" })
 km("v", "<Tab>", ">gv", { desc = "Indent selection right" })
 km("v", "<S-Tab>", "<gv", { desc = "Indent selection left" })
 

@@ -22,9 +22,6 @@ km("n", "<leader>mx", "<C-w>x", { desc = "Swap window with next" })
 -- Rotate all windows, keeping the current layout
 km("n", "<leader>mr", "<C-w>r", { desc = "Rotate windows" })
 
--- Go back to the previously focused window
-km("n", "<leader>mp", "<C-w>p", { desc = "Go to previous window" })
-
 -- Window management
 km("n", "<leader>sv", ":vsplit<CR>", { desc = "Split window vertically" })
 km("n", "<leader>sh", ":split<CR>", { desc = "Split window horizontally" })
