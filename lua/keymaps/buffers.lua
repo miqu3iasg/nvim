@@ -22,29 +22,7 @@ km("n", "<leader>bo", function()
   end
 end, { desc = "Close other windows and buffers" })
 
--- Buffer navigation: bound to both H/L and Tab/S-Tab intentionally.
--- H/L are fast, one-handed, and consistent with vim motion muscle memory.
--- Tab/S-Tab mirror the common editor convention (browser tabs, etc.)
--- and stay free of the Shift-chord H/L requires. Keeping both gives
--- flexibility depending on hand position/context, not an oversight.
-km("n", "L", ":bnext<CR>", { desc = "Next buffer/tab" })
-km("n", "H", ":bprevious<CR>", { desc = "Previous buffer/tab" })
+-- Buffer navigation
 km("n", "<Tab>", ":bnext<CR>", { desc = "Next buffer" })
 km("n", "<S-Tab>", ":bprevious<CR>", { desc = "Previous buffer" })
-
--- Buffer navigation
 km("n", "<leader><Space>", "<C-6>", { desc = "Toggle between last two buffers" })
-
--- Marks
--- explicit, even though redundant with native `m` — kept visible here for
--- discoverability and as a diagnostic data point (just for redundancy, to reinforce)
-km("n", "m", "m", { desc = "Set mark" })
-
--- jump to a named mark, mirrors the gi/gI (lowercase/uppercase variant)
--- convention used in lsp.lua
-km({ "n", "v", "o" }, "gm", "`", { desc = "Jump to mark (exact position)" })
-km({ "n", "v", "o" }, "gM", "'", { desc = "Jump to mark (start of line)" })
-
--- next/previous mark, matching the [e / ]e bracket convention used for diagnostics
-km("n", "]m", "]`", { desc = "Jump to next mark" })
-km("n", "[m", "[`", { desc = "Jump to previous mark" })

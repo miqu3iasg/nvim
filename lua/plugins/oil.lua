@@ -1,18 +1,23 @@
 return {
   "stevearc/oil.nvim",
   -- enabled = false,
-  dependencies = {
-    "refractalize/oil-git-status.nvim",
-  },
+  -- dependencies = {
+  --   "refractalize/oil-git-status.nvim",
+  -- },
   config = function()
     local oil = require("oil")
     local detail = false
     oil.setup({
       default_file_explorer = true,
       columns = {
+        "type",
         "permissions",
         "size",
-        { "mtime", format = "%d/%m %H:%M" },
+        { "mtime",     format = "%d/%m %H:%M" },
+        { "ctime",     format = "%d/%m %H:%M" },
+        { "birthtime", format = "%d/%m %H:%M" },
+        "user",
+        "group",
       },
       keymaps = {
         ["<C-h>"] = "actions.parent",
@@ -30,21 +35,6 @@ return {
           },
         },
         ["q"] = "actions.close",
-        ["gd"] = {
-          desc = "Toggle file detail view",
-          callback = function()
-            detail = not detail
-            if detail then
-              oil.set_columns({
-                "permissions",
-                "size",
-                { "mtime", format = "%d/%m %H:%M" },
-              })
-            else
-              oil.set_columns({})
-            end
-          end,
-        },
       },
       delete_to_trash = true,
       view_options = {
@@ -60,7 +50,7 @@ return {
         relativenumber = false,
       },
     })
-    require("oil-git-status").setup()
+    -- require("oil-git-status").setup()
 
     -- Open parent directory
     vim.keymap.set("n", "go", "<CMD>Oil<CR>", {
@@ -93,7 +83,7 @@ return {
     vim.api.nvim_create_autocmd("FileType", {
       pattern = "oil",
       callback = function()
-        vim.opt_local.cursorline = true
+        vim.opt_local.cursorline = false
       end,
     })
   end,

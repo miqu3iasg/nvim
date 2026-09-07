@@ -155,16 +155,16 @@ return {
         },
 
         -- Show the completion menu manually.
-        ["<C-space>"] = {
+        ["<C-g>"] = {
           "show",
           "fallback",
         },
 
         -- Some terminals send <C-space> as <C-@>.
-        ["<C-@>"] = {
-          "show",
-          "fallback",
-        },
+        -- ["<C-@>"] = {
+        --   "show",
+        --   "fallback",
+        -- },
 
         -- -- Backup manual trigger.
         -- ["<C-j>"] = {

@@ -53,7 +53,7 @@ vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.winminwidth = 0
 vim.opt.winminheight = 0
-vim.opt.laststatus = 0
+vim.opt.laststatus = 2
 
 -- Display
 vim.opt.number = false
@@ -62,6 +62,8 @@ vim.opt.scrolloff = 15
 vim.opt.cmdheight = 0
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
+vim.opt.title = true
+vim.opt.titlestring = "%t"
 vim.opt.fillchars = { eob = " " }
 vim.opt.shortmess:append("acFWIS")
 vim.opt.display:append("lastline")

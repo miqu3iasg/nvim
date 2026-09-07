@@ -21,6 +21,26 @@ function M.zenbones_theme_overrides()
   vim.api.nvim_set_hl(0, "LineNr", { fg = "#d6d2c8" })
 end
 
+function M.fogbell_theme_overrides()
+  local hl = vim.api.nvim_set_hl
+  local statusbar_bg = "#000000"
+
+  -- fundo transparente (usa o bg do terminal)
+  hl(0, "Normal", { bg = "none" })
+  hl(0, "NormalNC", { bg = "none" })
+  hl(0, "NormalFloat", { bg = "none" })
+  hl(0, "EndOfBuffer", { bg = "none" })
+  hl(0, "SignColumn", { bg = "none" })
+  hl(0, "FoldColumn", { bg = "none" })
+  hl(0, "LineNr", { bg = "none" })
+  hl(0, "LineNrAbove", { bg = "none" })
+  hl(0, "LineNrBelow", { bg = "none" })
+
+  -- status bar com fundo sólido
+  hl(0, "StatusLine", { bg = statusbar_bg })
+  hl(0, "StatusLineNC", { bg = statusbar_bg })
+end
+
 function M.cosec_twilight_overrides()
   local hl = vim.api.nvim_set_hl
 
@@ -166,12 +186,8 @@ function M.setup_colorscheme_overrides()
       if colorscheme == nil then
         return
       end
-      if string.find(colorscheme, "base16") then
-        if string.find(colorscheme, "metal") then
-          M.black_metal_theme_overrides()
-        end
-        M.my_line_colors()
-      elseif colorscheme == "zenburn" then
+
+      if colorscheme == "zenburn" then
         M.my_line_colors()
       elseif colorscheme == "zenbones" then
         M.zenbones_theme_overrides()
@@ -179,6 +195,8 @@ function M.setup_colorscheme_overrides()
         -- M.cosec_twilight_overrides()
       elseif colorscheme == "oscura" then
         M.oscura_theme_overrides()
+      elseif colorscheme:match("^fogbell") then
+        M.fogbell_theme_overrides()
       end
     end,
   })

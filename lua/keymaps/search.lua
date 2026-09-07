@@ -1,10 +1,13 @@
+-- keymaps/search.lua
 local km = vim.keymap.set
 
--- Search and scrolling (centered)
+-- Scrolling, centered on cursor
 km("n", "<C-d>", "<C-d>zz", { desc = "Scroll down and center cursor" })
 km("n", "<C-u>", "<C-u>zz", { desc = "Scroll up and center cursor" })
 km("n", "<C-f>", "<C-f>zz", { desc = "Page down and center cursor" })
 km("n", "<C-b>", "<C-b>zz", { desc = "Page up and center cursor" })
+
+-- Search navigation, centered on match
 -- zv makes sure the match is also unfolded, not just centered
 km("n", "n", "nzzzv", { desc = "Next search result, center cursor and open fold" })
 km("n", "N", "Nzzzv", { desc = "Previous search result, center cursor and open fold" })
@@ -25,6 +28,7 @@ km("n", "<leader>hw", function()
   vim.cmd([[match Search /\M\<]] .. word .. [[\>/]])
 end, { desc = "Highlight word under cursor" })
 
+-- Word search
 -- Search word/WORD under cursor without jumping (properly escaped for regex-special chars)
 km("n", "<leader>sw", function()
   local word = vim.fn.escape(vim.fn.expand("<cword>"), "\\/.*$^~[]")
@@ -42,16 +46,32 @@ end, { desc = "Search WORD under cursor" })
 km("v", "*", [[y/\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection forward" })
 km("v", "#", [[y?\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection backward" })
 
+-- Grep word under cursor across project (quickfix)
+-- Requires ripgrep and: vim.o.grepprg = "rg --vimgrep --smart-case"
+km("n", "<leader>sg", function()
+  local word = vim.fn.expand("<cword>")
+  if word == "" then
+    return
+  end
+  vim.cmd("silent grep! " .. vim.fn.shellescape(word))
+  vim.cmd("copen")
+end, { desc = "Grep word under cursor across project (quickfix)" })
+
+-- Substitute across all quickfix files (pairs with <leader>sg above)
+km("n", "<leader>sr", ":cdo s/<C-r><C-w>//gc | update<Left><Left><Left><Left><Left><Left><Left><Left><Left>",
+  { desc = "Substitute across all quickfix files" })
+
 km("n", "<Esc>", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 
+-- File/buffer finding and content search (leader+q)
 -- Native fuzzy file/buffer finding (options set in options.lua: wildoptions=pum,fuzzy)
 -- Grouped under <leader>q ("quick") — free in the user's keymap, unlike f/o/b/sv/sc
 km("n", "<leader>qf", ":find ", { desc = "Find file (fuzzy, native)" })
 km("n", "<leader>qb", ":b ", { desc = "Find buffer (fuzzy, native)" })
 
--- Native content search across files (no ripgrep dependency, unlike <leader>sg below)
+-- Native content search across files (no ripgrep dependency, unlike <leader>qg below)
 km("n", "<leader>qs", function()
-  local pattern = vim.fn.input("grep: ")
+  local pattern = vim.fn.input("/ ")
   if pattern == "" then
     return
   end
@@ -64,6 +84,22 @@ km("n", "<leader>qs", function()
   end
   vim.cmd("copen")
 end, { desc = "Search file contents (native vimgrep)" })
+
+-- Grep arbitrary typed text across the whole project (ripgrep, quickfix)
+km("n", "<leader>qg", function()
+  if vim.fn.executable("rg") == 0 then
+    vim.notify("ripgrep (rg) not found in PATH", vim.log.levels.ERROR)
+    return
+  end
+
+  local pattern = vim.fn.input("/ ")
+  if pattern == "" then
+    return
+  end
+
+  vim.cmd("silent grep! " .. vim.fn.shellescape(pattern))
+  vim.cmd("copen")
+end, { desc = "Grep typed text across project (quickfix)" })
 
 -- Substitution (word/WORD, buffer-wide/line-wide)
 -- Rebuilt in Lua so the word/WORD is escaped before it ever reaches the
@@ -89,21 +125,7 @@ km("n", "cD", function() sub_prompt("s", vim.fn.expand("<cWORD>"), false) end, {
 -- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)
 km("n", "<leader>cn", "*``cgn", { desc = "Change next occurrence of word under cursor (repeat with .)" })
 
--- Project-wide search & replace via quickfix
--- Requires ripgrep and: vim.o.grepprg = "rg --vimgrep --smart-case"
-km("n", "<leader>sg", function()
-  local word = vim.fn.expand("<cword>")
-  if word == "" then
-    return
-  end
-  vim.cmd("silent grep! " .. vim.fn.shellescape(word))
-  vim.cmd("copen")
-end, { desc = "Grep word under cursor across project (quickfix)" })
-
-km("n", "<leader>sr", ":cdo s/<C-r><C-w>//gc | update<Left><Left><Left><Left><Left><Left><Left><Left><Left>",
-  { desc = "Substitute across all quickfix files" })
-
--- Grep in the current buffer (loclist)
+-- Buffer-local search (loclist), mirrors the project-wide qs/qg pair above
 km("n", "ZS", function()
   vim.cmd([[lvimgrep /\M\<]] .. vim.fn.expand("<cword>") .. [[\>/j %]])
   vim.cmd("lwindow")
@@ -115,7 +137,7 @@ km("n", "ZD", function()
 end, { desc = "Grep WORD under cursor in buffer" })
 
 km("n", "ZC", function()
-  local pattern = vim.fn.input("Vimgrep: ")
+  local pattern = vim.fn.input("/ ")
   if pattern == "" then return end
   local ok = pcall(vim.cmd, "lvimgrep /" .. pattern .. "/j %")
   if ok then vim.cmd("lwindow") else vim.notify("No match: " .. pattern, vim.log.levels.WARN) end

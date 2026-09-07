@@ -1,7 +1,7 @@
 local M = {}
 
 -- Leader keys
--- must be set before any <leader>-based mapping below is created
+-- must be set before any <leader> - based mapping below is created
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 
@@ -15,5 +15,6 @@ require("keymaps.buffers")
 require("keymaps.terminal")
 require("keymaps.files")
 require("keymaps.misc")
+require("keymaps.marks")
 
 return M

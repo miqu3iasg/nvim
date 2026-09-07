@@ -38,15 +38,10 @@ km("n", "<leader>so", function()
 end, { desc = "Save and close other windows" })
 
 -- Window resizing
-km("n", "<C-Up>", "<cmd>resize +5<cr>", { desc = "Increase Window Height" })
-km("n", "<C-Down>", "<cmd>resize -5<cr>", { desc = "Decrease Window Height" })
-km("n", "<C-Left>", "<cmd>vertical resize -5<cr>", { desc = "Decrease Window Width" })
-km("n", "<C-Right>", "<cmd>vertical resize +5<cr>", { desc = "Increase Window Width" })
-
 km("n", "+", "<cmd>resize +5<cr>", { desc = "Increase window height" })
-km("n", "-", "<cmd>resize -5<cr>", { desc = "Decrease window height" })
-km("n", "<", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
-km("n", ">", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
+km("n", "_", "<cmd>resize -5<cr>", { desc = "Decrease window height" })
+km("n", "=", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
+km("n", "-", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
 
 -- Zoom window (toggle between maximized and original size)
 km("n", "<leader>z", function()
