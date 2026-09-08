@@ -20,13 +20,21 @@ km("n", "{", "{zz", { desc = "Jump to previous paragraph and center cursor" })
 
 -- Highlight the word under the cursor
 km("n", "<leader>hw", function()
-  local word = vim.fn.expand("<cword>")
-  if word == "" then
-    vim.cmd("match none")
-    return
-  end
-  vim.cmd([[match Search /\M\<]] .. word .. [[\>/]])
-end, { desc = "Highlight word under cursor" })
+    local word = vim.fn.expand("<cword>")
+
+    if word == "" then
+      vim.cmd("match none")
+      return
+    end
+
+    local pattern = [[\M\<]] .. word .. [[\>]]
+
+    vim.cmd([[match CwordHighlight /]] .. pattern .. [[/]])
+    vim.fn.setreg("/", pattern)
+    vim.opt.hlsearch = true
+  end,
+  { desc = "Highlight word under cursor" }
+)
 
 -- Word search
 -- Search word/WORD under cursor without jumping (properly escaped for regex-special chars)
@@ -61,7 +69,10 @@ end, { desc = "Grep word under cursor across project (quickfix)" })
 km("n", "<leader>sr", ":cdo s/<C-r><C-w>//gc | update<Left><Left><Left><Left><Left><Left><Left><Left><Left>",
   { desc = "Substitute across all quickfix files" })
 
-km("n", "<Esc>", ":nohlsearch<CR>", { desc = "Clear search highlight" })
+km("n", "zh", function()
+  vim.cmd("match none")
+  vim.cmd("nohlsearch")
+end, { desc = "Clear search highlights" })
 
 -- File/buffer finding and content search (leader+q)
 -- Native fuzzy file/buffer finding (options set in options.lua: wildoptions=pum,fuzzy)

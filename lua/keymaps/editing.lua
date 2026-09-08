@@ -34,6 +34,7 @@ km("n", "<leader>k", function()
   require("conform").format({ async = true, lsp_format = "fallback" })
 end, { desc = "Format buffer (conform, fallback to LSP)" })
 
+
 -- Editing
 km("n", "J", "mzJ`z", { desc = "Join lines, keep cursor position" })
 km("n", "Y", "y$", { desc = "Yank to end of line" })
@@ -62,7 +63,7 @@ km("n", "gx", function()
   vim.ui.open(url)
 end, { desc = "Open URL under cursor" })
 
--- Insert mode: line/word/char navigation and identation
+-- Insert mode line/word/char navigation and identation
 km("i", "<C-a>", "<Home>", { desc = "Go to beginning of line" })
 km("i", "<C-e>", "<End>", { desc = "Go to end of line" })
 km("i", "<C-b>", "<Left>", { desc = "Move char backward" })

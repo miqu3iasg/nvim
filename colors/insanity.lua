@@ -20,6 +20,9 @@ local colors = {
   -- cor dedicada às bordas de janela, low contrast contra o bg
   border = "#2a2a2a",
 
+  -- cor dedicada ao highlight da linha atual, bem próxima do bg
+  cursorline = "#0d0d0d",
+
   -- cor dedicada aos comentários, mais escura e próxima do bg
   comment = "#4a4a4a",
 
@@ -167,7 +170,7 @@ hi("CursorColumn", {
 })
 
 hi("CursorLine", {
-  link = "ColorColumn",
+  bg = colors.cursorline,
 })
 
 hi("CursorLineFold", {

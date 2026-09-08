@@ -39,7 +39,6 @@ km("n", "<leader>vd", function()
   vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, { desc = "Toggle diagnostics" })
 
-km("n", "<leader>vh", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 
 -- Misc
 km("n", "<leader>rl", ":source $MYVIMRC<CR>", { desc = "Reload nvim config" })

@@ -108,12 +108,4 @@ return {
       return {}
     end,
   },
-
-  -- vim-maximizer: toggle zoom on the current split
-  {
-    "szw/vim-maximizer",
-    keys = {
-      { "<leader>sm", "<cmd>MaximizerToggle<cr>", desc = "Toggle zoom split" },
-    },
-  },
 }
