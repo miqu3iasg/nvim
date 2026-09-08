@@ -39,7 +39,6 @@ km("n", "<leader>vd", function()
   vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, { desc = "Toggle diagnostics" })
 
-
 -- Misc
 km("n", "<leader>rl", ":source $MYVIMRC<CR>", { desc = "Reload nvim config" })
 km("n", "<leader>re", "<cmd>restart<cr>", { desc = "Restart Neovim (:restart)" })

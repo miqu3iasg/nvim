@@ -18,23 +18,15 @@ km("n", "g#", "g#zzzv", { desc = "Search partial word backward and center cursor
 km("n", "}", "}zz", { desc = "Jump to next paragraph and center cursor" })
 km("n", "{", "{zz", { desc = "Jump to previous paragraph and center cursor" })
 
--- Highlight the word under the cursor
-km("n", "<leader>hw", function()
-    local word = vim.fn.expand("<cword>")
+-- Search visual selection
+km("v", "*", [[y/\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection forward" })
+km("v", "#", [[y?\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection backward" })
 
-    if word == "" then
-      vim.cmd("match none")
-      return
-    end
-
-    local pattern = [[\M\<]] .. word .. [[\>]]
-
-    vim.cmd([[match CwordHighlight /]] .. pattern .. [[/]])
-    vim.fn.setreg("/", pattern)
-    vim.opt.hlsearch = true
-  end,
-  { desc = "Highlight word under cursor" }
-)
+-- Clears all searching selections, as well as match and hlsearch selections.
+km("n", "zh", function()
+  vim.cmd("match none")
+  vim.cmd("nohlsearch")
+end, { desc = "Clear search highlights" })
 
 -- Word search
 -- Search word/WORD under cursor without jumping (properly escaped for regex-special chars)
@@ -50,10 +42,6 @@ km("n", "<leader>sW", function()
   vim.o.hlsearch = true
 end, { desc = "Search WORD under cursor" })
 
--- Search visual selection
-km("v", "*", [[y/\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection forward" })
-km("v", "#", [[y?\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection backward" })
-
 -- Grep word under cursor across project (quickfix)
 -- Requires ripgrep and: vim.o.grepprg = "rg --vimgrep --smart-case"
 km("n", "<leader>sg", function()
@@ -68,11 +56,6 @@ end, { desc = "Grep word under cursor across project (quickfix)" })
 -- Substitute across all quickfix files (pairs with <leader>sg above)
 km("n", "<leader>sr", ":cdo s/<C-r><C-w>//gc | update<Left><Left><Left><Left><Left><Left><Left><Left><Left>",
   { desc = "Substitute across all quickfix files" })
-
-km("n", "zh", function()
-  vim.cmd("match none")
-  vim.cmd("nohlsearch")
-end, { desc = "Clear search highlights" })
 
 -- File/buffer finding and content search (leader+q)
 -- Native fuzzy file/buffer finding (options set in options.lua: wildoptions=pum,fuzzy)
@@ -135,6 +118,24 @@ km("n", "cD", function() sub_prompt("s", vim.fn.expand("<cWORD>"), false) end, {
 
 -- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)
 km("n", "<leader>cn", "*``cgn", { desc = "Change next occurrence of word under cursor (repeat with .)" })
+
+-- Highlight the word under the cursor
+km("n", "<leader>hw", function()
+    local word = vim.fn.expand("<cword>")
+
+    if word == "" then
+      vim.cmd("match none")
+      return
+    end
+
+    local pattern = [[\M\<]] .. word .. [[\>]]
+
+    vim.cmd([[match CwordHighlight /]] .. pattern .. [[/]])
+    vim.fn.setreg("/", pattern)
+    vim.opt.hlsearch = true
+  end,
+  { desc = "Highlight word under cursor" }
+)
 
 -- Buffer-local search (loclist), mirrors the project-wide qs/qg pair above
 km("n", "ZS", function()
