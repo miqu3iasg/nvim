@@ -623,6 +623,12 @@ return {
     t(")"),
   }),
 
+  s("printf", {
+    t('print(f"{'),
+    i(1, "variable"),
+    t('}")'),
+  }),
+
   s("pprint", {
     t("from pprint import pprint"),
     t({ "", "pprint(" }),

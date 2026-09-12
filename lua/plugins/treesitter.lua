@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/treesitter.lua
 ---@module "lazy"
 ---@type LazySpec
 return {

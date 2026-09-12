@@ -1,3 +1,5 @@
+--/home/miqu3iasg/.config/nvim/lua/options.lua
+
 -- General behavior
 vim.g.netrw_banner = 0
 vim.opt.hidden = true
@@ -53,7 +55,7 @@ vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.winminwidth = 0
 vim.opt.winminheight = 0
-vim.opt.laststatus = 2
+vim.opt.laststatus = 1
 
 -- Display
 vim.opt.number = false

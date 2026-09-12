@@ -1,4 +1,3 @@
--- telescope.nvim
 return {
   {
     "nvim-telescope/telescope.nvim",
@@ -11,20 +10,29 @@ return {
       },
     },
     config = function()
+      local action_layout = require("telescope.actions.layout")
+
       require("telescope").setup({
         defaults = {
-          preview = {
-            treesitter = false,
+          layout_strategy = "horizontal",
+          layout_config = {
+            horizontal = {
+              anchor = "S",            -- "S" = South, ancora na parte de baixo da tela
+              height = 0.3,            -- 30% da altura do nvim (ajuste à vontade)
+              width = { padding = 0 },
+              preview_width = 0.5,     -- preview ocupa a metade direita quando ativado
+              prompt_position = "top", -- input embaixo, resultados em cima
+            },
           },
-          border = {
-            prompt = { 1, 1, 1, 1 },
-            results = { 1, 1, 1, 1 },
-            preview = { 1, 1, 1, 1 },
-          },
-          borderchars = {
-            prompt = { " ", " ", "─", "│", "│", " ", "─", "└" },
-            results = { "─", " ", " ", "│", "┌", "─", " ", "│" },
-            preview = { "─", "│", "─", "│", "┬", "┐", "┘", "┴" },
+          preview = false, -- preview desativado por padrão
+          border = true,   -- remove bordas e setas
+          mappings = {
+            i = {
+              ["<C-p>"] = action_layout.toggle_preview, -- Alt+p no modo insert
+            },
+            n = {
+              ["<C-p>"] = action_layout.toggle_preview, -- Alt+p no modo normal
+            },
           },
         },
         extensions = {

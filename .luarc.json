@@ -3,7 +3,8 @@
         "vim",
         "get_python_path",
         "listDiagnostics",
-        "leave_snippet"
+        "leave_snippet",
+        "require"
     ],
     "diagnostics.disable": [
         "undefined-field",

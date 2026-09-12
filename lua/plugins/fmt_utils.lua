@@ -11,48 +11,6 @@ return {
     end,
   },
 
-  -- nvim-autopairs: auto-closes brackets, quotes, etc. while typing
-  {
-    "windwp/nvim-autopairs",
-    event = { "InsertEnter" },
-    config = function()
-      local autopairs = require("nvim-autopairs")
-      autopairs.setup({
-        enable_check_bracket_line = false, -- don't check for existing closing char on the same line
-        enable_afterquote = false,         -- don't add pairs right after a quote
-        check_ts = true,                   -- use treesitter to decide when to pair
-        ts_config = {
-          lua = { "string" },              -- don't add pairs inside lua string treesitter nodes
-          java = false,                    -- don't check treesitter on java
-        },
-      })
-    end,
-  },
-
-  -- mini.surround: add/delete/replace surrounding characters (quotes, brackets, tags)
-  {
-    "echasnovski/mini.surround",
-    opts = {
-      custom_surroundings = nil,
-      highlight_duration = 500,
-      mappings = {
-        add = "sa",            -- Add surrounding in Normal and Visual modes
-        delete = "sd",         -- Delete surrounding
-        find = "sf",           -- Find surrounding (to the right)
-        find_left = "sF",      -- Find surrounding (to the left)
-        highlight = "sh",      -- Highlight surrounding
-        replace = "sr",        -- Replace surrounding
-        update_n_lines = "sn", -- Update `n_lines`
-        suffix_last = "l",     -- Suffix to search with "prev" method
-        suffix_next = "n",     -- Suffix to search with "next" method
-      },
-      n_lines = 20,
-      respect_selection_type = false,
-      search_method = "cover",
-      silent = false,
-    },
-  },
-
   -- nvim-colorizer.lua: highlights color codes (hex, rgb, etc.) with their actual color
   {
     "norcalli/nvim-colorizer.lua",

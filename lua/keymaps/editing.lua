@@ -1,3 +1,5 @@
+-- /home/miqu3iasg/.config/nvim/lua/keymaps/editing.lua
+
 local km = vim.keymap.set
 
 -- Move line/selection up/down
@@ -45,8 +47,6 @@ km("v", "p", '"_dP', { desc = "Paste over selection without losing the yank regi
 km({ "n", "v" }, "x", '"_x', { desc = "Delete char without yanking" })
 km({ "n" }, "X", '"_X', { desc = "Delete char before cursor without yanking" })
 km({ "n", "v" }, "c", '"_c', { desc = "Change without overwriting yank register" })
-km({ "n", "v" }, "d", '"_d', { desc = "Delete without yanking" })
-km({ "n" }, "D", '"_D', { desc = "Delete to end of line without yanking" })
 
 -- Clipboard
 km({ "n", "v" }, "<leader>y", '"+y', { desc = "Yank to system clipboard" })

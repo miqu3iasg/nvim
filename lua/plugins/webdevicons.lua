@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/webdevicons.lua
 return {
   "nvim-tree/nvim-web-devicons",
   enabled = false,

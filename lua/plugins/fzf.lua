@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/fzf.lua
 return {
   "ibhagwan/fzf-lua",
   ---@module "fzf-lua"
@@ -16,7 +17,6 @@ return {
         vim.wo.relativenumber = false
         vim.wo.signcolumn = "no"
         vim.wo.statuscolumn = ""
-        vim.o.laststatus = 0
         vim.api.nvim_create_autocmd("BufWinLeave", {
           buffer = 0,
           once = true,
@@ -45,12 +45,13 @@ return {
     { "<leader>w",  "<cmd>FzfLua<cr>",                 desc = "Fzf" },
     { "<leader>i",  "<cmd>FzfLua files<cr>",           desc = "Fzf: Files (cwd)" },
     { "<leader>I",  "<cmd>FzfLua files cwd=%:p:h<cr>", desc = "Fzf: Files (buffer dir)" },
-    { "<leader>l",  "<cmd>FzfLua oldfiles<cr>",        desc = "Fzf: Recent files" },
+    { "<leader>D",  "<cmd>FzfLua oldfiles<cr>",        desc = "Fzf: Recent files" },
+    { "<leader>Z",  "<cmd>FzfLua zoxide<cr>",          desc = "Fzf: Zoxide" },
     { "<leader>O",  "<cmd>FzfLua live_grep<cr>",       desc = "Fzf: Grep (cwd)" },
     { "<leader>o",  "<cmd>FzfLua grep_cword<cr>",      desc = "Fzf: Grep word under cursor" },
     { "<leader>u",  "<cmd>FzfLua blines<cr>",          desc = "Fzf: Lines (current buffer)" },
     { "<leader>U",  "<cmd>FzfLua lines<cr>",           desc = "Fzf: Lines (all buffers)" },
-    { "<leader>m",  "<cmd>FzfLua marks<cr>",           desc = "Fzf: Marks" },
+    { "<leader>M",  "<cmd>FzfLua marks<cr>",           desc = "Fzf: Marks" },
     { "<leader>gs", "<cmd>FzfLua git_status<cr>",      desc = "Fzf: Git status" },
     { "<leader>gc", "<cmd>FzfLua git_commits<cr>",     desc = "Fzf: Git commits" },
     { "<leader>gb", "<cmd>FzfLua git_branches<cr>",    desc = "Fzf: Git branches" },

@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/colors/insanity.lua
 local M = {}
 
 vim.cmd("highlight clear")
@@ -291,21 +292,10 @@ hi("MessageWindow", {
 })
 
 -- Spell checking
-hi("SpellBad", {
-  fg = colors.br_red,
-})
-
-hi("SpellCap", {
-  fg = colors.magenta,
-})
-
-hi("SpellLocal", {
-  link = "Normal",
-})
-
-hi("SpellRare", {
-  link = "Normal",
-})
+hi("SpellBad", {})
+hi("SpellCap", {})
+hi("SpellLocal", { link = "Normal" })
+hi("SpellRare", { link = "Normal" })
 
 -- Status line
 hi("StatusLine", {

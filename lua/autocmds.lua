@@ -1,3 +1,5 @@
+--/home/miqu3iasg/.config/nvim/lua/autocmds.lua
+
 -- Update the location list when diagnostics change
 vim.api.nvim_create_autocmd("DiagnosticChanged", {
   callback = function()
@@ -14,19 +16,28 @@ vim.api.nvim_create_autocmd("VimResized", {
   end,
 })
 
--- Spell check for LaTeX
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "tex",
-  callback = function()
-    vim.cmd("setlocal spell spelllang=en_us")
-  end,
-})
-
 -- Highlight yanked text
 vim.api.nvim_create_autocmd("TextYankPost", {
   desc = "Highlight yanked text",
   callback = function()
     vim.hl.on_yank()
+  end,
+})
+
+-- Open Oil automatically when nvim is launched with no file argument
+vim.api.nvim_create_augroup("OilOnStartup", { clear = true })
+vim.api.nvim_create_autocmd("VimEnter", {
+  group = "OilOnStartup",
+  nested = true,
+  callback = function()
+    vim.schedule(function()
+      local argc = vim.fn.argc()
+      if argc == 0 then
+        require("oil").open()
+      elseif argc == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
+        require("oil").open(vim.fn.argv(0))
+      end
+    end)
   end,
 })
 
@@ -88,9 +99,6 @@ vim.api.nvim_create_autocmd("FileType", {
     -- Spell check
     vim.opt_local.spell = true
     vim.opt_local.spelllang = { "pt_br", "en_us" }
-    -- Required for render-markdown.nvim to hide raw markdown syntax
-    vim.opt_local.conceallevel = 2
-    vim.opt_local.concealcursor = "nc"
     -- Cleaner reading view: no line numbers or sign column
     vim.opt_local.number = false
     vim.opt_local.relativenumber = false
@@ -113,6 +121,63 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("BufLeave", {
   group = "MarkdownWriting",
   pattern = { "*.md", "*.markdown" },
+  callback = function()
+    if vim.g.no_neck_pain_enabled then
+      require("no-neck-pain").disable()
+      vim.g.no_neck_pain_enabled = false
+    end
+  end,
+})
+
+-- LaTeX writing setup, mirroring MarkdownWriting above (wrap,
+-- conceallevel, readable width via no-neck-pain, gj/gk movement).
+-- Also replaces the old standalone "spell check for tex" autocmd,
+-- since spell is set here now.
+vim.api.nvim_create_augroup("LatexWriting", { clear = true })
+vim.api.nvim_create_autocmd("FileType", {
+  group = "LatexWriting",
+  pattern = { "tex" },
+  callback = function(event)
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true
+    vim.opt_local.breakindent = true
+    vim.opt_local.showbreak = "  "
+    -- Spell check
+    vim.opt_local.spell = true
+    vim.opt_local.spelllang = "en_us"
+    -- Required for vimtex's own concealment (accents, greek, etc.)
+    vim.opt_local.conceallevel = 2
+    vim.opt_local.concealcursor = "nc"
+    -- Cleaner reading view: no line numbers or sign column
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.signcolumn = "no"
+    -- Move by visual line instead of physical line (better with wrap)
+    vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { buffer = event.buf, expr = true })
+    vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { buffer = event.buf, expr = true })
+
+    -- LaTeX group under <leader>x: compile, view, TOC, stop, clean.
+    -- Registered here (not in latex.lua) so which-key sees it as soon
+    -- as the buffer's FileType fires, same as the other groups above.
+    local wk_ok, wk = pcall(require, "which-key")
+    if wk_ok then
+      wk.add({ { "<leader>x", group = "LaTeX", buffer = event.buf } })
+    end
+
+    local map = function(lhs, rhs, desc)
+      vim.keymap.set("n", lhs, rhs, { buffer = event.buf, silent = true, desc = desc })
+    end
+    map("<leader>xc", "<cmd>VimtexCompile<cr>", "Compile (continuous)")
+    map("<leader>xv", "<cmd>VimtexView<cr>", "View PDF")
+    map("<leader>xt", "<cmd>VimtexTocToggle<cr>", "Table of contents")
+    map("<leader>xs", "<cmd>VimtexStop<cr>", "Stop compilation")
+    map("<leader>xk", "<cmd>VimtexClean<cr>", "Clean aux files")
+  end,
+})
+
+vim.api.nvim_create_autocmd("BufLeave", {
+  group = "LatexWriting",
+  pattern = { "*.tex" },
   callback = function()
     if vim.g.no_neck_pain_enabled then
       require("no-neck-pain").disable()

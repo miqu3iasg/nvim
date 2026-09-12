@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/colorscheme.lua
 return {
   { "vim-scripts/newsprint.vim" },
   { "slugbyte/lackluster.nvim", },

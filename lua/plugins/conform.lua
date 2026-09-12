@@ -1,7 +1,7 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/conform.lua
 return {
   "stevearc/conform.nvim",
   config = function()
-    vim.g.disable_autoformat = false
     require("conform").setup({
       formatters_by_ft = {
         purescript = { "purstidy", stop_after_first = true },
@@ -10,23 +10,24 @@ return {
         python = { "ruff_format" },
         rust = { "rustfmt" },
         java = { "google-java-format" },
-        javascript = { "prettier", stop_after_first = true },
-        javascriptreact = { "prettier", stop_after_first = true },
-        typescript = { "prettier", stop_after_first = true },
-        typescriptreact = { "prettier", stop_after_first = true },
+        javascript = { "prettierd", "prettier", stop_after_first = true },
+        javascriptreact = { "prettierd", "prettier", stop_after_first = true },
+        typescript = { "prettierd", "prettier", stop_after_first = true },
+        typescriptreact = { "prettierd", "prettier", stop_after_first = true },
         astro = { "astro", stop_after_first = true },
         go = { "gofumpt", "golines", "goimports-reviser" },
         c = { "clang_format" },
         cpp = { "clang_format" },
         haskell = { "fourmolu" },
         yaml = { "yamlfmt" },
-        html = { "prettier" },
-        json = { "prettier" },
-        markdown = { "prettier" },
+        html = { "prettierd", "prettier", stop_after_first = true },
+        json = { "prettierd", "prettier", stop_after_first = true },
+        markdown = { "prettierd", "prettier", stop_after_first = true },
         gleam = { "gleam" },
         asm = { "asmfmt" },
-        css = { "prettier", stop_after_first = true },
-        fennel = { "fnlfmt" }
+        css = { "prettierd", "prettier", stop_after_first = true },
+        fennel = { "fnlfmt" },
+        tex = { "latexindent" },
       },
       formatters = {
         ["google-java-format"] = {
@@ -36,25 +37,10 @@ return {
           prepend_args = { "--style=file" },
         },
       },
-      format_on_save = function(_)
-        if vim.g.disable_autoformat then
-          return
-        end
-        return {
-          timeout_ms = 500,
-          lsp_format = "fallback",
-        }
-      end,
-    })
-
-    vim.api.nvim_create_autocmd("BufWritePre", {
-      pattern = "*",
-      callback = function(args)
-        if vim.g.disable_autoformat then
-          return
-        end
-        require("conform").format({ bufnr = args.buf })
-      end,
+      format_on_save = {
+        timeout_ms = 500,
+        lsp_format = "fallback",
+      },
     })
   end,
 }

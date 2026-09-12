@@ -1,5 +1,5 @@
--- ~/.config/nvim/ftplugin/markdown.lua
---
+-- /home/miqu3iasg/.config/nvim/ftplugin/markdown.lua
+
 -- Keymaps that exist only in markdown buffers. Every vim.keymap.set
 -- here uses buffer = true, so none of this leaks into other filetypes.
 --

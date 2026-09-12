@@ -1,4 +1,4 @@
--- lua/plugins/obsidian.lua
+-- /home/miqu3iasg/.config/nvim/lua/plugins/obsidian.lua
 --
 -- The maintained fork today is `obsidian-nvim/obsidian.nvim` (the
 -- original `epwalsh/obsidian.nvim` is stalled). This is the fork this
@@ -64,6 +64,8 @@ return {
     -- new command interface (`:Obsidian <subcommand>`). Will be removed
     -- in 4.0.0. Every `:Obsidian ...` used below depends on this.
     legacy_commands = false,
+
+    ui = { enable = false },
 
     workspaces = {
       {

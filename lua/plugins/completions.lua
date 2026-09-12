@@ -1,8 +1,5 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/completions.lua
 return {
-  {
-    "kdheepak/cmp-latex-symbols",
-  },
-
   {
     "saghen/blink.cmp",
     dependencies = {
@@ -42,7 +39,7 @@ return {
           load_snippets("python", "snippets.python")
           load_snippets("java", "snippets.java")
 
-          -- Global snippets
+          -- Global snippets.
           load_snippets("all", "snippets.all")
 
           luasnip.filetype_extend("python", { "all" })
@@ -59,7 +56,7 @@ return {
           luasnip.filetype_extend("tex", { "all" })
 
           -- Fallback mappings for LuaSnip.
-          -- blink.cmp normally handles these mappings itself.
+          -- blink.cmp normally handles these mappings.
           km("i", "<Tab>", function()
             if luasnip.choice_active() then
               luasnip.change_choice(1)
@@ -97,17 +94,20 @@ return {
           })
         end,
       },
+
+      -- Ripgrep/gitgrep completion source for blink.cmp.
+      {
+        "mikavilpas/blink-ripgrep.nvim",
+        version = "*",
+      },
     },
 
     version = "1.*",
 
-    ---@module 'blink.cmp'
+    ---@module "blink.cmp"
     opts = {
       keymap = {
-        -- Accept completion with Tab without showing the menu,
-        -- unless the cursor is right before a closing char that
-        -- tabout.nvim handles (), ], ', ", ` — in that case, defer
-        -- to tabout.nvim via "fallback" instead of forcing an accept.
+        -- Accept completion with Tab without showing the menu.
         ["<Tab>"] = {
           function(cmp)
             if cmp.snippet_active() then
@@ -117,6 +117,7 @@ return {
             local col = vim.api.nvim_win_get_cursor(0)[2]
             local line = vim.api.nvim_get_current_line()
             local next_char = line:sub(col + 1, col + 1)
+
             local tabout_chars = {
               ["'"] = true,
               ['"'] = true,
@@ -126,7 +127,7 @@ return {
             }
 
             if tabout_chars[next_char] then
-              return false -- defer to "fallback" -> tabout.nvim
+              return false -- Let tabout.nvim handle it.
             end
 
             return cmp.select_and_accept({
@@ -160,33 +161,20 @@ return {
           "fallback",
         },
 
-        -- Some terminals send <C-space> as <C-@>.
-        -- ["<C-@>"] = {
-        --   "show",
-        --   "fallback",
-        -- },
-
-        -- -- Backup manual trigger.
-        -- ["<C-j>"] = {
-        --   "show",
-        --   "fallback",
-        -- },
-
         -- Free <C-k> for the user's own mapping.
         ["gp"] = {
           "show_signature",
           "fallback",
         },
 
-        -- Cycle through completion candidates by inserting them directly
-        -- into the buffer, without opening the popup menu (IntelliJ-style).
+        -- Cycle through blink.cmp suggestions without opening the menu.
         ["<C-n>"] = {
-          "insert_next",
+          "select_next",
           "fallback",
         },
 
         ["<C-p>"] = {
-          "insert_prev",
+          "select_prev",
           "fallback",
         },
       },
@@ -275,9 +263,10 @@ return {
             preselect = true,
             auto_insert = false,
           },
+
           cycle = {
-            from_bottom = true, -- wrap to the first item after the last
-            from_top = true,    -- wrap to the last item after the first
+            from_bottom = true, -- Wrap to the first item.
+            from_top = true,    -- Wrap to the last item.
           },
         },
       },
@@ -288,10 +277,32 @@ return {
 
       sources = {
         default = {
+          "lazydev",
           "lsp",
           "path",
           "snippets",
           "buffer",
+          "ripgrep",
+        },
+
+        providers = {
+          -- LazyDev provides precise Neovim/Lua API completions.
+          lazydev = {
+            name = "LazyDev",
+            module = "lazydev.integrations.blink",
+            score_offset = 100,
+          },
+
+          -- Project-wide ripgrep-powered completions.
+          ripgrep = {
+            module = "blink-ripgrep",
+            name = "Ripgrep",
+            ---@module "blink-ripgrep"
+            ---@type blink-ripgrep.Options
+            opts = {
+              prefix_min_len = 3,
+            },
+          },
         },
       },
 

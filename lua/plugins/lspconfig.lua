@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/lspconfig.lua
 return {
   {
     "williamboman/mason.nvim",
@@ -7,6 +8,7 @@ return {
       })
     end,
   },
+
   {
     "williamboman/mason-lspconfig.nvim",
     config = function()
@@ -44,6 +46,25 @@ return {
       })
     end,
   },
+
+  -- Precise Neovim/Lua API support for lua_ls.
+  {
+    "folke/lazydev.nvim",
+    ft = "lua",
+    opts = {
+      library = {
+        -- Load vim.uv when referenced.
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+      },
+    },
+  },
+
+  -- Provides schemas for jsonls and yamlls.
+  {
+    "b0o/schemastore.nvim",
+    lazy = true,
+  },
+
   {
     "neovim/nvim-lspconfig",
     dependencies = { "saghen/blink.cmp" },
@@ -53,16 +74,17 @@ return {
       local util = require("lspconfig").util
       local configs = require("lspconfig.configs")
 
-      -- Diagnostic float / signcolumn friendly UI on hover-like actions
-      -- (visual on/off for diagnostics is handled centrally in options.lua)
+      -- Diagnostic UI is configured centrally in options.lua.
 
       lspconfig.cmake.setup({
         capabilities = capabilities,
       })
+
       lspconfig.fortls.setup({
         capabilities = capabilities,
         root_dir = require("lspconfig").util.root_pattern("*.f90"),
       })
+
       lspconfig.purescriptls.setup({
         capabilities = capabilities,
         filetypes = { "purescript" },
@@ -75,16 +97,23 @@ return {
           debounce_text_changes = 150,
         },
       })
+
       lspconfig.ols.setup({
         capabilities = capabilities,
         root_dir = require("lspconfig").util.root_pattern("*.odin"),
       })
+
       lspconfig.ocamllsp.setup({
         capabilities = capabilities,
         cmd = { "ocamllsp", "--stdio" },
         filetypes = { "ocaml", "reason" },
-        root_dir = require("lspconfig").util.root_pattern("*.opam", "esy.json", "package.json"),
+        root_dir = require("lspconfig").util.root_pattern(
+          "*.opam",
+          "esy.json",
+          "package.json"
+        ),
       })
+
       if not configs.roc_ls then
         configs.roc_ls = {
           default_config = {
@@ -97,12 +126,15 @@ return {
           },
         }
       end
+
       lspconfig.roc_ls.setup({
         capabilities = capabilities,
       })
+
       lspconfig.astro.setup({
         capabilities = capabilities,
       })
+
       lspconfig.nil_ls.setup({
         capabilities = capabilities,
       })
@@ -115,13 +147,16 @@ return {
       lspconfig.intelephense.setup({
         capabilities = capabilities,
       })
+
       lspconfig.texlab.setup({
         capabilities = capabilities,
       })
+
       lspconfig.zls.setup({
         capabilities = capabilities,
         cmd = { "zls" },
       })
+
       lspconfig.hls.setup({
         capabilities = capabilities,
         single_file_support = true,
@@ -151,7 +186,7 @@ return {
               enable = false,
             },
             hint = {
-              enable = true, -- inlay hints (tipos inferidos, nomes de parâmetro)
+              enable = true, -- Enable inlay hints.
             },
           },
         },
@@ -166,6 +201,7 @@ return {
         capabilities = capabilities,
         settings = {
           json = {
+            schemas = require("schemastore").json.schemas(),
             validate = { enable = true },
           },
         },
@@ -208,8 +244,20 @@ return {
       lspconfig.prismals.setup({
         capabilities = capabilities,
       })
+
+      -- YAML
       lspconfig.yamlls.setup({
         capabilities = capabilities,
+        settings = {
+          yaml = {
+            schemaStore = {
+              -- Use schemastore.nvim instead of yamlls's built-in store.
+              enable = false,
+              url = "",
+            },
+            schemas = require("schemastore").yaml.schemas(),
+          },
+        },
       })
 
       -- HTML
@@ -288,14 +336,20 @@ return {
               "typescriptreact",
               "html",
             },
-            root_dir = require("lspconfig").util.root_pattern("package.json", "tsconfig.json", ".git"),
+            root_dir = require("lspconfig").util.root_pattern(
+              "package.json",
+              "tsconfig.json",
+              ".git"
+            ),
             single_file_support = true,
           },
         }
       end
+
       lspconfig.ts_ls.setup({
         capabilities = capabilities,
       })
+
       lspconfig.eslint.setup({
         capabilities = capabilities,
       })
@@ -332,23 +386,28 @@ return {
       -- PYTHON
       local function get_python_path(workspace)
         local venv_path = os.getenv("VIRTUAL_ENV")
+
         if venv_path and venv_path ~= "" then
           return venv_path .. "/bin/python3"
         end
 
         local cwd = workspace or vim.fn.getcwd()
         local candidates = { ".venv", "venv", "env", ".env" }
+
         for _, name in ipairs(candidates) do
           local py = cwd .. "/" .. name .. "/bin/python3"
+
           if vim.fn.executable(py) == 1 then
             return py
           end
         end
 
         local global_py = vim.fn.exepath("python3")
+
         if global_py ~= "" then
           return global_py
         end
+
         return "/usr/bin/python3"
       end
 
@@ -380,9 +439,11 @@ return {
       lspconfig.marksman.setup({
         capabilities = capabilities,
       })
+
       lspconfig.gleam.setup({
         capabilities = capabilities,
       })
+
       lspconfig.nim_langserver.setup({
         capabilities = capabilities,
       })
@@ -395,6 +456,7 @@ return {
         organize_imports_on_format = true,
         enable_import_completion = true,
       })
+
       -- lspconfig.csharp_ls.setup({
       --   capabilities = capabilities,
       -- })
@@ -406,10 +468,12 @@ return {
           .. "/.local/share/cmake-language-server/bin/cmake-language-server",
         },
       })
+
       lspconfig.fennel_ls.setup({
         capabilities = capabilities,
         cmd = { "fennel-ls" },
       })
+
       lspconfig.rescriptls.setup({
         capabilities = capabilities,
         cmd = { "rescript-language-server", "--stdio" },
@@ -428,33 +492,46 @@ return {
             using Pkg
             Pkg.instantiate()
             using LanguageServer
-        depot_path = get(ENV, "JULIA_DEPOT_PATH", "")
-        project_path = let
-            dirname(something(
+            depot_path = get(ENV, "JULIA_DEPOT_PATH", "")
+            project_path = let
+              dirname(something(
                 Base.load_path_expand((
-                    p = get(ENV, "JULIA_PROJECT", nothing);
-                        p === nothing ? nothing : isempty(p) ? nothing : p
-                    )),
-                        Base.current_project(),
-                        get(Base.load_path(), 1, nothing),
-                    Base.load_path_expand("@v#.#"),
-                ))
+                  p = get(ENV, "JULIA_PROJECT", nothing);
+                  p === nothing ? nothing : isempty(p) ? nothing : p
+                )),
+                Base.current_project(),
+                get(Base.load_path(), 1, nothing),
+                Base.load_path_expand("@v#.#"),
+              ))
             end
-                    @info "Running language server" VERSION pwd() project_path depot_path
-                    server = LanguageServer.LanguageServerInstance(stdin, stdout, project_path, depot_path)
-        server.runlinter = true
+            @info "Running language server" VERSION pwd() project_path depot_path
+            server = LanguageServer.LanguageServerInstance(
+              stdin,
+              stdout,
+              project_path,
+              depot_path
+            )
+            server.runlinter = true
             run(server)
-        ]],
+          ]],
         },
         on_attach = function(client, bufnr)
-          vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+          vim.api.nvim_buf_set_option(
+            bufnr,
+            "omnifunc",
+            "v:lua.vim.lsp.omnifunc"
+          )
         end,
         root_dir = require("lspconfig").util.root_pattern("*.jl"),
       })
+
       lspconfig.c3_lsp.setup({
         capabilities = capabilities,
         cmd = { "c3lsp" },
-        root_dir = require("lspconfig").util.root_pattern({ "project.json", "*.c3" }),
+        root_dir = require("lspconfig").util.root_pattern({
+          "project.json",
+          "*.c3",
+        }),
       })
     end,
   },

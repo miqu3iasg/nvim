@@ -1,3 +1,4 @@
+-- /home/miqu3iasg/.config/nvim/lua/plugins/yazi.lua
 return {
   "mikavilpas/yazi.nvim",
   event = "VeryLazy",
