@@ -182,44 +182,6 @@ return {
       })
     end,
   },
-  -- Readable line length, Obsidian-style: narrows the editable window
-  -- to a fixed width, centered, so `wrap`/`linebreak`/`breakindent`
-  -- (already set for markdown in autocmds.lua) break the text visually
-  -- at that width. The buffer itself stays a single logical line;
-  -- this is purely visual. autocmds.lua already calls
-  -- `no-neck-pain.enable()`/`disable()` on entering/leaving markdown,
-  -- this just gives it a concrete width to use.
-  {
-    "shortcuts/no-neck-pain.nvim",
-    opts = {
-      width = 100,                  -- try 80-100 to taste
-      buffers = {
-        left = { enabled = false }, -- single side pane is enough for markdown
-      },
-    },
-    keys = {
-      {
-        "<leader>on",
-        "<cmd>NoNeckPain<cr>",
-        ft = "markdown",
-        desc = "Toggle No Neck Pain",
-      },
-      {
-        "<leader>ow",
-        function()
-          local input = vim.fn.input("Readable width: ", tostring(vim.g.no_neck_pain_width or 90))
-          local width = tonumber(input)
-          if not width then
-            return
-          end
-          vim.g.no_neck_pain_width = width
-          require("no-neck-pain").resize(width)
-        end,
-        ft = "markdown",
-        desc = "Adjust readable line width",
-      },
-    },
-  },
 
   -- Markdown linting (style/consistency issues prettier won't catch:
   -- duplicate headings, bad heading hierarchy, trailing punctuation in

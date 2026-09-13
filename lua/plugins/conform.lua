@@ -1,4 +1,5 @@
 -- /home/miqu3iasg/.config/nvim/lua/plugins/conform.lua
+
 return {
   "stevearc/conform.nvim",
   config = function()
@@ -34,6 +35,8 @@ return {
           prepend_args = { "--skip-javadoc-formatting" },
         },
         clang_format = {
+          -- this file must be located in `~/.clang-format`. We have an example
+          -- of this file in `lua/clang-format.example.yaml`.
           prepend_args = { "--style=file" },
         },
       },

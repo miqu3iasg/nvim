@@ -1,5 +1,20 @@
 local M = {}
 
+-- Git branch
+local branch_cache = ""
+
+local function update_branch()
+  local result = vim.fn.system("git rev-parse --abbrev-ref HEAD 2>/dev/null")
+  branch_cache = vim.v.shell_error == 0 and vim.trim(result) or ""
+end
+
+function M.git_branch()
+  if branch_cache ~= "" then
+    return " " .. branch_cache .. " "
+  end
+  return ""
+end
+
 -- Mode
 function M.mode()
   local mode = vim.fn.mode()
@@ -47,7 +62,8 @@ function M.active()
     "%{%v:lua.require('statusline').mode()%}",
     "  ",
     diff,
-    "%<%F ",
+    "%{%v:lua.require('statusline').git_branch()%}",
+    "  %<%F ",
     "%-5r",
     "%-4m",
     "%=",
@@ -81,7 +97,11 @@ function M.setup()
 
       vim.opt_local.statusline = "%!v:lua.require('statusline').active()"
     end,
+  })
 
+  -- Atualiza a branch ao entrar em buffer ou mudar de diretório
+  vim.api.nvim_create_autocmd({ "BufEnter", "DirChanged" }, {
+    callback = update_branch,
   })
 
   vim.opt.statusline = "%!v:lua.require('statusline').active()"

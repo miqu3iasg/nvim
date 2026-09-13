@@ -3,6 +3,20 @@
 -- The .tex writing-mode setup (wrap, conceallevel, readable width,
 -- <leader>x compile/view/toc keymaps) lives in autocmds.lua,
 -- alongside MarkdownWriting.
+--
+-- System dependencies (outside Neovim/Mason):
+--   1. Full TeX distro, with `latexmk`/`pdflatex` on PATH.
+--        Arch:   sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra
+--        Debian: sudo apt install texlive-latex-extra latexmk
+--        macOS:  brew install --cask mactex-no-gui
+--   2. PDF viewer with SyncTeX support (see vimtex_view_method below).
+--        Arch:   sudo pacman -S zathura zathura-pdf-mupdf
+--        Debian: sudo apt install zathura zathura-pdf-poppler
+--        macOS:  Skim, or Zathura
+--   3. latexindent (Mason-installed) needs libcrypt.so.1, missing on distros that moved to libxcrypt.
+--        Arch:   sudo pacman -S libxcrypt-compat
+--        Fedora: sudo dnf install libxcrypt-compat
+--        Debian: sudo apt install libcrypt1
 return {
   -- Core LaTeX engine, continuous compilation, PDF viewer sync
   -- (forward/inverse search), TOC panel, LaTeX-aware folding, motions
@@ -18,11 +32,11 @@ return {
       vim.g.vimtex_compiler_method = "latexmk"
       vim.g.vimtex_compiler_latexmk = {
         continuous = 1,
+        build_dir = "build",
         options = {
           "-pdf",
           "-interaction=nonstopmode",
           "-synctex=1",
-          "-auxdir=build",
         },
       }
       vim.g.vimtex_quickfix_mode = 0 -- don't steal focus on every warning
@@ -118,7 +132,7 @@ return {
   },
 
   -- Installs latexindent (the formatter referenced in the conform.lua
-  -- edit below) through Mason automatically.
+  -- edit below) through Mason automatically. See libcrypt note above.
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = function(_, opts)

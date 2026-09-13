@@ -1,7 +1,7 @@
 local km = vim.keymap.set
 
 -- UI
-km("n", "<leader>vt", ":Telescope colorscheme<CR>", { desc = "Choose colorscheme" })
+km("n", "<leader>vt", ":FzfLua colorschemes<CR>", { desc = "Choose colorscheme" })
 
 km("n", "<leader>vn", function()
   vim.wo.number = not vim.wo.number
