@@ -32,6 +32,9 @@ return {
       {
         "L3MON4D3/LuaSnip",
         version = "v2.*",
+        dependencies = {
+          "rafamadriz/friendly-snippets",
+        },
         config = function()
           local luasnip = require("luasnip")
           local km = vim.keymap.set
@@ -55,31 +58,29 @@ return {
             luasnip.add_snippets(filetype, snippets)
           end
 
-          load_snippets("markdown", "snippets.all")
-          load_snippets("text", "snippets.all")
+          require("luasnip.loaders.from_vscode").lazy_load({ exclude = { "tex" } })
+
           load_snippets("tex", "snippets.latex")
-          load_snippets("zig", "snippets.zig")
           load_snippets("c", "snippets.c")
-          load_snippets("cpp", "snippets.cpp")
-          load_snippets("cpp", "snippets.c")
           load_snippets("python", "snippets.python")
           load_snippets("java", "snippets.java")
 
           -- Global snippets.
-          load_snippets("all", "snippets.all")
+          load_snippets("common", "snippets.common")
 
-          luasnip.filetype_extend("python", { "all" })
-          luasnip.filetype_extend("c", { "all" })
-          luasnip.filetype_extend("cpp", { "all" })
-          luasnip.filetype_extend("zig", { "all" })
-          luasnip.filetype_extend("lua", { "all" })
-          luasnip.filetype_extend("javascript", { "all" })
-          luasnip.filetype_extend("typescript", { "all" })
-          luasnip.filetype_extend("rust", { "all" })
-          luasnip.filetype_extend("go", { "all" })
-          luasnip.filetype_extend("sh", { "all" })
-          luasnip.filetype_extend("markdown", { "all" })
-          luasnip.filetype_extend("tex", { "all" })
+          luasnip.filetype_extend("python", { "common" })
+          luasnip.filetype_extend("c", { "common" })
+          luasnip.filetype_extend("scheme", { "common" })
+          luasnip.filetype_extend("cpp", { "common" })
+          luasnip.filetype_extend("zig", { "common" })
+          luasnip.filetype_extend("lua", { "common" })
+          luasnip.filetype_extend("java", { "common" })
+          luasnip.filetype_extend("javascript", { "common" })
+          luasnip.filetype_extend("typescript", { "common" })
+          luasnip.filetype_extend("rust", { "common" })
+          luasnip.filetype_extend("go", { "common" })
+          luasnip.filetype_extend("sh", { "common" })
+          luasnip.filetype_extend("markdown", { "common" })
 
           -- Fallback mappings for LuaSnip.
           -- blink.cmp normally handles these mappings.
@@ -120,7 +121,6 @@ return {
           })
         end,
       },
-
       -- Ripgrep/gitgrep completion source for blink.cmp.
       {
         "mikavilpas/blink-ripgrep.nvim",

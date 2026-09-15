@@ -1,3 +1,5 @@
+-- ftplugin/java.lua
+
 local ok_jdtls, jdtls = pcall(require, "jdtls")
 if not ok_jdtls then
   return
