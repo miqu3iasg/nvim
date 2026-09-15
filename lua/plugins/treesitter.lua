@@ -1,4 +1,5 @@
 -- lua/plugins/treesitter.lua
+
 ---@module "lazy"
 ---@type LazySpec
 return {

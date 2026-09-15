@@ -4,7 +4,7 @@ return {
   -- Split and join code blocks with a single keymap.
   {
     "Wansmer/treesj",
-    keys = { "<space>j" },
+    keys = { "<space>i" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
       require("treesj").setup({})
