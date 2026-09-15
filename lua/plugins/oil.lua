@@ -1,41 +1,48 @@
 -- /home/miqu3iasg/.config/nvim/lua/plugins/oil.lua
+
 return {
-  "stevearc/oil.nvim",
+  -- "stevearc/oil.nvim",
+  "barrettruth/canola.nvim",
   -- enabled = false,
   -- dependencies = {
   --   "refractalize/oil-git-status.nvim",
   -- },
   config = function()
     local oil = require("oil")
-    local detail = false
     oil.setup({
       default_file_explorer = true,
       columns = {
         -- "type",
         "permissions",
+        "user",
+        "group",
         "size",
         { "mtime",     format = "%d/%m %H:%M" },
         { "ctime",     format = "%d/%m %H:%M" },
         { "birthtime", format = "%d/%m %H:%M" },
-        "user",
-        "group",
       },
       keymaps = {
-        ["<C-h>"] = "actions.parent",
-        ["<C-l>"] = "actions.select",
-        ["<BS>"] = "actions.parent",
-        ["<C-c>"] = false,
-        ["<C-r>"] = "actions.refresh",
-        ["sh"] = "actions.select_split",
-        ["sv"] = "actions.select_vsplit",
-        ["<C-p>"] = {
-          "actions.preview",
+        ["<C-c>"] = false,                -- disable default action
+        ["<C-h>"] = false,                -- disable default action
+        ["<C-l>"] = false,                -- disable default action
+        ["h"] = "actions.parent",         -- go up to parent directory
+        ["l"] = "actions.select",         -- open file or enter directory
+        ["<BS>"] = "actions.parent",      -- go up to parent directory (alt key)
+        ["r"] = "actions.refresh",        -- refresh directory listing
+        ["sh"] = "actions.select_split",  -- open in horizontal split
+        ["sv"] = "actions.select_vsplit", -- open in vertical split
+        ["gp"] = {
+          "actions.preview",              -- preview file contents
           opts = {
             vertical = true,
             split = "botright",
           },
         },
-        ["q"] = "actions.close",
+        ["gs"] = "actions.change_sort",     -- cycle sort order
+        ["gx"] = "actions.open_external",   -- open with OS default program
+        ["gy"] = "actions.copy_entry_path", -- copy entry path to clipboard
+        ["gh"] = "actions.toggle_hidden",   -- toggle hidden files visibility
+        ["q"] = "actions.close",            -- close oil buffer
       },
       delete_to_trash = true,
       view_options = {
@@ -43,10 +50,11 @@ return {
       },
       skip_confirm_for_simple_edits = true,
       preview_win = {
-        border = "rounded",
+        border = "single",
       },
       win_options = {
-        signcolumn = "yes:2",
+        -- signcolumn = "yes:2",
+        signcolumn = "no",
         number = false,
         relativenumber = false,
       },

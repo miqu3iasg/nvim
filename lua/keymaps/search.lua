@@ -1,4 +1,5 @@
--- keymaps/search.lua
+--lua/keymaps/search.lua
+
 local km = vim.keymap.set
 
 -- Scrolling, centered on cursor

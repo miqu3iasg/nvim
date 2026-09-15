@@ -1,3 +1,4 @@
+-- lua/keymaps/buffers.lua
 local utils = require("utils")
 
 local km = vim.keymap.set
@@ -26,3 +27,15 @@ end, { desc = "Close other windows and buffers" })
 km("n", "<Tab>", ":bnext<CR>", { desc = "Next buffer" })
 km("n", "<S-Tab>", ":bprevious<CR>", { desc = "Previous buffer" })
 km("n", "<leader><Space>", "<C-6>", { desc = "Toggle between last two buffers" })
+
+-- Oil
+
+-- go straight to $HOME
+km("n", "g~", function()
+  require("oil").open(vim.fn.expand("~"))
+end, { desc = "Open home directory" })
+
+-- go straight to project cwd
+km("n", "g.", function()
+  require("oil").open(vim.fn.getcwd())
+end, { desc = "Open cwd" })

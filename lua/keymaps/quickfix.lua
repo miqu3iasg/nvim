@@ -1,3 +1,5 @@
+-- lua/keymaps/quickfix.lua
+
 local km = vim.keymap.set
 
 -- Detect whether the current qf-filetype window is a loclist or quickfix.

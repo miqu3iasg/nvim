@@ -1,3 +1,5 @@
+-- lua/keymaps/files.lua
+
 local km = vim.keymap.set
 
 -- File and folder operations (all under <leader>n)

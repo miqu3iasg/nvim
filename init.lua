@@ -20,7 +20,6 @@ require("statusline")
 
 utils.color_overrides.setup_colorscheme_overrides()
 
--- vim.cmd.colorscheme("insanity")
 vim.cmd.colorscheme("insanity")
 
 utils.fix_telescope_parens_win()
