@@ -30,6 +30,9 @@ return {
       vim.g["conjure#log#split#width"] = 0.5
       vim.opt.splitright = true
 
+      -- highlights the evaluated shape for an instant
+      vim.g["conjure#highlight#enabled"] = true
+
       -- auto-open the log split on first scheme/lisp/racket buffer
       -- best-effort; if it doesn't trigger, <localleader>lv opens it manually
       vim.api.nvim_create_autocmd("FileType", {
