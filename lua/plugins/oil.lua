@@ -1,4 +1,4 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/oil.lua
+-- lua/plugins/oil.lua
 
 return {
   -- "stevearc/oil.nvim",

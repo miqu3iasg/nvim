@@ -1,22 +1,36 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/latex.lua
+-- lua/plugins/latex.lua
 
 -- The .tex writing-mode setup (wrap, conceallevel, readable width,
--- <leader>x compile/view/toc keymaps) lives in autocmds.lua,
+-- <leader>x compile/view/toc keymaps) lives in lua/autocmds.lua,
 -- alongside MarkdownWriting.
 --
--- System dependencies (outside Neovim/Mason):
---   1. Full TeX distro, with `latexmk`/`pdflatex` on PATH.
---        Arch:   sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra
---        Debian: sudo apt install texlive-latex-extra latexmk
---        macOS:  brew install --cask mactex-no-gui
---   2. PDF viewer with SyncTeX support (see vimtex_view_method below).
---        Arch:   sudo pacman -S zathura zathura-pdf-mupdf
---        Debian: sudo apt install zathura zathura-pdf-poppler
---        macOS:  Skim, or Zathura
---   3. latexindent (Mason-installed) needs libcrypt.so.1, missing on distros that moved to libxcrypt.
---        Arch:   sudo pacman -S libxcrypt-compat
---        Fedora: sudo dnf install libxcrypt-compat
---        Debian: sudo apt install libcrypt1
+-- For this configuration to work, you need a full TeX distribution,
+-- a PDF viewer with SyncTeX support, and the dependencies required
+-- by latexindent installed on your machine.
+--
+-- You can install the required dependencies on Arch Linux via:
+--
+-- `sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra`
+--
+-- A PDF viewer with SyncTeX support is also required. This configuration
+-- uses the viewer specified by `vimtex_view_method`.
+--
+-- You can install Zathura and its PDF backend on Arch Linux via:
+--
+-- `sudo pacman -S zathura zathura-pdf-mupdf`
+--
+-- `latexindent` is installed through Mason, but it requires `libcrypt.so.1`,
+-- which may be missing on systems that have moved to libxcrypt.
+--
+-- On Arch Linux, install the compatibility library using:
+--
+-- `sudo pacman -S libxcrypt-compat`
+--
+-- refs:
+--     - https://github.com/lervag/vimtex
+--     - https://github.com/cmhughes/latexindent.pl
+--     - https://github.com/latex3/latex2e
+
 return {
   -- Core LaTeX engine, continuous compilation, PDF viewer sync
   -- (forward/inverse search), TOC panel, LaTeX-aware folding, motions

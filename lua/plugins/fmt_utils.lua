@@ -1,7 +1,7 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/fmt_utils.lua
+-- lua/plugins/fmt_utils.lua
 
 return {
-  -- treesj: split/join blocks of code (e.g. tables, function calls) with a single keymap
+  -- Split and join code blocks with a single keymap.
   {
     "Wansmer/treesj",
     keys = { "<space>j" },
@@ -11,7 +11,7 @@ return {
     end,
   },
 
-  -- nvim-colorizer.lua: highlights color codes (hex, rgb, etc.) with their actual color
+  -- Highlight color codes with their actual colors.
   {
     "norcalli/nvim-colorizer.lua",
     config = function()
@@ -22,20 +22,31 @@ return {
     end,
   },
 
-  -- tabout.nvim: use Tab to "jump out" of brackets/quotes instead of just indenting
+  -- Jump out of brackets and quotes using Tab.
   {
     "abecodes/tabout.nvim",
     lazy = false,
     config = function()
       require("tabout").setup({
-        tabkey = "<Tab>",             -- key to trigger tabout, set to an empty string to disable
-        backwards_tabkey = "<S-Tab>", -- key to trigger backwards tabout, set to an empty string to disable
-        act_as_tab = true,            -- shift content if tab out is not possible
-        act_as_shift_tab = false,     -- reverse shift content if tab out is not possible (if your keyboard/terminal supports <S-Tab>)
-        default_tab = "<C-t>",        -- shift default action (only at the beginning of a line, otherwise <TAB> is used)
-        default_shift_tab = "<C-d>",  -- reverse shift default action,
-        enable_backwards = true,      -- well ...
-        completion = false,           -- if the tabkey is used in a completion pum
+        -- Keybindings for forward and backward tabout.
+        tabkey = "<Tab>",
+        backwards_tabkey = "<S-Tab>",
+
+        -- Fall back to regular indentation when tabout is unavailable.
+        act_as_tab = true,
+        act_as_shift_tab = false,
+
+        -- Default indentation keys when tabout is unavailable.
+        default_tab = "<C-t>",
+        default_shift_tab = "<C-d>",
+
+        -- Allow tabbing backward through supported pairs.
+        enable_backwards = true,
+
+        -- Keep Tab available for tabout instead of completion menus.
+        completion = false,
+
+        -- Pairs that trigger tabout.
         tabouts = {
           { open = "'", close = "'" },
           { open = '"', close = '"' },
@@ -44,25 +55,34 @@ return {
           { open = "[", close = "]" },
           -- { open = "{", close = "}" },
         },
-        ignore_beginning = true, --[[ if the cursor is at the beginning of a filled element it will rather tab out than shift the content ]]
-        exclude = {}, -- tabout will ignore these filetypes
+
+        -- Tab out instead of shifting when at the beginning of content.
+        ignore_beginning = true,
+
+        -- Filetypes where tabout is disabled.
+        exclude = {},
       })
     end,
-    dependencies = { -- These are optional
+
+    dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "L3MON4D3/LuaSnip",
       "hrsh7th/nvim-cmp",
     },
-    opt = true,              -- Set this to true if the plugin is optional
-    event = "InsertCharPre", -- Set the event to 'InsertCharPre' for better compatibility
+
+    -- Load the plugin as an optional dependency.
+    opt = true,
+
+    -- Load before inserting a character for better compatibility.
+    event = "InsertCharPre",
+
     priority = 1000,
   },
 
-  -- LuaSnip: disable its default Tab keybinding so tabout.nvim can take over
+  -- Disable LuaSnip's default Tab keybinding.
   {
     "L3MON4D3/LuaSnip",
     keys = function()
-      -- Disable default tab keybinding in LuaSnip
       return {}
     end,
   },

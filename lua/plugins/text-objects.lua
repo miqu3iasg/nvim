@@ -1,4 +1,4 @@
---/home/miqu3iasg/.config/nvim/lua/plugins/text-objects.lua
+-- lua/plugins/text-objects.lua-
 
 return {
   -- Treesitter queries source (@function.outer, @parameter.inner, etc.)

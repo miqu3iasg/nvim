@@ -1,4 +1,31 @@
--- ~/.config/nvim/lua/plugins/lisp.lua
+-- lua/plugins/lisp.lua
+
+-- For this configuration to work, you need Tree-sitter, the Scheme
+-- interpreter MIT Scheme, Racket, and rlwrap installed on your machine.
+-- Conjure and nvim-paredit are installed automatically by Lazy.nvim.
+-- You can install it in Arch Linux via:
+--
+-- `sudo pacman -S tree-sitter-cli mit-scheme racket rlwrap`
+--
+-- or using yay for MIT Scheme:
+--
+-- `yay -S mit-scheme`
+--
+-- When installing MIT Scheme via AUR packages, a known bug in MIT Scheme 12.1 may arise.
+-- Arch's glibc is already too recent and defines `_POSIX_C_SOURCE` with a newer value;
+-- the MIT Scheme source code attempts to redefine this same macro with an older value,
+-- and since the build treats warnings as errors (`-Werror`), the build fails. Debian
+-- already has an official patch for this. Search for "mit-scheme AUR chacha12.c_POSIX_C_SOURCE
+-- redefined error Arch Linux" to find some fixes. In short, you need to edit the `PKGBUILD`
+-- in ~/.cache/yay/mit-scheme and update the `prepare()` function to insert the correct
+-- values using `sed`. Then, remove the cache folder using `rm -rf src pkg` and run
+-- `makepkg -si` to rebuild.
+--
+-- refs:
+--     - https://web.mit.edu/scheme/current/doc/mit-scheme-user/Introduction.html
+--     - https://www.shido.info/lisp/scheme1_e.html
+--     - https://www.mail-archive.com/debian-bugs-closed@lists.debian.org/msg850823.html
+--     - https://aur.archlinux.org/packages/mit-scheme
 
 return {
   {
@@ -9,11 +36,6 @@ return {
     end,
   },
 
-  {
-    "nvim-treesitter/nvim-treesitter-context",
-    ft = { "scheme", "lisp", "racket" },
-    opts = {},
-  },
 
   {
     "Olical/conjure",

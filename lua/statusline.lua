@@ -1,3 +1,5 @@
+-- lua/statusline.lua
+
 local M = {}
 
 -- Git branch

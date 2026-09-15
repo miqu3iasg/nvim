@@ -1,7 +1,8 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/webdevicons.lua
+-- lua/plugins/webdevicons.lua
+
 return {
   "nvim-tree/nvim-web-devicons",
-  enabled = false,
+  enabled = false, -- I don't like icons btw
   config = function()
     require("nvim-web-devicons").setup({})
   end,

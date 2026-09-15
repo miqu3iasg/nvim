@@ -1,4 +1,5 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/lspconfig.lua
+-- lua/plugins/lspconfig.lua
+
 return {
   {
     "williamboman/mason.nvim",

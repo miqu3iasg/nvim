@@ -1,4 +1,4 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/obsidian.lua
+-- lua/plugins/obsidian.lua
 
 -- REPLACE the path below with the actual path to your vault. It's the
 -- vault root (the folder that contains the ".obsidian" subfolder), not

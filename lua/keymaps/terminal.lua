@@ -1,3 +1,5 @@
+-- lua/keymaps/terminal.lua
+
 local km = vim.keymap.set
 
 -- Open terminal splits / in-place

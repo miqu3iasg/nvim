@@ -1,4 +1,4 @@
---/home/miqu3iasg/.config/nvim/lua/autocmds.lua
+-- lua/autocmds.lua
 
 -- Update the location list when diagnostics change
 vim.api.nvim_create_autocmd("DiagnosticChanged", {

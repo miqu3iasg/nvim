@@ -1,4 +1,5 @@
--- /home/miqu3iasg/.config/nvim/colors/insanity.lua
+-- colors/insanity.lua
+
 local M = {}
 
 vim.cmd("highlight clear")

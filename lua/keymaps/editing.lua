@@ -1,4 +1,4 @@
--- /home/miqu3iasg/.config/nvim/lua/keymaps/editing.lua
+-- lua/keymaps/editing.lua
 
 local km = vim.keymap.set
 

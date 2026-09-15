@@ -1,4 +1,4 @@
---/home/miqu3iasg/.config/nvim/lua/options.lua
+-- lua/options.lua
 
 -- General behavior
 vim.g.netrw_banner = 0

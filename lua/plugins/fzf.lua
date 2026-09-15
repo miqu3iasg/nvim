@@ -1,4 +1,4 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/fzf.lua
+-- lua/plugins/fzf.lua
 
 return {
   "ibhagwan/fzf-lua",

@@ -1,4 +1,30 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/completions.lua
+-- lua/plugins/completions.lua
+
+-- This configuration requires ripgrep and git to be installed
+-- on your machine. Lazy.nvim installs the Neovim plugins automatically.
+--
+-- Ripgrep is used by blink-ripgrep.nvim to provide project-wide
+-- completion suggestions from the contents of your files.
+--
+-- You can install the required dependencies on Arch Linux via:
+--
+-- `sudo pacman -S ripgrep`
+--
+-- blink.cmp uses a Rust-based fuzzy matching implementation.
+-- The plugin can use its prebuilt binary or compile it locally
+-- when necessary. If local compilation is required, install Rust:
+--
+-- `sudo pacman -S rust`
+--
+-- LuaSnip, blink.cmp, and blink-ripgrep.nvim are installed
+-- automatically by Lazy.nvim.
+--
+-- refs:
+--     - https://github.com/Saghen/blink.cmp
+--     - https://github.com/L3MON4D3/LuaSnip
+--     - https://github.com/mikavilpas/blink-ripgrep.nvim
+--     - https://github.com/folke/lazydev.nvim
+
 return {
   {
     "saghen/blink.cmp",

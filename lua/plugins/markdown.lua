@@ -1,7 +1,4 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/markdown.lua
-
--- Advanced markdown writing/reading experience. Complements, not
--- duplicates, what already exists elsewhere in the config.
+-- lua/plugins/markdown.lua
 
 return {
   -- Make sure the markdown parsers are present for everything below

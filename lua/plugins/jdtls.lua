@@ -1,4 +1,5 @@
--- /home/miqu3iasg/.config/nvim/lua/plugins/jdtls.lua
+-- lua/plugins/jdtls.lua
+
 return {
   "mfussenegger/nvim-jdtls",
   ft = "java",
