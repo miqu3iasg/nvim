@@ -66,8 +66,15 @@ return {
       desc = "Open parent directory",
     })
 
-    -- Toggle Oil floating window
-    vim.keymap.set("n", "<leader>-", oil.toggle_float)
+    -- go straight to $HOME
+    vim.keymap.set("n", "g~", function()
+      require("oil").open(vim.fn.expand("~"))
+    end, { desc = "Open home directory" })
+
+    -- go straight to project cwd
+    vim.keymap.set("n", "g.", function()
+      require("oil").open(vim.fn.getcwd())
+    end, { desc = "Open cwd" })
 
     -- Reveal current file in Oil
     vim.keymap.set("n", "ge", function()

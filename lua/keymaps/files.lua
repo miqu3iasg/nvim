@@ -2,10 +2,10 @@
 
 local km = vim.keymap.set
 
--- File and folder operations (all under <leader>n)
-
+-- Set the working directory to the current file's directory
 km("n", "<leader>nw", "<cmd>Setwd<CR>", { desc = "Set working directory to current file" })
 
+-- Create a new file, creating missing parent directories as needed
 km("n", "<leader>nf", function()
   local current_dir = vim.fn.expand("%:p:h")
   if current_dir == "" or current_dir == "." then
@@ -22,14 +22,7 @@ km("n", "<leader>nf", function()
   vim.cmd("edit " .. vim.fn.fnameescape(file))
 end, { desc = "Create new file" })
 
-km("n", "<leader>np", function()
-  local dir = vim.fn.input("New folder: ", vim.fn.expand("%:p:h") .. "/", "dir")
-  if dir ~= "" then
-    vim.fn.mkdir(dir, "p")
-    print("Created folder: " .. dir)
-  end
-end, { desc = "Create new folder" })
-
+-- Permanently delete the current file after confirmation
 km("n", "<leader>nk", function()
   local file = vim.fn.expand("%:p")
   if file == "" then
@@ -44,11 +37,11 @@ km("n", "<leader>nk", function()
   end
 end, { desc = "Delete current file" })
 
+-- Display the current working directory
 km("n", "<leader>.", ":pwd<CR>", { desc = "Show current working directory" })
 
--- Soft delete: moves the file into a trash dir under nvim's own data
--- path instead of removing it permanently. Complements <leader>nk --
--- use this one by default, fall back to nk when you really mean it.
+-- Move the current file to Neovim's data directory trash
+-- Use this as the default alternative to permanent deletion
 km("n", "<leader>nz", function()
   local file = vim.fn.expand("%:p")
   if file == "" then
@@ -73,57 +66,8 @@ km("n", "<leader>nz", function()
   print("Trashed to: " .. dest)
 end, { desc = "Move current file to trash (soft delete)" })
 
--- Move/rename the current file on disk and open it at the new location
-km("n", "<leader>ng", function()
-  local old_path = vim.fn.expand("%:p")
-  if old_path == "" then
-    print("No file in buffer")
-    return
-  end
-  local new_path = vim.fn.input("Move/rename to: ", old_path, "file")
-  if new_path == "" or new_path == old_path then
-    return
-  end
-  local new_dir = vim.fn.fnamemodify(new_path, ":h")
-  if vim.fn.isdirectory(new_dir) == 0 then
-    vim.fn.mkdir(new_dir, "p")
-  end
-  local ok, err = os.rename(old_path, new_path)
-  if not ok then
-    print("Failed to move file: " .. (err or "unknown error"))
-    return
-  end
-  local old_buf = vim.api.nvim_get_current_buf()
-  vim.cmd("edit " .. vim.fn.fnameescape(new_path))
-  vim.api.nvim_buf_delete(old_buf, { force = true })
-  print("Moved to: " .. new_path)
-end, { desc = "Move/rename current file" })
-
--- Duplicate the current file on disk and open the copy
-km("n", "<leader>nc", function()
-  local old_path = vim.fn.expand("%:p")
-  if old_path == "" then
-    print("No file in buffer")
-    return
-  end
-  local new_path = vim.fn.input("Copy to: ", old_path, "file")
-  if new_path == "" or new_path == old_path then
-    return
-  end
-  local new_dir = vim.fn.fnamemodify(new_path, ":h")
-  if vim.fn.isdirectory(new_dir) == 0 then
-    vim.fn.mkdir(new_dir, "p")
-  end
-  local ok, err = vim.uv.fs_copyfile(old_path, new_path)
-  if not ok then
-    print("Failed to copy file: " .. (err or "unknown error"))
-    return
-  end
-  vim.cmd("edit " .. vim.fn.fnameescape(new_path))
-  print("Copied to: " .. new_path)
-end, { desc = "Duplicate current file" })
-
--- Toggle executable permission (handy for shell scripts)
+-- Toggle the executable permission of the current file
+-- Useful for shell scripts and other executable files
 km("n", "<leader>nx", function()
   local file = vim.fn.expand("%:p")
   if file == "" then
@@ -146,7 +90,7 @@ km("n", "<leader>ny", function()
   print("Copied path: " .. path)
 end, { desc = "Copy absolute file path to clipboard" })
 
--- Copy the current file's path relative to cwd
+-- Copy the current file's path relative to the working directory
 km("n", "<leader>nr", function()
   local path = vim.fn.expand("%:.")
   if path == "" then
@@ -157,8 +101,8 @@ km("n", "<leader>nr", function()
   print("Copied relative path: " .. path)
 end, { desc = "Copy relative file path to clipboard" })
 
--- Copy just the containing directory's path (handy for cd, drag-drop
--- targets, pasting into other tools)
+-- Copy the containing directory's absolute path
+-- Useful for terminal navigation and file manager operations
 km("n", "<leader>nh", function()
   local dir = vim.fn.expand("%:p:h")
   if dir == "" then
@@ -169,7 +113,7 @@ km("n", "<leader>nh", function()
   print("Copied directory: " .. dir)
 end, { desc = "Copy containing directory path to clipboard" })
 
--- Copy a "path:line" reference (handy for PRs, chat, TODOs)
+-- Copy a file:line reference for use in pull requests, chat, and TODOs
 km("n", "<leader>ns", function()
   local path = vim.fn.expand("%:.")
   if path == "" then
@@ -181,7 +125,8 @@ km("n", "<leader>ns", function()
   print("Copied: " .. ref)
 end, { desc = "Copy file:line reference to clipboard" })
 
--- Reveal the current file in the OS file explorer (Finder/Explorer/file manager)
+-- Reveal the current file in the operating system's file explorer
+-- macOS selects the file; Linux opens its containing directory
 km("n", "<leader>ne", function()
   local utils = require("utils")
   local os_name = utils.get_os()
@@ -202,7 +147,7 @@ km("n", "<leader>ne", function()
     os.execute(string.format('start "" explorer.exe /select,"%s"', win_path))
   else
     -- Linux: fall back to opening the containing folder, since most
-    -- file managers don't support "select this file" via xdg-open.
+    -- file managers don't support "select this file" via xdg-open
     vim.fn.system({ "xdg-open", vim.fn.fnamemodify(file, ":h") })
   end
 end, { desc = "Reveal current file in file explorer" })

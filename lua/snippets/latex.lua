@@ -1,4 +1,5 @@
 -- lua/snippets/latex.lua
+-- TODO: port latex snippets from obsidian to this file
 
 local ls = require("luasnip")
 local s = ls.snippet
