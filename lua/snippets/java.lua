@@ -12,7 +12,7 @@ local function get_classname()
 end
 
 return {
-  -- Solution scaffolding (LeetCode etc.)
+  -- Solution scaffolding for practice problems (LeetCode, Kattis, etc.).
   s("sol", {
     t("public class "),
     f(get_classname, {}),

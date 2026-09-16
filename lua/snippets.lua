@@ -1,3 +1,5 @@
+-- lua/snippets.lua
+
 -- Stop snippets when you leave to normal mode
 local function leave_snippet()
   if

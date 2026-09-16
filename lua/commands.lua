@@ -1,3 +1,5 @@
+-- lua/commands.lua
+
 -- Change the working directory to the current file
 vim.api.nvim_create_user_command("Setwd", function()
   vim.cmd.cd(vim.fn.expand("%:p:h"))

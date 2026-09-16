@@ -1,7 +1,7 @@
 -- lua/plugins/latex.lua
 
 -- The .tex writing-mode setup (wrap, conceallevel, readable width,
--- <leader>x compile/view/toc keymaps) lives in lua/autocmds.lua,
+-- <leader>x compile/view/toc keymaps) lives in lua/langs/latex/,
 -- alongside MarkdownWriting.
 --
 -- For this configuration to work, you need a full TeX distribution,

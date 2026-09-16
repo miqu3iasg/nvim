@@ -117,11 +117,28 @@ return {
     "dhruvasagar/vim-table-mode",
     ft = { "markdown" },
     dependencies = { "godlygeek/tabular" },
+    cmd = { "TableModeToggle", "TableModeEnable", "TableModeDisable", "Tableize" },
     init = function()
       vim.g.table_mode_corner = "|"
+      vim.g.table_mode_corner_corner = "|"
+      vim.g.table_mode_header_fillchar = "-"
+      vim.g.table_mode_align_char = ":"
+
+      -- Realign columns as you type, not just on demand.
+      vim.g.table_mode_auto_align = 1
+
+      -- Delimiter used by :Tableize (and <leader>tt below) to turn
+      -- delimiter-separated text - e.g. lines pasted from a CSV -
+      -- into a proper markdown table.
+      vim.g.table_mode_delimiter = ","
     end,
     keys = {
-      { "<leader>tm", "<cmd>TableModeToggle<cr>", ft = "markdown", desc = "Toggle table mode" },
+      { "<leader>tm",  "<cmd>TableModeToggle<cr>", ft = "markdown",                        desc = "Toggle table mode" },
+      { "<leader>tt",  ":Tableize<cr>",            mode = "v",                             ft = "markdown",           desc = "Tableize selection" },
+      { "<leader>tr",  ft = "markdown",            desc = "Realign table" },
+      { "<leader>ts",  ft = "markdown",            desc = "Sort table column under cursor" },
+      { "<leader>tdd", ft = "markdown",            desc = "Delete table row" },
+      { "<leader>tdc", ft = "markdown",            desc = "Delete table column" },
     },
   },
 
