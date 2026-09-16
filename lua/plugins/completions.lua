@@ -39,6 +39,11 @@ return {
           local luasnip = require("luasnip")
           local km = vim.keymap.set
 
+          luasnip.setup({
+            enable_autosnippets = true,
+            store_selection_keys = "<Tab>",
+          })
+
           local function load_snippets(filetype, module)
             local ok, snippets = pcall(require, module)
 
@@ -192,31 +197,20 @@ return {
           "show_signature",
           "fallback",
         },
-
-        -- Cycle through blink.cmp suggestions without opening the menu.
-        ["<C-n>"] = {
-          "select_next",
-          "fallback",
-        },
-
-        ["<C-p>"] = {
-          "select_prev",
-          "fallback",
-        },
       },
 
       appearance = {
         nerd_font_variant = "mono",
       },
-
       signature = {
         enabled = true,
-        auto_show = false,
+        trigger = {
+          enabled = false,
+        },
         window = {
           show_documentation = false,
         },
       },
-
       completion = {
         trigger = {
           show_on_insert_on_trigger_character = false,
