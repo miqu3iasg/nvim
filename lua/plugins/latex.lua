@@ -46,7 +46,13 @@ return {
       vim.g.vimtex_compiler_method = "latexmk"
       vim.g.vimtex_compiler_latexmk = {
         continuous = 1,
-        build_dir = "build",
+        -- This used to be `build_dir`, which vimtex renamed to
+        -- `out_dir` in v2.13 (build_dir is now silently ignored). This is
+        -- relative to the .tex file's own directory (exports/build/), so
+        -- everything latexmk generates (.aux, .log, .fls, .fdb_latexmk,
+        -- .synctex.gz, and the .pdf itself) goes into exports/build/output/,
+        -- with nothing left behind next to the .tex file.
+        out_dir = "output",
         options = {
           "-pdf",
           "-interaction=nonstopmode",
@@ -67,6 +73,44 @@ return {
         sections = false,
         styles = true,
       }
+
+      -- After every successful compile, copy the resulting PDF out of
+      -- exports/build/output/ up into exports/, so exports/ only ever
+      -- shows the final PDFs and build/ (plus build/output/) only ever
+      -- holds the source + compilation byproducts.
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "VimtexEventCompileSuccess",
+        group = vim.api.nvim_create_augroup("latex_export_pdf", { clear = true }),
+        callback = function()
+          local state = vim.b.vimtex
+          local tex_file = (state and state.tex) or vim.fn.expand("%:p")
+          if tex_file == "" then
+            return
+          end
+
+          local build_dir = vim.fn.fnamemodify(tex_file, ":h")    -- .../exports/build
+          local basename = vim.fn.fnamemodify(tex_file, ":t:r")   -- note name, no extension
+          local src = build_dir .. "/output/" .. basename .. ".pdf"
+          local exports_dir = vim.fn.fnamemodify(build_dir, ":h") -- .../exports
+          local dest = exports_dir .. "/" .. basename .. ".pdf"
+
+          if vim.fn.filereadable(src) == 0 then
+            return
+          end
+
+          local uv = vim.uv or vim.loop
+          uv.fs_copyfile(src, dest, function(err)
+            if err then
+              vim.schedule(function()
+                vim.notify(
+                  "vimtex: Failed to copy PDF to exports/ (" .. err .. ")",
+                  vim.log.levels.ERROR
+                )
+              end)
+            end
+          end)
+        end,
+      })
     end,
   },
 

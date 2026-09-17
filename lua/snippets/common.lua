@@ -31,8 +31,8 @@ local comment_styles = {
   toml       = { kind = "line", sym = "#" },
   vim        = { kind = "line", sym = '"' },
   zig        = { kind = "line", sym = "//" },
-  scheme     = { kind = "line", sym = ";;" },
-  lisp       = { kind = "line", sym = ";;" },
+  scheme     = { kind = "line", sym = ";" },
+  lisp       = { kind = "line", sym = ";" },
   c          = { kind = "block", open = "/*", close = "*/" },
   cpp        = { kind = "block", open = "/*", close = "*/" },
   cs         = { kind = "block", open = "/*", close = "*/" },
@@ -74,6 +74,17 @@ local function wrap(style, line)
     return " * " .. line
   else -- No prefix at all
     return line
+  end
+end
+
+-- Prefix used when a placeholder needs to start mid-line (no "label:" before it).
+local function line_prefix(style)
+  if style.kind == "line" then
+    return style.sym .. " "
+  elseif style.kind == "block" then
+    return " * "
+  else -- docstring / no prefix
+    return ""
   end
 end
 
@@ -170,8 +181,7 @@ local function build_head(_, _)
   add(f(get_date, {}))
   add(t({ "", wrap(style, label("Modified:")) }))
   add(f(get_date, {}))
-  add(t({ "", wrap(style, ""), wrap(style, label("Description:")) }))
-  add(t({ "", wrap(style, "    ") }))
+  add(t({ "", wrap(style, ""), line_prefix(style) }))
   add(i(2, "add description here"))
   add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: MIT") }))
   add(t({ "", wrap(style, label("Copyright:")) }))
@@ -201,8 +211,7 @@ local function build_exs(_, _)
   add(f(get_date, {}))
   add(t({ "", wrap(style, label("Modified:")) }))
   add(f(get_date, {}))
-  add(t({ "", wrap(style, ""), wrap(style, label("Description:")) }))
-  add(t({ "", wrap(style, "    ") }))
+  add(t({ "", wrap(style, ""), line_prefix(style) }))
   add(i(2, "Longer description, if needed."))
   add(t({ "", wrap(style, ""), wrap(style, label("Problem Statement:")) }))
   add(t({ "", wrap(style, "    ") }))

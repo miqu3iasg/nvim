@@ -86,6 +86,7 @@ return {
           luasnip.filetype_extend("go", { "common" })
           luasnip.filetype_extend("sh", { "common" })
           luasnip.filetype_extend("markdown", { "common" })
+          luasnip.filetype_extend("tex", { "common" })
 
           -- Fallback mappings for LuaSnip.
           -- blink.cmp normally handles these mappings.

@@ -2,7 +2,7 @@
 
 local M = {}
 
-function M.setup()
+function M.setup(bufnr)
   -- Visual wrapping, respecting word boundaries.
   vim.opt_local.wrap = true
   vim.opt_local.linebreak = true

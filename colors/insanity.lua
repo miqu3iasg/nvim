@@ -14,18 +14,14 @@ local colors = {
   fg_2 = "#b9b9b9",
   fg_3 = "#d8d8d8",
 
-  -- cores dedicadas aos line numbers, bem próximas do bg
   linenr = "#3a3a3a",
   linenr_cur = "#585858",
   linenr_above = "#2e2e2e",
 
-  -- cor dedicada às bordas de janela, low contrast contra o bg
   border = "#2a2a2a",
 
-  -- cor dedicada ao highlight da linha atual, bem próxima do bg
   cursorline = "#0d0d0d",
 
-  -- cor dedicada aos comentários, mais escura e próxima do bg
   comment = "#4a4a4a",
 
   red = "#d75f5f",
@@ -40,7 +36,12 @@ local colors = {
   br_yellow = "#ffd751",
   br_blue = "#5fafff",
   br_magenta = "#d75fd7",
-  br_cyan = "#87ffff",
+  br_cyan = "#c9d6d6",
+
+  diff_add_bg = "#0c130c",
+  diff_change_bg = "#13120c",
+  diff_delete_bg = "#130c0c",
+  diff_text_bg = "#2a1414",
 }
 
 local function hi(group, opts)
@@ -89,19 +90,22 @@ hi("Directory", {
 })
 
 hi("DiffAdd", {
+  bg = colors.diff_add_bg,
   fg = colors.green,
 })
 
 hi("DiffChange", {
+  bg = colors.diff_change_bg,
   fg = colors.br_yellow,
 })
 
 hi("DiffDelete", {
+  bg = colors.diff_delete_bg,
   fg = colors.red,
 })
 
 hi("DiffText", {
-  bg = colors.red,
+  bg = colors.diff_text_bg,
   fg = colors.fg_3,
 })
 
@@ -133,11 +137,31 @@ hi("Normal", {
   nocombine = true,
 })
 
+hi("NormalNC", {
+  link = "Normal",
+})
+
+hi("NormalFloat", {
+  bg = colors.bg,
+})
+
+hi("FloatTitle", {
+  link = "Title",
+})
+
+hi("FloatFooter", {
+  link = "Comment",
+})
+
 hi("SignColumn", {})
 
 hi("Search", {
   bg = colors.br_magenta,
   fg = colors.fg_3,
+})
+
+hi("Substitute", {
+  link = "Search",
 })
 
 hi("Title", {
@@ -158,13 +182,41 @@ hi("WildMenu", {
   fg = colors.fg_2,
 })
 
--- Cursor and window links
+hi("Whitespace", {
+  fg = colors.fg_0,
+})
+
+hi("SpecialKey", {
+  link = "NonText",
+})
+
+hi("MsgArea", {
+  link = "Normal",
+})
+
+hi("MsgSeparator", {
+  link = "StatusLine",
+})
+
+hi("healthError", { link = "ErrorMsg" })
+hi("healthWarning", { link = "WarningMsg" })
+hi("healthSuccess", { fg = colors.green })
+
 hi("lCursor", {
   link = "Cursor",
 })
 
 hi("CursorIM", {
   link = "Cursor",
+})
+
+hi("TermCursor", {
+  link = "Cursor",
+})
+
+hi("TermCursorNC", {
+  fg = colors.bg,
+  bg = colors.fg_1,
 })
 
 hi("CursorColumn", {
@@ -197,12 +249,16 @@ hi("WinSeparator", {
   bg = colors.bg,
 })
 
-hi("FloatBorder", {
-  fg = colors.border,
-  bg = colors.bg,
+hi("WinBar", {
+  link = "StatusLine",
 })
 
-hi("NormalFloat", {
+hi("WinBarNC", {
+  link = "StatusLineNC",
+})
+
+hi("FloatBorder", {
+  fg = colors.border,
   bg = colors.bg,
 })
 
@@ -236,10 +292,6 @@ hi("PopupNotification", {
 
 hi("Question", {
   link = "WarningMsg",
-})
-
-hi("SpecialKey", {
-  link = "NonText",
 })
 
 hi("ModeMsg", {
@@ -288,13 +340,21 @@ hi("PmenuExtraSel", {
   link = "PmenuSel",
 })
 
+hi("PmenuMatch", {
+  fg = colors.fg_3,
+  bold = true,
+})
+
+hi("PmenuMatchSel", {
+  link = "PmenuMatch",
+})
+
 hi("MessageWindow", {
   link = "PmenuSel",
 })
 
--- Spell checking
-hi("SpellBad", {})
-hi("SpellCap", {})
+hi("SpellBad", { undercurl = true, sp = colors.red })
+hi("SpellCap", { undercurl = true, sp = colors.blue })
 hi("SpellLocal", { link = "Normal" })
 hi("SpellRare", { link = "Normal" })
 
@@ -368,8 +428,6 @@ hi("Special", {
   fg = colors.fg_2,
 })
 
--- Pontuação / delimitadores: (){}[];., etc. usam o mesmo branco suave
--- que o resto do tema, em vez de branco puro
 hi("Delimiter", {
   fg = colors.fg_3,
 })
@@ -458,6 +516,169 @@ hi("ToolbarButton", {
   link = "TabLineSel",
 })
 
+-- LSP
+hi("DiagnosticError", { fg = colors.br_red })
+hi("DiagnosticWarn", { fg = colors.br_yellow })
+hi("DiagnosticInfo", { fg = colors.blue })
+hi("DiagnosticHint", { fg = colors.cyan })
+hi("DiagnosticOk", { fg = colors.green })
+
+hi("DiagnosticUnderlineError", { undercurl = true, sp = colors.br_red })
+hi("DiagnosticUnderlineWarn", { undercurl = true, sp = colors.br_yellow })
+hi("DiagnosticUnderlineInfo", { undercurl = true, sp = colors.blue })
+hi("DiagnosticUnderlineHint", { undercurl = true, sp = colors.cyan })
+hi("DiagnosticUnderlineOk", { undercurl = true, sp = colors.green })
+
+-- Texto virtual (mensagem inline) um pouco mais discreto que o sinal
+hi("DiagnosticVirtualTextError", { fg = colors.red, bg = colors.bg })
+hi("DiagnosticVirtualTextWarn", { fg = colors.yellow, bg = colors.bg })
+hi("DiagnosticVirtualTextInfo", { fg = colors.blue, bg = colors.bg })
+hi("DiagnosticVirtualTextHint", { fg = colors.cyan, bg = colors.bg })
+hi("DiagnosticVirtualTextOk", { fg = colors.green, bg = colors.bg })
+
+hi("DiagnosticFloatingError", { link = "DiagnosticError" })
+hi("DiagnosticFloatingWarn", { link = "DiagnosticWarn" })
+hi("DiagnosticFloatingInfo", { link = "DiagnosticInfo" })
+hi("DiagnosticFloatingHint", { link = "DiagnosticHint" })
+hi("DiagnosticFloatingOk", { link = "DiagnosticOk" })
+
+hi("DiagnosticSignError", { link = "DiagnosticError" })
+hi("DiagnosticSignWarn", { link = "DiagnosticWarn" })
+hi("DiagnosticSignInfo", { link = "DiagnosticInfo" })
+hi("DiagnosticSignHint", { link = "DiagnosticHint" })
+hi("DiagnosticSignOk", { link = "DiagnosticOk" })
+
+hi("DiagnosticDeprecated", { fg = colors.fg_1, strikethrough = true })
+hi("DiagnosticUnnecessary", { fg = colors.fg_1 })
+
+hi("LspReferenceText", { bg = colors.fg_0 })
+hi("LspReferenceRead", { bg = colors.fg_0 })
+hi("LspReferenceWrite", { bg = colors.fg_0, underline = true })
+hi("LspSignatureActiveParameter", { link = "MatchParen" })
+hi("LspCodeLens", { link = "Comment" })
+hi("LspCodeLensSeparator", { link = "Comment" })
+hi("LspInlayHint", { fg = colors.comment, bg = colors.fg_0, italic = true })
+
+-- Treesitter
+hi("@variable", { fg = colors.fg_2 })
+hi("@variable.builtin", { fg = colors.fg_3, italic = true })
+hi("@variable.parameter", { fg = colors.fg_3, italic = true })
+hi("@variable.parameter.builtin", { fg = colors.fg_3, italic = true })
+hi("@variable.member", { fg = colors.fg_3 })
+
+hi("@module", { link = "Special" })
+hi("@module.builtin", { fg = colors.fg_3 })
+hi("@label", { link = "Link" })
+
+hi("@constant", { link = "Constant" })
+hi("@constant.builtin", { fg = colors.fg_3, bold = true })
+hi("@constant.macro", { link = "PreProc" })
+hi("@boolean", { fg = colors.fg_3, bold = true })
+hi("@number", { link = "Constant" })
+hi("@number.float", { link = "Constant" })
+
+hi("@string", { link = "String" })
+hi("@string.documentation", { fg = colors.green, italic = true })
+hi("@string.regexp", { fg = colors.magenta })
+hi("@string.escape", { fg = colors.br_cyan })
+hi("@string.special", { fg = colors.br_cyan })
+hi("@string.special.symbol", { fg = colors.fg_3 })
+hi("@string.special.url", { fg = colors.cyan, underline = true })
+hi("@character", { link = "Character" })
+hi("@character.special", { fg = colors.br_cyan })
+
+hi("@type", { link = "Type" })
+hi("@type.builtin", { link = "TypeBuiltin" })
+hi("@type.definition", { link = "Type" })
+hi("@type.qualifier", { link = "Statement" })
+
+hi("@attribute", { link = "PreProc" })
+hi("@attribute.builtin", { link = "PreProc" })
+hi("@property", { fg = colors.fg_3 })
+
+hi("@function", { link = "Function" })
+hi("@function.builtin", { link = "FunctionBuiltin" })
+hi("@function.call", { link = "Function" })
+hi("@function.macro", { link = "PreProc" })
+hi("@function.method", { link = "Function" })
+hi("@function.method.call", { link = "Function" })
+hi("@constructor", { link = "Special" })
+
+hi("@operator", { fg = colors.fg_3 })
+
+hi("@keyword", { link = "Statement" })
+hi("@keyword.coroutine", { link = "Statement" })
+hi("@keyword.function", { link = "Statement" })
+hi("@keyword.operator", { fg = colors.fg_3 })
+hi("@keyword.import", { link = "Statement" })
+hi("@keyword.type", { link = "Statement" })
+hi("@keyword.modifier", { link = "Statement" })
+hi("@keyword.repeat", { link = "Statement" })
+hi("@keyword.return", { link = "Statement" })
+hi("@keyword.debug", { link = "WarningMsg" })
+hi("@keyword.exception", { link = "Exception" })
+hi("@keyword.conditional", { link = "Statement" })
+hi("@keyword.conditional.ternary", { fg = colors.fg_3 })
+hi("@keyword.directive", { link = "PreProc" })
+hi("@keyword.directive.define", { link = "PreProc" })
+
+hi("@comment", { link = "Comment" })
+hi("@comment.documentation", { fg = colors.comment, italic = true })
+hi("@comment.error", { link = "ErrorMsg" })
+hi("@comment.warning", { link = "WarningMsg" })
+hi("@comment.todo", { link = "Todo" })
+hi("@comment.note", { link = "Special" })
+
+hi("@markup.strong", { bold = true })
+hi("@markup.italic", { italic = true })
+hi("@markup.strikethrough", { strikethrough = true })
+hi("@markup.underline", { underline = true })
+hi("@markup.heading", { link = "Title" })
+hi("@markup.heading.1", { link = "Title" })
+hi("@markup.heading.2", { link = "Title" })
+hi("@markup.heading.3", { link = "Title" })
+hi("@markup.heading.4", { link = "Title" })
+hi("@markup.heading.5", { link = "Title" })
+hi("@markup.heading.6", { link = "Title" })
+hi("@markup.quote", { fg = colors.fg_1, italic = true })
+hi("@markup.math", { fg = colors.fg_3 })
+hi("@markup.link", { link = "Link" })
+hi("@markup.link.label", { link = "Link" })
+hi("@markup.link.url", { fg = colors.cyan, underline = true })
+hi("@markup.raw", { fg = colors.green })
+hi("@markup.raw.block", { fg = colors.green })
+hi("@markup.list", { fg = colors.fg_1 })
+hi("@markup.list.checked", { fg = colors.green })
+hi("@markup.list.unchecked", { fg = colors.fg_1 })
+
+hi("@tag", { link = "Statement" })
+hi("@tag.attribute", { fg = colors.fg_3, italic = true })
+hi("@tag.delimiter", { link = "Delimiter" })
+
+hi("@diff.plus", { link = "DiffAdd" })
+hi("@diff.minus", { link = "DiffDelete" })
+hi("@diff.delta", { link = "DiffChange" })
+
+-- LSP semantic tokens
+hi("@lsp.type.class", { link = "@type" })
+hi("@lsp.type.decorator", { link = "@attribute" })
+hi("@lsp.type.enum", { link = "@type" })
+hi("@lsp.type.enumMember", { link = "@constant" })
+hi("@lsp.type.function", { link = "@function" })
+hi("@lsp.type.interface", { link = "@type" })
+hi("@lsp.type.macro", { link = "@function.macro" })
+hi("@lsp.type.method", { link = "@function.method" })
+hi("@lsp.type.namespace", { link = "@module" })
+hi("@lsp.type.parameter", { link = "@variable.parameter" })
+hi("@lsp.type.property", { link = "@property" })
+hi("@lsp.type.struct", { link = "@type" })
+hi("@lsp.type.type", { link = "@type" })
+hi("@lsp.type.typeParameter", { link = "@type" })
+hi("@lsp.type.variable", { link = "@variable" })
+hi("@lsp.typemod.function.defaultLibrary", { link = "@function.builtin" })
+hi("@lsp.typemod.variable.defaultLibrary", { link = "@variable.builtin" })
+hi("@lsp.typemod.variable.readonly", { fg = colors.fg_3 })
+
 -- Help
 hi("helpHeadline", {
   link = "Title",
@@ -511,7 +732,6 @@ hi("helpURL", {
   link = "Link",
 })
 
--- Diff
 hi("diffAdded", {
   link = "DiffAdd",
 })
@@ -600,11 +820,6 @@ hi("gitcommitUntrackedFile", {
 
 hi("gitcommitSummary", {
   link = "String",
-})
-
--- vim-sneak
-hi("SneakLabel", {
-  link = "Search",
 })
 
 return M
