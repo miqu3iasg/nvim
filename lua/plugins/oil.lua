@@ -38,8 +38,55 @@ return {
             split = "botright",
           },
         },
-        ["gs"] = "actions.change_sort",     -- cycle sort order
-        ["gx"] = "actions.open_external",   -- open with OS default program
+        ["gs"] = "actions.change_sort", -- cycle sort order
+        ["gx"] = {
+          -- open with a specific app based on extension, or fall back to OS default
+          callback = function()
+            local entry = oil.get_cursor_entry()
+            local dir = oil.get_current_dir()
+            if not entry or not dir then
+              return
+            end
+
+            local path = dir .. entry.name
+            local ext = entry.name:match("^.+%.(.+)$")
+            ext = ext and ext:lower() or nil
+
+            local app_map = {
+              pdf  = { "zathura" },
+              djvu = { "zathura" },
+              epub = { "zathura" },
+              cbz  = { "zathura" },
+              cbr  = { "zathura" },
+              xps  = { "zathura" },
+
+              png  = { "imv" },
+              jpg  = { "imv" },
+              jpeg = { "imv" },
+              gif  = { "imv" },
+              webp = { "imv" },
+              bmp  = { "imv" },
+              svg  = { "imv" },
+
+              mp4  = { "mpv" },
+              mkv  = { "mpv" },
+              webm = { "mpv" },
+              mov  = { "mpv" },
+              avi  = { "mpv" },
+              mp3  = { "mpv" },
+              flac = { "mpv" },
+              wav  = { "mpv" },
+            }
+
+            local cmd = ext and app_map[ext]
+            if cmd then
+              local full_cmd = vim.list_extend(vim.deepcopy(cmd), { path })
+              vim.fn.jobstart(full_cmd, { detach = true })
+            else
+              require("oil.actions").open_external.callback()
+            end
+          end,
+        },
         ["gy"] = "actions.copy_entry_path", -- copy entry path to clipboard
         ["gh"] = "actions.toggle_hidden",   -- toggle hidden files visibility
         ["q"] = "actions.close",            -- close oil buffer
@@ -76,31 +123,9 @@ return {
       require("oil").open(vim.fn.getcwd())
     end, { desc = "Open cwd" })
 
-    -- Reveal current file in Oil
-    vim.keymap.set("n", "ge", function()
-      local file = vim.api.nvim_buf_get_name(0)
-      if file == "" then
-        return
-      end
-      local dir = vim.fs.dirname(file)
-      local name = vim.fs.basename(file)
-      oil.open(dir, {}, function()
-        for lnum = 1, vim.api.nvim_buf_line_count(0) do
-          local entry = oil.get_entry_on_line(0, lnum)
-          if entry and entry.name == name then
-            vim.api.nvim_win_set_cursor(0, { lnum, 0 })
-            return
-          end
-        end
-      end)
-    end, {
-      desc = "Reveal current file in Oil",
-    })
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = "oil",
-      callback = function()
-        vim.opt_local.cursorline = false
-      end,
-    })
+    -- go straight to repos directory
+    vim.keymap.set("n", "g,", function()
+      require("oil").open(vim.fn.expand("~/repos"))
+    end, { desc = "Open repos directory" })
   end,
 }

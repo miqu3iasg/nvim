@@ -45,8 +45,8 @@ km("n", "_", "<cmd>resize -5<cr>", { desc = "Decrease window height" })
 km("n", "=", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
 km("n", "-", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
 
--- Zoom window (toggle between maximized and original size)
-km("n", "<leader>z", function()
+-- Maximize window (toggle between maximized and original size)
+km("n", "<leader>sm", function()
   if vim.fn.winnr("$") == 1 then
     return
   end

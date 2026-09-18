@@ -4,6 +4,7 @@ local km = vim.keymap.set
 
 -- Command mode
 km({ "n", "v" }, ";", ":", { desc = "Enter command mode" })
+km({ "n", "v", "x" }, "<CR>", ":", { desc = "Enter command mode" })
 
 -- give back the repeat-last-f/t/F/T-motion functionality that ";" used to have
 -- (rhs is noremap by default, so this "\" still resolves to the original ";" behavior)

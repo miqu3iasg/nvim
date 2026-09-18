@@ -11,7 +11,7 @@ km("n", "<leader>th", function()
   vim.cmd("botright split | terminal")
 end, { desc = "Open terminal in horizontal split (bottom)" })
 
-km("n", "<leader>tt", "<cmd>terminal<CR>", { desc = "Open terminal in current window" })
+km("n", "<leader>tt", function() vim.cmd("tabnew | terminal") end, { desc = "Open terminal in a new tab" })
 
 -- Toggle terminal: reopens the same buffer/process if hidden,
 -- hides the window (without killing the process) if visible.

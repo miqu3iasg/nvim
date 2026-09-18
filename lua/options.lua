@@ -8,6 +8,7 @@ vim.opt.history = 10000
 vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
 vim.opt.timeoutlen = 500
+vim.opt.showtabline = 0
 vim.opt.ttimeoutlen = 30
 vim.opt.updatetime = 300
 vim.opt.switchbuf = "uselast"

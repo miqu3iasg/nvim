@@ -226,19 +226,4 @@ return {
       ensure_installed = { "markdownlint-cli2" },
     },
   },
-
-  -- Live browser preview, synced to the cursor as you type.
-  {
-    "iamcco/markdown-preview.nvim",
-    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-    ft = { "markdown" },
-    build = "cd app && npm install",
-    init = function()
-      vim.g.mkdp_filetypes = { "markdown" }
-      vim.g.mkdp_theme = "dark"
-    end,
-    keys = {
-      { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", ft = "markdown", desc = "Toggle browser preview" },
-    },
-  },
 }

@@ -18,5 +18,7 @@ require("keymaps.terminal")
 require("keymaps.files")
 require("keymaps.misc")
 require("keymaps.marks")
+require("keymaps.inserts")
+require("keymaps.tabs")
 
 return M

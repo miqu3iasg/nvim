@@ -79,51 +79,39 @@ km("n", "<leader>nx", function()
   print((is_exec and "Removed" or "Added") .. " executable permission: " .. file)
 end, { desc = "Toggle executable permission on current file" })
 
--- Copy the current file's absolute path to the system clipboard
-km("n", "<leader>ny", function()
-  local path = vim.fn.expand("%:p")
-  if path == "" then
-    print("No file in buffer")
+-- Yank file info to the system clipboard
+local function yank(value)
+  if value == "" then
     return
   end
-  vim.fn.setreg("+", path)
-  print("Copied path: " .. path)
-end, { desc = "Copy absolute file path to clipboard" })
+  vim.fn.setreg("+", value)
+end
 
--- Copy the current file's path relative to the working directory
-km("n", "<leader>nr", function()
-  local path = vim.fn.expand("%:.")
-  if path == "" then
-    print("No file in buffer")
-    return
-  end
-  vim.fn.setreg("+", path)
-  print("Copied relative path: " .. path)
-end, { desc = "Copy relative file path to clipboard" })
+km("n", "<leader>yp", function()
+  yank(vim.fn.expand("%:p"))
+end, { desc = "Yank absolute file path" })
 
--- Copy the containing directory's absolute path
+km("n", "<leader>yr", function()
+  yank(vim.fn.expand("%:."))
+end, { desc = "Yank relative file path" })
+
+km("n", "<leader>yn", function()
+  yank(vim.fn.expand("%:t"))
+end, { desc = "Yank file name" })
+
 -- Useful for terminal navigation and file manager operations
-km("n", "<leader>nh", function()
-  local dir = vim.fn.expand("%:p:h")
-  if dir == "" then
-    print("No file in buffer")
-    return
-  end
-  vim.fn.setreg("+", dir)
-  print("Copied directory: " .. dir)
-end, { desc = "Copy containing directory path to clipboard" })
+km("n", "<leader>yd", function()
+  yank(vim.fn.expand("%:p:h"))
+end, { desc = "Yank containing directory path" })
 
--- Copy a file:line reference for use in pull requests, chat, and TODOs
-km("n", "<leader>ns", function()
+-- Useful for pull requests, chat, and TODOs
+km("n", "<leader>yl", function()
   local path = vim.fn.expand("%:.")
   if path == "" then
-    print("No file in buffer")
     return
   end
-  local ref = path .. ":" .. vim.fn.line(".")
-  vim.fn.setreg("+", ref)
-  print("Copied: " .. ref)
-end, { desc = "Copy file:line reference to clipboard" })
+  yank(path .. ":" .. vim.fn.line("."))
+end, { desc = "Yank file:line reference" })
 
 -- Reveal the current file in the operating system's file explorer
 -- macOS selects the file; Linux opens its containing directory

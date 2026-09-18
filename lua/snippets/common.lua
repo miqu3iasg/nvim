@@ -144,7 +144,85 @@ local usage_by_ft = {
       t({ "", wrap(style, ""), wrap(style, "    To evaluate line by line, use ,ee and ,er in the REPL.") }),
     }
   end,
+  javascript = function(style)
+    return {
+      t({ "", wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ node ") }),
+      f(get_filename, {}),
+    }
+  end,
+  typescript = function(style)
+    return {
+      t({ "", wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ npx ts-node ") }),
+      f(get_filename, {}),
+      t({ "", wrap(style, ""), wrap(style, "    Or compile then run:") }),
+      t({ "", wrap(style, "    $ tsc ") }),
+      f(get_filename, {}),
+      t({ "", wrap(style, "    $ node ") }),
+      f(get_basename, {}),
+      t(".js"),
+    }
+  end,
+  rust = function(style)
+    return {
+      t({ "", wrap(style, "    Compile:") }),
+      t({ "", wrap(style, "    $ rustc ") }),
+      f(get_filename, {}),
+      t(" -o "),
+      f(get_basename, {}),
+      t({ "", wrap(style, ""), wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ ./") }),
+      f(get_basename, {}),
+    }
+  end,
+  go = function(style)
+    return {
+      t({ "", wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ go run ") }),
+      f(get_filename, {}),
+    }
+  end,
+  php = function(style)
+    return {
+      t({ "", wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ php ") }),
+      f(get_filename, {}),
+    }
+  end,
+  cs = function(style)
+    return {
+      t({ "", wrap(style, "    Run (single file, .NET 10+):") }),
+      t({ "", wrap(style, "    $ dotnet run ") }),
+      f(get_filename, {}),
+    }
+  end,
+  haskell = function(style)
+    return {
+      t({ "", wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ runghc ") }),
+      f(get_filename, {}),
+      t({ "", wrap(style, ""), wrap(style, "    Or compile then run:") }),
+      t({ "", wrap(style, "    $ ghc -o ") }),
+      f(get_basename, {}),
+      t(" "),
+      f(get_filename, {}),
+      t({ "", wrap(style, "    $ ./") }),
+      f(get_basename, {}),
+    }
+  end,
+  sh = function(style)
+    return {
+      t({ "", wrap(style, "    Run:") }),
+      t({ "", wrap(style, "    $ chmod +x ") }),
+      f(get_filename, {}),
+      t({ "", wrap(style, "    $ ./") }),
+      f(get_filename, {}),
+    }
+  end,
 }
+usage_by_ft.bash = usage_by_ft.sh
+usage_by_ft.zsh = usage_by_ft.sh
 
 -- Emits the opening marker(s) and, if needed, a line break before the
 -- first field, depending on how many lines the opener itself takes.
@@ -181,15 +259,21 @@ local function build_head(_, _)
   add(f(get_date, {}))
   add(t({ "", wrap(style, label("Modified:")) }))
   add(f(get_date, {}))
+  add(t({ "", wrap(style, label("By:")) }))
+  add(i(2, "actual author(s) of the work"))
+  add(t({ "", wrap(style, label("Reference:")) }))
+  add(i(3, "title of the book/article"))
+  add(t({ "", wrap(style, label("Location:")) }))
+  add(i(4, "pages / section"))
   add(t({ "", wrap(style, ""), line_prefix(style) }))
-  add(i(2, "add description here"))
-  add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: MIT") }))
+  add(i(5, "add description here"))
+  add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: AGPL-3.0-only") }))
   add(t({ "", wrap(style, label("Copyright:")) }))
-  add(t("\194\169 "))
+  add(t("(c) "))
   add(f(get_year, {}))
   add(t(" "))
   add(rep(1))
-  add(t(". All rights reserved."))
+  add(t("."))
   close_header(add, style)
   add(i(0))
 
@@ -228,13 +312,13 @@ local function build_exs(_, _)
   add(t({ "", wrap(style, ""), wrap(style, label("References:")) }))
   add(t({ "", wrap(style, "    - ") }))
   add(i(5, "https://..."))
-  add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: MIT") }))
+  add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: AGPL-3.0-only") }))
   add(t({ "", wrap(style, label("Copyright:")) }))
-  add(t("\194\169 "))
+  add(t("(c) "))
   add(f(get_year, {}))
   add(t(" "))
   add(rep(1))
-  add(t(". All rights reserved."))
+  add(t("."))
   close_header(add, style)
   add(i(0))
 
