@@ -70,7 +70,7 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function(event)
     -- `tab` is a command modifier Fugitive honors: the commit buffer opens
     -- in a new tab (full screen), and -v includes the staged diff in it.
-    vim.keymap.set("n", "cc", "<cmd>tab Git commit -v<cr>", {
+    vim.keymap.set("n", "cc", "<cmd>silent tab Git commit -v<cr>", {
       buffer = event.buf,
       silent = true,
       desc = "Git commit -v (full page, new tab)",
