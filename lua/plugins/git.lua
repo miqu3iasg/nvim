@@ -68,8 +68,8 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitive",
   callback = function(event)
-    -- `tab` is a command modifier Fugitive honors: the commit buffer opens
-    -- in a new tab (full screen), and -v includes the staged diff in it.
+    -- the commit buffer opens in a new tab (full screen), and -v
+    -- includes the staged diff in it.
     vim.keymap.set("n", "cc", "<cmd>silent tab Git commit -v<cr>", {
       buffer = event.buf,
       silent = true,
@@ -86,8 +86,7 @@ return {
     -- lazy-load the plugin on first press, and keeps them next to the
     -- plugin they belong to.
     keys = {
-      -- `vertical` is a Vim command modifier that Fugitive honors: any
-      -- :Git subcommand that opens a window (status, commit, push, log)
+      -- any :Git subcommand that opens a window (status, commit, push, log)
       -- does so as a vertical split instead of its horizontal default.
       { "<leader>gs", "<cmd>vertical Git<cr>",               desc = "Git status" },
       { "<leader>gl", "<cmd>vertical Git log --oneline<cr>", desc = "Git log" },
