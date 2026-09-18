@@ -24,12 +24,20 @@ km("n", "gV", "`[v`]", { desc = "Reselect last changed text" })
 -- Indentation
 km("n", ">", ">>", { desc = "Indent line right" })
 km("n", "<", "<<", { desc = "Indent line left" })
-
-km("v", ">", ">gv", { desc = "Indent selection right" })
 km("v", "<", "<gv", { desc = "Indent selection left" })
 
-km("n", "<leader>=", "gg=G", { desc = "Indent entire file" })
-km("v", "<leader>=", "=gv", { desc = "Indent selection" })
+km("n", "<leader>=", function()
+  local view = vim.fn.winsaveview()
+  vim.cmd("normal! gg=G")
+  vim.fn.winrestview(view)
+end, { desc = "Indent entire file" })
+
+km("v", "<leader>=", function()
+  local view = vim.fn.winsaveview()
+  vim.cmd("normal! =")
+  vim.fn.winrestview(view)
+  vim.cmd("normal! gv")
+end, { desc = "Indent selection" })
 
 -- Formatting
 km("n", "<leader>k", function()
