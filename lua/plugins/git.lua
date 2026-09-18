@@ -41,10 +41,40 @@ local function gitsigns_hide()
   end
 end
 
+-- Per-buffer toggle for mini.diff. mini.diff enables itself on every
+-- buffer by default, so we keep our own flag (`minidiff_user_on`) to know
+-- whether the user explicitly turned it on for a given buffer.
+local function minidiff_toggle()
+  local md = require("mini.diff")
+  local buf = vim.api.nvim_get_current_buf()
+  if vim.b[buf].minidiff_user_on then
+    vim.b[buf].minidiff_user_on = false
+    md.disable(buf)
+  else
+    vim.b[buf].minidiff_user_on = true
+    md.enable(buf)
+  end
+end
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "fugitive", "git", "gitcommit", "gitrebase" },
   callback = function(event)
     vim.keymap.set("n", "q", "gq", { buffer = event.buf, remap = true, desc = "Close" })
+  end,
+})
+
+-- `cc` only in the fugitive status buffer. In `gitcommit`/`gitrebase`
+-- it must stay as Vim's native "change whole line".
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "fugitive",
+  callback = function(event)
+    -- `tab` is a command modifier Fugitive honors: the commit buffer opens
+    -- in a new tab (full screen), and -v includes the staged diff in it.
+    vim.keymap.set("n", "cc", "<cmd>tab Git commit -v<cr>", {
+      buffer = event.buf,
+      silent = true,
+      desc = "Git commit -v (full page, new tab)",
+    })
   end,
 })
 
@@ -119,14 +149,14 @@ return {
     -- two plugins fighting over the same keys.
     keys = {
       { "<leader>ho", function() require("mini.diff").toggle_overlay(0) end, desc = "Toggle diff overlay" },
-      { "<leader>ht", function() require("mini.diff").toggle(0) end,         desc = "Toggle mini.diff for buffer" },
+      { "<leader>ht", minidiff_toggle,                                       desc = "Toggle mini.diff signs for buffer" },
     },
     opts = {
       view = {
         style = "sign",
         signs = { add = "▎", change = "▎", delete = "" },
       },
-      -- Disabled: apply/reset/textobject and hunk navigation overlap with
+      -- Disabled - apply/reset/textobject and hunk navigation overlap with
       -- gitsigns' own hunk keymaps above. '' unmaps a default entirely.
       mappings = {
         apply_hunks = "",
@@ -140,5 +170,36 @@ return {
         goto_last = "",
       },
     },
+    config = function(_, opts)
+      local md = require("mini.diff")
+      md.setup(opts)
+
+      -- setup() enables the plugin on every buffer. Turn it off here and
+      -- on any buffer opened later, unless the user explicitly enabled it
+      -- for that buffer with <leader>ht.
+      local function ensure_off(buf)
+        if not vim.b[buf].minidiff_user_on then
+          md.disable(buf)
+        end
+      end
+
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) then
+          ensure_off(buf)
+        end
+      end
+
+      vim.api.nvim_create_autocmd("BufEnter", {
+        group = vim.api.nvim_create_augroup("MiniDiffOffByDefault", { clear = true }),
+        callback = function(ev)
+          -- runs after mini.diff's own auto-enable on BufEnter
+          vim.schedule(function()
+            if vim.api.nvim_buf_is_valid(ev.buf) then
+              ensure_off(ev.buf)
+            end
+          end)
+        end,
+      })
+    end,
   },
 }
