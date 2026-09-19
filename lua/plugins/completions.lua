@@ -42,6 +42,9 @@ return {
           luasnip.setup({
             enable_autosnippets = true,
             store_selection_keys = "<Tab>",
+            update_events = "TextChanged,TextChangedI",
+            region_check_events = "InsertEnter",
+            delete_check_events = "TextChanged",
           })
 
           local function load_snippets(filetype, module)
@@ -156,6 +159,10 @@ return {
               ["`"] = true,
               [")"] = true,
               ["]"] = true,
+              ["}"] = true,
+              ["$"] = true,
+              ["%"] = true,
+              ["\\"] = true,
             }
 
             if tabout_chars[next_char] then
@@ -181,8 +188,28 @@ return {
           "fallback",
         },
 
-        -- Hide the completion menu.
+        -- Move to the next/previous item in the completion menu, freeing
+        -- <Tab>/<S-Tab> to mean only "expand or jump snippet field".
+        ["<C-n>"] = {
+          "select_next",
+          "fallback",
+        },
+        ["<C-p>"] = {
+          "select_prev",
+          "fallback",
+        },
+
+        -- Cycle LuaSnip choice nodes when one is active; otherwise hide
+        -- the completion menu (its previous, sole behavior).
         ["<C-e>"] = {
+          function(cmp)
+            local luasnip = require("luasnip")
+            if luasnip.choice_active() then
+              luasnip.change_choice(1)
+              return true
+            end
+            return false
+          end,
           "hide",
           "fallback",
         },
@@ -228,6 +255,18 @@ return {
         documentation = {
           auto_show = true,
           auto_show_delay_ms = 200,
+        },
+
+        -- Ghost text previews the top completion candidate as virtual text
+        -- after the cursor. Enable it only in LaTeX buffers, where it is useful
+        -- inside formulas and commands but distracting in prose/code.
+        -- `enabled` accepts a function evaluated per completion, matching the
+        -- pattern used by blink.cmp for its top-level `enabled` and
+        -- `cmdline.completion.menu.auto_show` options.
+        ghost_text = {
+          enabled = function()
+            return vim.bo.filetype == "tex"
+          end,
         },
 
         menu = {

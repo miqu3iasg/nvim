@@ -149,8 +149,21 @@ return {
         capabilities = capabilities,
       })
 
+      -- LaTeX
       lspconfig.texlab.setup({
         capabilities = capabilities,
+        settings = {
+          texlab = {
+            completion = {
+              -- Use fuzzy, case-insensitive matching instead of the default prefix
+              -- matcher. This lets abbreviations such as "thm" and "eqn" surface
+              -- relevant LaTeX completions like "\theorem" and "\begin{equation}",
+              -- keeping texlab's LSP completions consistent with blink.cmp's other
+              -- fuzzy sources (buffer, ripgrep, and VimTeX).
+              matcher = "fuzzy-ignore-case",
+            },
+          },
+        },
       })
 
       lspconfig.zls.setup({

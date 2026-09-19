@@ -7,6 +7,8 @@ function M.setup(bufnr)
 
   require("langs.latex.settings").setup(bufnr)
   require("langs.latex.keymaps").setup(bufnr)
+  require("langs.latex.plugins.surround").setup(bufnr)
+  require("langs.latex.plugins.pairs").setup(bufnr)
 end
 
 return M

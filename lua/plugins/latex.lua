@@ -30,6 +30,7 @@
 --     - https://github.com/lervag/vimtex
 --     - https://github.com/cmhughes/latexindent.pl
 --     - https://github.com/latex3/latex2e
+--     - https://github.com/kylechui/nvim-surround
 
 return {
   -- Core LaTeX engine, continuous compilation, PDF viewer sync
@@ -72,6 +73,20 @@ return {
         math_bounds = true,
         sections = false,
         styles = true,
+      }
+
+      -- Citation completion: use vimtex's "simple" algorithm (plain
+      -- cite-key matching) instead of its default "smart" one (a fuzzy
+      -- search over titles/authors done by vimtex itself). vimtex's own
+      -- docs recommend "simple" whenever an autocomplete plugin is
+      -- driving the menu (see :h g:vimtex_complete_bib) -- here that's
+      -- cmp-vimtex -> blink.cmp, which already does its own fuzzy
+      -- matching, so "smart" mode was redundant work and slower to
+      -- populate. The title/author/year still show up, just in the
+      -- documentation window instead of being searched directly.
+      vim.g.vimtex_complete_bib = {
+        simple = 1,
+        info_fmt = "@author_all (@year)\n@title",
       }
 
       -- After every successful compile, copy the resulting PDF out of
@@ -138,23 +153,30 @@ return {
       opts.sources = opts.sources or {}
       opts.sources.providers = opts.sources.providers or {}
 
+      -- score_offset raised from the shared default (50 for most
+      -- extra sources) to 80: in a .tex buffer, a \ref/\cite/\alpha
+      -- match should almost always outrank a same-looking word pulled
+      -- from the buffer or from ripgrep.
       opts.sources.providers.latex_symbols = {
         name = "latex_symbols",
         module = "blink.compat.source",
-        score_offset = 50,
+        score_offset = 80,
       }
       opts.sources.providers.vimtex = {
         name = "vimtex",
         module = "blink.compat.source",
-        score_offset = 50,
+        score_offset = 80,
       }
 
       -- latex_symbols is useful in both tex and markdown (Obsidian
       -- math); vimtex's own source (citations/refs/labels) only
       -- makes sense in real .tex files.
       opts.sources.per_filetype = opts.sources.per_filetype or {}
-      opts.sources.per_filetype.tex =
-          vim.list_extend(vim.deepcopy(opts.sources.default), { "latex_symbols", "vimtex" })
+
+      -- Listed explicitly (rather than derived from opts.sources.default)
+      -- so that "lazydev" -- irrelevant outside Lua buffers -- isn't
+      -- carried into every .tex buffer's candidate list for no reason.
+      opts.sources.per_filetype.tex = { "lsp", "path", "snippets", "vimtex", "latex_symbols", "buffer", "ripgrep" }
       opts.sources.per_filetype.markdown =
           vim.list_extend(vim.deepcopy(opts.sources.default), { "latex_symbols" })
 
@@ -170,6 +192,23 @@ return {
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
       vim.list_extend(opts.ensure_installed, { "latex" })
+
+      -- This parser is needed for markdown_inline to inject LaTeX into
+      -- $...$/$$...$$ regions (see render-markdown.nvim below).
+      --
+      -- Keep LaTeX excluded from Tree-sitter highlighting: enabling it
+      -- replaces VimTeX's legacy :syntax engine, disabling its conceal
+      -- rules for accents, Greek letters, math bounds, etc. Markdown
+      -- injections are unaffected because they run under the "markdown"
+      -- language, not the buffer's LaTeX parser.
+      --
+      -- Refs:
+      --     - :h vimtex-faq-treesitter
+      --     - https://github.com/lervag/vimtex/wiki/Syntax
+      opts.highlight = opts.highlight or {}
+      opts.highlight.disable = opts.highlight.disable or {}
+      vim.list_extend(opts.highlight.disable, { "latex" })
+
       return opts
     end,
   },
@@ -197,6 +236,20 @@ return {
       opts.ensure_installed = opts.ensure_installed or {}
       vim.list_extend(opts.ensure_installed, { "latexindent" })
       return opts
+    end,
+  },
+
+  -- Structural "surround" text objects (ys, ds, cs). Set up with empty
+  -- defaults here (parentheses, quotes, tags, ...); the LaTeX-specific
+  -- surrounds ($, \text{}, \left(\right)) are added per-buffer by
+  -- lua/langs/latex/surround.lua, loaded from ftplugin/tex.lua, so they
+  -- only apply in .tex buffers and never shadow the defaults elsewhere.
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup({})
     end,
   },
 }
