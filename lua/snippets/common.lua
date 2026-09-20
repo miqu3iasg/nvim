@@ -939,7 +939,7 @@ end
 local function build_see(_, _)
   local sym = line_comment_sym(vim.bo.filetype)
   return sn(nil, {
-    t(sym .. " See: "),
+    t(sym .. " see: "),
     i(1, "https://..."),
   })
 end
@@ -953,7 +953,7 @@ local function build_refs(_, _)
   local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
 
   open_inline(add, style)
-  add(t("Reference(s):"))
+  add(t("references:"))
   add(t({ "", wrap(style, "  - ") }))
   add(i(1, "https://..."))
   close_inline(add, style)
@@ -962,7 +962,7 @@ local function build_refs(_, _)
   return sn(nil, nodes)
 end
 
--- `snip`: description plus reference(s). Use when the reason the snippet
+-- description plus reference(s). Use when the reason the snippet
 -- was kept matters as much as where it came from. Deliberately excludes
 -- filename and tags, which belong to the file, not to a borrowed snippet
 -- sitting mid-function. Block comment where the language has one, line
@@ -974,7 +974,7 @@ local function build_snip(_, _)
 
   open_inline(add, style)
   add(i(1, "what this snippet does / why it was kept"))
-  add(t({ "", wrap(style, "Reference(s):") }))
+  add(t({ "", wrap(style, "references:") }))
   add(t({ "", wrap(style, "  - ") }))
   add(i(2, "https://..."))
   close_inline(add, style)
