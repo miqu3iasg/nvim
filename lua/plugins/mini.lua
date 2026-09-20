@@ -1,4 +1,5 @@
 -- lua/plugins/mini.lua
+-- mini.nvim modules configuration for LazyVim
 
 return {
   {

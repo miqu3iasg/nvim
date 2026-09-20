@@ -41,20 +41,46 @@ vim.api.nvim_create_autocmd("BufRead", {
   end,
 })
 
--- Open Oil automatically when nvim is launched with no file argument
-vim.api.nvim_create_augroup("OilOnStartup", { clear = true })
+-- On startup without file args, restore the tmux session, or open Oil
+vim.api.nvim_create_augroup("StartupBehavior", { clear = true })
 vim.api.nvim_create_autocmd("VimEnter", {
-  group = "OilOnStartup",
+  group = "StartupBehavior",
   nested = true,
   callback = function()
+    local argc = vim.fn.argc()
+    local no_files = argc == 0
+        or (argc == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1)
+
+    if not no_files then
+      return
+    end
+
     vim.schedule(function()
-      local argc = vim.fn.argc()
+      -- Inside tmux, try to restore the session for this directory
+      local sessions = require("sessions")
+      if sessions.enabled() and sessions.load() then
+        return
+      end
+
+      -- No session (or outside tmux), open Oil as before
       if argc == 0 then
         require("oil").open()
-      elseif argc == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
+      else
         require("oil").open(vim.fn.argv(0))
       end
     end)
+  end,
+})
+
+-- Save the session of the current directory on exit (inside tmux only).
+-- Oil buffers are removed by sessions.save() before writing the session.
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("SessionSave", { clear = true }),
+  callback = function()
+    local sessions = require("sessions")
+    if sessions.enabled() then
+      pcall(sessions.save)
+    end
   end,
 })
 

@@ -76,7 +76,7 @@ km("n", "<leader>vh", "<cmd>checkhealth<cr>", { desc = "Check health" })
 
 -- Open common config files and directories in Neovim
 km("n", "<leader>zs", "<cmd>e ~/.zshrc<cr>", { desc = "Edit .zshrc" })
-km("n", "<leader>zt", "<cmd>e ~/.tmux.conf<cr>", { desc = "Edit tmux.conf" })
+km("n", "<leader>zt", "<cmd>e ~/.config/tmux/tmux.conf<cr>", { desc = "Edit tmux.conf" })
 km("n", "<leader>zn", function() require("oil").open("~/.config/nvim") end, { desc = "Edit nvim config directory (Oil)" })
 
 -- Reload and run
