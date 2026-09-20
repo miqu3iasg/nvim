@@ -1,51 +1,19 @@
 -- lua/snippets/latex.lua
---
+
 -- LaTeX snippets for LuaSnip, ported from my personal snippet set of the
 -- Obsidian Plugin Latex Suite.
 --
--- Setup requirements in `lua/plugins/completions.lua`:
+-- The `where` option of `snip()` determines where a snippet can expand and
+-- how it is triggered: `"math"` expands only inside math environments and
+-- triggers automatically; `"text"` expands only outside math environments
+-- and also triggers automatically; `"any"` expands globally, both inside
+-- and outside math, but is not automatic, so the trigger must be typed and
+-- followed by `<Tab>`.
 --
--- ```lua
---   require("luasnip").setup({
---     enable_autosnippets = true,
---     store_selection_keys = "<Tab>", -- Required by ${VISUAL}-style snippets.
---     update_events = "TextChanged,TextChangedI",
---     region_check_events = "InsertEnter",
---     delete_check_events = "TextChanged",
---   })
--- ```
---
--- <Tab> must also be mapped, in insert mode, to LuaSnip's expand (for
--- example `ls.expand_or_jump()`): global snippets are not automatic.
---
--- Where a snippet expands (option `where` of snip()) and how it fires:
---   - "math": only inside math. Automatic.
---   - "text": only outside math. Automatic.
---   - "any" : global (works in both). Not automatic: type the trigger and
---             press <Tab>.
---
--- There are no prefix characters. Instead, every trigger that would collide
--- with ordinary prose was renamed to a short letter sequence that still
--- hints at the meaning (e.g. "sct" = section, "enm" = enumerate,
--- "prl" = \parallel). On top of that, text triggers are guarded by
--- `word = true` (they must start a word) and, when block-level, by
--- `line_start` (they must be the first thing on the line).
---
--- Some triggers exist twice (e.g. "RR", "qed"): one snippet for math and one
--- for text, with opposite conditions and different output.
---
--- Two commands help keep this file honest:
---   :SnipAudit  lists plain-trigger collisions (one trigger being a
---               prefix/suffix of another, with equal or higher priority).
---               Lists candidates, not verdicts; doesn't cover regex
---               snippets.
---   :SnipUsage  lists every trigger fired so far, most used first. Counts
---               persist across restarts (saved to stdpath("data")).
---
--- References:
---   https://github.com/L3MON4D3/LuaSnip/blob/master/DOC.md
---   https://github.com/L3MON4D3/LuaSnip/blob/master/Examples/snippets.lua
---   https://github.com/artisticat1/obsidian-latex-suite
+-- Refs:
+--     - https://github.com/L3MON4D3/LuaSnip/blob/master/DOC.md
+--     - https://github.com/L3MON4D3/LuaSnip/blob/master/Examples/snippets.lua
+--     - https://github.com/artisticat1/obsidian-latex-suite
 
 local ls = require("luasnip")
 local s = ls.snippet
@@ -988,6 +956,7 @@ snip("tayl", fmta(
 
 -- Maintenance commands
 
+-- You can use the :SnipAudit and :SnipUsage commands to check the health status of the snippets.
 vim.api.nvim_create_user_command("SnipAudit", function()
   local out = {}
   for _, a in ipairs(PLAIN) do
