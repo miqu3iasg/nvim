@@ -1,12 +1,12 @@
 -- lua/snippets/common.lua
 
-local ls = require("luasnip")
-local s = ls.snippet
-local t = ls.text_node
-local i = ls.insert_node
-local f = ls.function_node
-local d = ls.dynamic_node
-local sn = ls.snippet_node
+local ls  = require("luasnip")
+local s   = ls.snippet
+local t   = ls.text_node
+local i   = ls.insert_node
+local f   = ls.function_node
+local d   = ls.dynamic_node
+local sn  = ls.snippet_node
 local rep = require("luasnip.extras").rep
 
 local function get_date() return os.date("%Y-%m-%d") end
@@ -81,43 +81,43 @@ local DEFAULT_STYLE = { kind = "line", sym = "#" }
 -- even in languages whose file-header style above uses a block comment
 -- (c, cpp, java).
 local line_comment_by_ft = {
-  lua = "--",
-  sh = "#",
-  bash = "#",
-  zsh = "#",
-  yaml = "#",
-  toml = "#",
-  vim = '"',
-  zig = "//",
-  scheme = ";",
-  lisp = ";",
-  c = "//",
-  cpp = "//",
-  cs = "//",
-  java = "//",
+  lua        = "--",
+  sh         = "#",
+  bash       = "#",
+  zsh        = "#",
+  yaml       = "#",
+  toml       = "#",
+  vim        = '"',
+  zig        = "//",
+  scheme     = ";",
+  lisp       = ";",
+  c          = "//",
+  cpp        = "//",
+  cs         = "//",
+  java       = "//",
   javascript = "//",
   typescript = "//",
-  rust = "//",
-  go = "//",
-  php = "//",
-  sql = "--",
-  haskell = "--",
-  tex = "%",
-  latex = "%",
-  python = "#",
-  ruby = "#",
-  kotlin = "//",
-  swift = "//",
-  dart = "//",
-  elixir = "#",
-  scala = "//",
-  perl = "#",
-  r = "#",
-  julia = "#",
-  ps1 = "#",
-  fsharp = "//",
-  clojure = ";;",
-  groovy = "//",
+  rust       = "//",
+  go         = "//",
+  php        = "//",
+  sql        = "--",
+  haskell    = "--",
+  tex        = "%",
+  latex      = "%",
+  python     = "#",
+  ruby       = "#",
+  kotlin     = "//",
+  swift      = "//",
+  dart       = "//",
+  elixir     = "#",
+  scala      = "//",
+  perl       = "#",
+  r          = "#",
+  julia      = "#",
+  ps1        = "#",
+  fsharp     = "//",
+  clojure    = ";;",
+  groovy     = "//",
 }
 local DEFAULT_LINE_COMMENT = "#"
 
@@ -983,6 +983,49 @@ local function build_snip(_, _)
   return sn(nil, nodes)
 end
 
+-- ASCII art signature. Purely decorative — drop the art
+-- commented according to the language's inline style (block style when
+-- applicable, line style otherwise).
+
+local miq_art = {
+  "▄▄▄▄ ▄▄  ▄▄  ▄▄▄  ▄▄ ▄▄ ▄▄▄▄▄ ▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄▄",
+  "░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ▀▀ ░█ ░█",
+  "▒█ ▒█ ▒█ ▒█ ▒█ ░█ ▒█ ░█   ▄▒█ ▒█ ▒█ ░█  ▀▀░▄ ▒█ ░█",
+  "▓▓ ▓▓ ▓▓ ▓▓ ▓▓ ▓░ ▓▓ ▓░ ▒░ ▓▓ ▓▓ ▓▓ ▓░ ░█ ▓░ ▀▀▀░█",
+  "▀▀ ▀▀ ▀▀ ▀▀  ▀▀▒█ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀  ▀▀▀▀ ▀▀▀▀  ░█ ▓░",
+  "               ▀▀                             ▀▀▀▀",
+}
+
+-- local miq_art = {
+--   "    __  ____            _____ _                 ",
+--   "   /  |/  (_)___ ___  _|__  /(_)___ __________ _",
+--   "  / /|_/ / / __ `/ / / //_ </ / __ `/ ___/ __ `/",
+--   " / /  / / / /_/ / /_/ /__/ / / /_/ (__  ) /_/ / ",
+--   "/_/  /_/_/\\__, /\\__,_/____/_/\\__,_/____/\\__, /  ",
+--   "            /_/                        /____/    ",
+-- }
+
+local function build_miq(_, _)
+  local style = inline_style(vim.bo.filetype)
+  local nodes = {}
+  local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
+
+  if style.kind == "block" then add(t(style.open)) end
+
+  for idx, line in ipairs(miq_art) do
+    if idx == 1 and style.kind ~= "block" then
+      add(t(wrap(style, line)))
+    else
+      add(t({ "", wrap(style, line) }))
+    end
+  end
+
+  close_inline(add, style)
+  add(i(0))
+
+  return sn(nil, nodes)
+end
+
 -- Snippet registration. Licensed headers are appended below by iterating
 -- over `licenses`.
 local snippets = {
@@ -997,6 +1040,7 @@ local snippets = {
   s("see", { d(1, build_see, {}) }),
   s("refs", { d(1, build_refs, {}) }),
   s("drefs", { d(1, build_snip, {}) }),
+  s("miq", { d(1, build_miq, {}) }),
 }
 
 for key, spdx in pairs(licenses) do
