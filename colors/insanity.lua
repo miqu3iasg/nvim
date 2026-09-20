@@ -518,9 +518,9 @@ hi("ToolbarButton", {
 
 -- LSP
 hi("DiagnosticError", { fg = colors.br_red })
-hi("DiagnosticWarn", { fg = colors.br_yellow })
-hi("DiagnosticInfo", { fg = colors.blue })
-hi("DiagnosticHint", { fg = colors.cyan })
+hi("DiagnosticWarn", { fg = colors.yellow })
+hi("DiagnosticInfo", { fg = colors.cyan })
+hi("DiagnosticHint", { fg = colors.br_blue })
 hi("DiagnosticOk", { fg = colors.green })
 
 hi("DiagnosticUnderlineError", { undercurl = true, sp = colors.br_red })

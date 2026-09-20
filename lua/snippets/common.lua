@@ -54,17 +54,8 @@ local comment_styles = {
   latex      = { kind = "line", sym = "%" },
   ruby       = { kind = "line", sym = "#" },
   kotlin     = { kind = "line", sym = "//" },
-  swift      = { kind = "line", sym = "//" },
-  dart       = { kind = "line", sym = "//" },
-  elixir     = { kind = "line", sym = "#" },
-  scala      = { kind = "line", sym = "//" },
   perl       = { kind = "line", sym = "#" },
-  r          = { kind = "line", sym = "#" },
-  julia      = { kind = "line", sym = "#" },
   ps1        = { kind = "line", sym = "#" },
-  fsharp     = { kind = "line", sym = "//" },
-  clojure    = { kind = "line", sym = ";;" },
-  groovy     = { kind = "line", sym = "//" },
 
   -- Shebang + encoding line + opening triple-quote; closed by `close` below.
   python     = {
@@ -107,17 +98,8 @@ local line_comment_by_ft = {
   python     = "#",
   ruby       = "#",
   kotlin     = "//",
-  swift      = "//",
-  dart       = "//",
-  elixir     = "#",
-  scala      = "//",
   perl       = "#",
-  r          = "#",
-  julia      = "#",
   ps1        = "#",
-  fsharp     = "//",
-  clojure    = ";;",
-  groovy     = "//",
 }
 local DEFAULT_LINE_COMMENT = "#"
 
@@ -311,39 +293,6 @@ local usage_by_ft = {
       t(".jar"),
     }
   end,
-  swift = function(style)
-    return {
-      t({ "", wrap(style, "    Run:") }),
-      t({ "", wrap(style, "    $ swift ") }),
-      f(get_filename, {}),
-    }
-  end,
-  dart = function(style)
-    return {
-      t({ "", wrap(style, "    Run:") }),
-      t({ "", wrap(style, "    $ dart run ") }),
-      f(get_filename, {}),
-    }
-  end,
-  elixir = function(style)
-    return {
-      t({ "", wrap(style, "    Run:") }),
-      t({ "", wrap(style, "    $ elixir ") }),
-      f(get_filename, {}),
-    }
-  end,
-  scala = function(style)
-    return {
-      t({ "", wrap(style, "    Run (Scala CLI):") }),
-      t({ "", wrap(style, "    $ scala-cli run ") }),
-      f(get_filename, {}),
-      t({ "", wrap(style, ""), wrap(style, "    Or compile then run:") }),
-      t({ "", wrap(style, "    $ scalac ") }),
-      f(get_filename, {}),
-      t({ "", wrap(style, "    $ scala ") }),
-      f(get_basename, {}),
-    }
-  end,
   perl = function(style)
     return {
       t({ "", wrap(style, "    Run:") }),
@@ -351,45 +300,10 @@ local usage_by_ft = {
       f(get_filename, {}),
     }
   end,
-  r = function(style)
-    return {
-      t({ "", wrap(style, "    Run:") }),
-      t({ "", wrap(style, "    $ Rscript ") }),
-      f(get_filename, {}),
-    }
-  end,
-  julia = function(style)
-    return {
-      t({ "", wrap(style, "    Run:") }),
-      t({ "", wrap(style, "    $ julia ") }),
-      f(get_filename, {}),
-    }
-  end,
   ps1 = function(style)
     return {
       t({ "", wrap(style, "    Run:") }),
       t({ "", wrap(style, "    $ pwsh -File ") }),
-      f(get_filename, {}),
-    }
-  end,
-  fsharp = function(style)
-    return {
-      t({ "", wrap(style, "    Run as a script:") }),
-      t({ "", wrap(style, "    $ dotnet fsi ") }),
-      f(get_filename, {}),
-    }
-  end,
-  clojure = function(style)
-    return {
-      t({ "", wrap(style, "    Run (Clojure CLI):") }),
-      t({ "", wrap(style, "    $ clj -M ") }),
-      f(get_filename, {}),
-    }
-  end,
-  groovy = function(style)
-    return {
-      t({ "", wrap(style, "    Run:") }),
-      t({ "", wrap(style, "    $ groovy ") }),
       f(get_filename, {}),
     }
   end,
@@ -518,28 +432,6 @@ local test_usage_by_ft = {
       t({ "", wrap(style, "    $ mvn test") }),
     }
   end,
-  swift = function(style)
-    return {
-      t({ "", wrap(style, "    Swift Package Manager:") }),
-      t({ "", wrap(style, "    $ swift test") }),
-    }
-  end,
-  dart = function(style)
-    return {
-      t({ "", wrap(style, "    $ dart test") }),
-    }
-  end,
-  elixir = function(style)
-    return {
-      t({ "", wrap(style, "    $ mix test") }),
-    }
-  end,
-  scala = function(style)
-    return {
-      t({ "", wrap(style, "    sbt:") }),
-      t({ "", wrap(style, "    $ sbt test") }),
-    }
-  end,
   perl = function(style)
     return {
       t({ "", wrap(style, "    With Test::More, via prove:") }),
@@ -547,45 +439,11 @@ local test_usage_by_ft = {
       f(get_filename, {}),
     }
   end,
-  r = function(style)
-    return {
-      t({ "", wrap(style, "    testthat, single file:") }),
-      t({ "", wrap(style, "    $ Rscript -e 'testthat::test_file(\"") }),
-      f(get_filename, {}),
-      t("\")'"),
-      t({ "", wrap(style, ""), wrap(style, "    devtools, whole package:") }),
-      t({ "", wrap(style, "    $ Rscript -e 'devtools::test()'") }),
-    }
-  end,
-  julia = function(style)
-    return {
-      t({ "", wrap(style, "    $ julia --project -e 'using Pkg; Pkg.test()'") }),
-    }
-  end,
   ps1 = function(style)
     return {
       t({ "", wrap(style, "    Pester:") }),
       t({ "", wrap(style, "    $ Invoke-Pester ") }),
       f(get_filename, {}),
-    }
-  end,
-  fsharp = function(style)
-    return {
-      t({ "", wrap(style, "    $ dotnet test") }),
-    }
-  end,
-  clojure = function(style)
-    return {
-      t({ "", wrap(style, "    Clojure CLI:") }),
-      t({ "", wrap(style, "    $ clj -X:test") }),
-      t({ "", wrap(style, ""), wrap(style, "    Leiningen:") }),
-      t({ "", wrap(style, "    $ lein test") }),
-    }
-  end,
-  groovy = function(style)
-    return {
-      t({ "", wrap(style, "    Spock, via Gradle:") }),
-      t({ "", wrap(style, "    $ gradle test") }),
     }
   end,
 }
@@ -680,9 +538,10 @@ local function build_study(_, _)
   return sn(nil, nodes)
 end
 
--- Licensed headers, one entry per SPDX identifier. Adding a license here
--- is enough: the matching snippet (`<key>head`) is generated automatically
--- in the registration block at the bottom of this file.
+-- Attribution comments (see, refs, snip): none of these are file headers.
+-- They're dropped inline, above or inside a block of code borrowed or
+-- adapted from elsewhere, in increasing order of detail.
+
 local licenses = {
   agpl    = "AGPL-3.0-only",
   gpl3    = "GPL-3.0-only",
@@ -693,9 +552,6 @@ local licenses = {
   mpl2    = "MPL-2.0",
 }
 
--- Builds a header snippet for the given SPDX license identifier: File,
--- Author, Created, Modified, By, Reference, Location, Description,
--- SPDX-License-Identifier, and Copyright.
 -- Builds a header snippet for the given SPDX license identifier: File,
 -- Author, Created, Modified, Description, SPDX-License-Identifier, and
 -- Copyright. Study-specific fields (Source, By, Location) live in
@@ -930,10 +786,6 @@ local function build_scratch(_, _)
 
   return sn(nil, nodes)
 end
-
--- Attribution comments (see, refs, snip): none of these are file headers.
--- They're dropped inline, above or inside a block of code borrowed or
--- adapted from elsewhere, in increasing order of detail.
 
 -- `see`: single line, single reference. `-- See: <url>`
 local function build_see(_, _)

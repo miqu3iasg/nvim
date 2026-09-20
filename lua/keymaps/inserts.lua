@@ -9,7 +9,7 @@ km("!", "<C-r><C-t>", "<C-r>=strftime('%T')<CR>", { desc = "Insert current time 
 km("!", "<C-r><C-f>", "<C-r>=expand('%:t')<CR>", { desc = "Insert current filename" })
 km("!", "<C-r><C-p>", "<C-r>=expand('%:p')<CR>", { desc = "Insert current file full path" })
 
--- File metadata, environment info, and generated values (git branch, UUID)
+-- File metadata, environment info, and generated values
 -- useful for commit messages, logs, and templates.
 km("!", "<C-r><C-y>", "<C-r>=strftime('%F %T')<CR>", { desc = "Insert current date and time" })
 km("!", "<C-r><C-e>", "<C-r>=expand('%:t:r')<CR>", { desc = "Insert current filename without extension" })

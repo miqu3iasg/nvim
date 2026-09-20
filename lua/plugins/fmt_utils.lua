@@ -53,7 +53,9 @@ return {
           { open = "`", close = "`" },
           { open = "(", close = ")" },
           { open = "[", close = "]" },
-          -- { open = "{", close = "}" },
+          { open = "{", close = "}" },
+          { open = "$", close = "$" },
+          { open = "%", close = "%" },
         },
 
         -- Tab out instead of shifting when at the beginning of content.
@@ -85,5 +87,57 @@ return {
     keys = function()
       return {}
     end,
+  },
+
+  -- Auto-close and auto-rename HTML/JSX tags.
+  {
+    "windwp/nvim-ts-autotag",
+    ft = { "html", "xml", "jsx", "tsx", "vue", "svelte", "php", "markdown" },
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("nvim-ts-autotag").setup({
+        opts = {
+          -- Auto-close tags as you type.
+          enable_close = true,
+          -- Rename the closing tag when the opening tag changes.
+          enable_rename = true,
+          -- Auto-close on <>.
+          enable_close_on_slash = false,
+        },
+      })
+    end,
+  },
+
+  -- Highlight and navigate TODO/FIXME/HACK comments.
+  {
+    "folke/todo-comments.nvim",
+    event = "BufReadPost",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("todo-comments").setup({
+        -- Show a sign in the gutter for each keyword.
+        signs = true,
+        keywords = {
+          FIX  = { icon = " ", color = "warning", alt = { "FIXME", "BUG", "FIXIT", "ISSUE" } },
+          TODO = { icon = " ", color = "info" },
+          HACK = { icon = " ", color = "warning" },
+          WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
+          PERF = { icon = " ", color = "default", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
+          NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
+        },
+        highlight = {
+          -- Only color the keyword text itself, no background.
+          keyword = "fg",
+          -- Don't extend the color to the rest of the comment line.
+          after = "",
+          before = "",
+        },
+      })
+    end,
+    keys = {
+      -- Jump to next/previous TODO-style comment.
+      { "]t", function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
+      { "[t", function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
+    },
   },
 }

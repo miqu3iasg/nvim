@@ -139,17 +139,9 @@ return {
         kotlin = { "ktlint" },
         java = { "google-java-format" },
         scala = { "scalafmt" },
-        julia = { "runic" },
 
         -- Functional languages
-        ocaml = { "ocamlformat" },
         haskell = { "fourmolu" },
-        elixir = { "mix" },
-        elm = { "elm_format" },
-        clojure = { "cljfmt" },
-        purescript = { "purs-tidy" },
-        gleam = { "gleam" },
-        fennel = { "fnlfmt" },
 
         -- Scripting
         python = { "ruff_format" },
@@ -159,7 +151,6 @@ return {
         bash = { "shfmt" },
         zsh = { "shfmt" },
         perl = { "perltidy" },
-        r = { "styler" },
 
         -- Web / frontend
         javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -171,7 +162,6 @@ return {
         css = { "prettierd", "prettier", stop_after_first = true },
         scss = { "prettierd", "prettier", stop_after_first = true },
         graphql = { "prettierd", "prettier", stop_after_first = true },
-        astro = { "astro" },
 
         -- Data / config formats
         json = { "prettierd", "prettier", stop_after_first = true },
@@ -180,7 +170,6 @@ return {
         toml = { "taplo" },
         xml = { "xmlformatter" },
         sql = { "sql_formatter" },
-        proto = { "buf" },
         dockerfile = { "dockerfmt" },
         terraform = { "terraform_fmt" },
 
