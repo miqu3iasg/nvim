@@ -4,16 +4,7 @@
 ---@type LazySpec
 return {
   "nvim-treesitter/nvim-treesitter",
-  dependencies = {
-    {
-      "nvim-treesitter/nvim-treesitter-context",
-      enabled = false,
-      opts = {
-        max_lines = 4,
-        multiline_threshold = 2,
-      },
-    },
-  },
+  dependencies = {},
   lazy = false,
   branch = "main",
   build = ":TSUpdate",
@@ -44,8 +35,26 @@ return {
       "markdown",
       "markdown_inline",
       "latex",
+      "bash",
+      "yaml",
+      "json",
+      "toml",
+      "ocaml",
+      "ocaml_interface",
+      "ruby",
+      "elixir",
+      "clojure",
+      "julia",
+      "elm",
+      "fennel",
+      "scala",
+      "c_sharp",
+      "dockerfile",
+      "terraform",
+      "cmake",
+      "fortran",
     }, {
-      max_jobs = 1,
+      max_jobs = 4,
     })
     local group = vim.api.nvim_create_augroup("TreesitterSetup", { clear = true })
     -- Auto-install parsers and enable highlighting on FileType

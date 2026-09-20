@@ -48,9 +48,6 @@ km("n", "<leader>vs", function()
   vim.wo.spell = not vim.wo.spell
 end, { desc = "Toggle spell check" })
 
--- Enable English spell checking for the current buffer
-km("n", "<leader>vS", ":setlocal spell spelllang=en_us<CR>", { desc = "Enable English spell check" })
-
 -- Diagnostics
 
 -- Toggle the display of diagnostics
@@ -78,6 +75,13 @@ km("n", "<leader>vh", "<cmd>checkhealth<cr>", { desc = "Check health" })
 km("n", "<leader>zs", "<cmd>e ~/.zshrc<cr>", { desc = "Edit .zshrc" })
 km("n", "<leader>zt", "<cmd>e ~/.config/tmux/tmux.conf<cr>", { desc = "Edit tmux.conf" })
 km("n", "<leader>zn", function() require("oil").open("~/.config/nvim") end, { desc = "Edit nvim config directory (Oil)" })
+
+-- Save and quit
+
+-- Native Z* commands, mapped explicitly for discoverability
+km("n", "ZZ", "<cmd>x<cr>", { desc = "Save and quit (native)" })
+km("n", "ZQ", "<cmd>q!<cr>", { desc = "Quit without saving (native)" })
+km("n", "ZX", "<cmd>w<cr>", { desc = "Save file" })
 
 -- Reload and run
 

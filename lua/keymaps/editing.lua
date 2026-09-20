@@ -21,6 +21,15 @@ km("n", "gl", "v$", { desc = "Select to end of line" })
 km("n", "gh", "v^", { desc = "Select to start of line" })
 km("n", "gV", "`[v`]", { desc = "Reselect last changed text" })
 
+-- Insert N blank lines above/below without entering insert mode
+km("n", "ZH", function()
+  vim.cmd("put!=repeat(nr2char(10), " .. vim.v.count1 .. ")")
+end, { desc = "Insert blank line(s) above" })
+
+km("n", "ZN", function()
+  vim.cmd("put =repeat(nr2char(10), " .. vim.v.count1 .. ")")
+end, { desc = "Insert blank line(s) below" })
+
 -- Indentation
 km("n", ">", ">>", { desc = "Indent line right" })
 km("n", "<", "<<", { desc = "Indent line left" })
