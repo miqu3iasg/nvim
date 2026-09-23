@@ -63,17 +63,19 @@ return {
       vim.g.vimtex_quickfix_mode = 0 -- don't steal focus on every warning
       vim.g.vimtex_fold_enabled = true
       vim.g.vimtex_indent_enabled = true
+
       -- Concealment for \alpha, sub/superscripts, etc. Mirrors the
       -- conceallevel = 2 used for markdown.
-      vim.g.vimtex_syntax_conceal = {
-        accents = true,
-        cites = true,
-        fancy = true,
-        greek = true,
-        math_bounds = true,
-        sections = false,
-        styles = true,
-      }
+      -- vim.g.vimtex_syntax_conceal = {
+      --   accents = true,
+      --   cites = true,
+      --   fancy = true,
+      --   greek = true,
+      --   math_bounds = true,
+      --   sections = false,
+      --   styles = true,
+      -- }
+      vim.g.vimtex_syntax_conceal_disable = true
 
       -- Citation completion: use vimtex's "simple" algorithm (plain
       -- cite-key matching) instead of its default "smart" one (a fuzzy
@@ -192,23 +194,6 @@ return {
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
       vim.list_extend(opts.ensure_installed, { "latex" })
-
-      -- This parser is needed for markdown_inline to inject LaTeX into
-      -- $...$/$$...$$ regions (see render-markdown.nvim below).
-      --
-      -- Keep LaTeX excluded from Tree-sitter highlighting: enabling it
-      -- replaces VimTeX's legacy :syntax engine, disabling its conceal
-      -- rules for accents, Greek letters, math bounds, etc. Markdown
-      -- injections are unaffected because they run under the "markdown"
-      -- language, not the buffer's LaTeX parser.
-      --
-      -- Refs:
-      --     - :h vimtex-faq-treesitter
-      --     - https://github.com/lervag/vimtex/wiki/Syntax
-      opts.highlight = opts.highlight or {}
-      opts.highlight.disable = opts.highlight.disable or {}
-      vim.list_extend(opts.highlight.disable, { "latex" })
-
       return opts
     end,
   },
