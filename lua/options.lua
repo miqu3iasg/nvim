@@ -71,6 +71,8 @@ vim.opt.fillchars = { eob = " " }
 vim.opt.shortmess:append("acFWIS")
 vim.opt.display:append("lastline")
 vim.opt.fillchars = { eob = " " }
+vim.opt.more = false
+
 -- Folding
 vim.opt.foldmethod = "expr"
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
