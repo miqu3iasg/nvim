@@ -25,6 +25,8 @@
 --     - https://github.com/mikavilpas/blink-ripgrep.nvim
 --     - https://github.com/folke/lazydev.nvim
 
+local thin_border = { "▁", "▁", "▁", "🮇", "▔", "▔", "▔", "▎" }
+
 return {
   {
     "saghen/blink.cmp",
@@ -215,7 +217,7 @@ return {
         },
 
         -- Show the completion menu manually.
-        ["<C-g>"] = {
+        ["<C-y>"] = {
           "show",
           "fallback",
         },
@@ -236,6 +238,7 @@ return {
           enabled = false,
         },
         window = {
+          border = thin_border,
           show_documentation = false,
         },
       },
@@ -255,6 +258,9 @@ return {
         documentation = {
           auto_show = true,
           auto_show_delay_ms = 200,
+          window = {
+            border = thin_border,
+          },
         },
 
         -- Ghost text previews the top completion candidate as virtual text
@@ -270,10 +276,11 @@ return {
         },
 
         menu = {
+          border    = thin_border,
           auto_show = false,
           scrollbar = false,
 
-          draw = {
+          draw      = {
             columns = {
               { "kind_icon" },
               { "label",             "label_description", gap = 1 },
