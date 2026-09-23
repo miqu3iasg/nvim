@@ -791,7 +791,7 @@ end
 local function build_see(_, _)
   local sym = line_comment_sym(vim.bo.filetype)
   return sn(nil, {
-    t(sym .. " see: "),
+    t(sym .. " See: "),
     i(1, "https://..."),
   })
 end
@@ -805,7 +805,7 @@ local function build_refs(_, _)
   local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
 
   open_inline(add, style)
-  add(t("references:"))
+  add(t("References:"))
   add(t({ "", wrap(style, "  - ") }))
   add(i(1, "https://..."))
   close_inline(add, style)
@@ -826,7 +826,7 @@ local function build_snip(_, _)
 
   open_inline(add, style)
   add(i(1, "what this snippet does / why it was kept"))
-  add(t({ "", wrap(style, "references:") }))
+  add(t({ "", wrap(style, "References:") }))
   add(t({ "", wrap(style, "  - ") }))
   add(i(2, "https://..."))
   close_inline(add, style)
@@ -838,24 +838,35 @@ end
 -- ASCII art signature. Purely decorative — drop the art
 -- commented according to the language's inline style (block style when
 -- applicable, line style otherwise).
+local arts = {
+  ascii_name = {
+    [[▄▄▄▄ ▄▄  ▄▄  ▄▄▄  ▄▄ ▄▄ ▄▄▄▄▄ ▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄▄]],
+    [[░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ▀▀ ░█ ░█]],
+    [[▒█ ▒█ ▒█ ▒█ ▒█ ░█ ▒█ ░█   ▄▒█ ▒█ ▒█ ░█  ▀▀░▄ ▒█ ░█]],
+    [[▓▓ ▓▓ ▓▓ ▓▓ ▓▓ ▓░ ▓▓ ▓░ ▒░ ▓▓ ▓▓ ▓▓ ▓░ ░█ ▓░ ▀▀▀░█]],
+    [[▀▀ ▀▀ ▀▀ ▀▀  ▀▀▒█ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀  ▀▀▀▀ ▀▀▀▀  ░█ ▓░]],
+    [[               ▀▀                             ▀▀▀▀]],
+  },
 
-local miq_art = {
-  "▄▄▄▄ ▄▄  ▄▄  ▄▄▄  ▄▄ ▄▄ ▄▄▄▄▄ ▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄▄",
-  "░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ▀▀ ░█ ░█",
-  "▒█ ▒█ ▒█ ▒█ ▒█ ░█ ▒█ ░█   ▄▒█ ▒█ ▒█ ░█  ▀▀░▄ ▒█ ░█",
-  "▓▓ ▓▓ ▓▓ ▓▓ ▓▓ ▓░ ▓▓ ▓░ ▒░ ▓▓ ▓▓ ▓▓ ▓░ ░█ ▓░ ▀▀▀░█",
-  "▀▀ ▀▀ ▀▀ ▀▀  ▀▀▒█ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀  ▀▀▀▀ ▀▀▀▀  ░█ ▓░",
-  "               ▀▀                             ▀▀▀▀",
+  line_name = {
+    [[    __  ____            _____ _]],
+    [[   /  |/  (_)___ ___  _|__  /(_)___ __________ _]],
+    [[  / /|_/ / / __ `/ / / //_ </ / __ `/ ___/ __ `/]],
+    [[ / /  / / / /_/ / /_/ /__/ / / /_/ (__  ) /_/ /]],
+    [[/_/  /_/_/\__, /\__,_/____/_/\__,_/____/\__, /]],
+    [[            /_/                        /____/]],
+  },
+
+  morse = {
+    [[-- .. --.- ..- . .. .- ... --. ]],
+  },
+
+  binary = {
+    [[01101101 01101001 01110001 01110101 01100101 01101001 01100001 01110011 01100111]],
+  },
 }
 
--- local miq_art = {
---   "    __  ____            _____ _                 ",
---   "   /  |/  (_)___ ___  _|__  /(_)___ __________ _",
---   "  / /|_/ / / __ `/ / / //_ </ / __ `/ ___/ __ `/",
---   " / /  / / / /_/ / /_/ /__/ / / /_/ (__  ) /_/ / ",
---   "/_/  /_/_/\\__, /\\__,_/____/_/\\__,_/____/\\__, /  ",
---   "            /_/                        /____/    ",
--- }
+local miq_art = arts.morse
 
 local function build_miq(_, _)
   local style = inline_style(vim.bo.filetype)
