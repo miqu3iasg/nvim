@@ -113,6 +113,11 @@ return {
       desc = "Open parent directory",
     })
 
+    -- go straight to ~/.config
+    vim.keymap.set("n", "gf", function()
+      require("oil").open(vim.fn.expand("~/.config"))
+    end, { desc = "Open ~/.config directory" })
+
     -- go straight to $HOME
     vim.keymap.set("n", "g~", function()
       require("oil").open(vim.fn.expand("~"))
