@@ -69,7 +69,7 @@ km("n", "<leader>vm", "<cmd>messages<cr>", { desc = "Show messages" })
 -- Run the built-in health checks
 km("n", "<leader>vh", "<cmd>checkhealth<cr>", { desc = "Check health" })
 
--- Config shortcuts
+-- Configuration files
 
 -- Open common config files and directories in Neovim
 km("n", "<leader>zs", "<cmd>e ~/.zshrc<cr>", { desc = "Edit .zshrc" })

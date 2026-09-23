@@ -114,9 +114,14 @@ return {
     })
 
     -- go straight to ~/.config
-    vim.keymap.set("n", "gf", function()
+    vim.keymap.set("n", "gb", function()
       require("oil").open(vim.fn.expand("~/.config"))
     end, { desc = "Open ~/.config directory" })
+
+    -- go straight to repos directory (workspace)
+    vim.keymap.set("n", "gw", function()
+      require("oil").open(vim.fn.expand("~/repos"))
+    end, { desc = "Open repos directory" })
 
     -- go straight to $HOME
     vim.keymap.set("n", "g~", function()
@@ -127,10 +132,5 @@ return {
     vim.keymap.set("n", "g.", function()
       require("oil").open(vim.fn.getcwd())
     end, { desc = "Open cwd" })
-
-    -- go straight to repos directory
-    vim.keymap.set("n", "g,", function()
-      require("oil").open(vim.fn.expand("~/repos"))
-    end, { desc = "Open repos directory" })
   end,
 }
