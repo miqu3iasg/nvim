@@ -11,6 +11,15 @@ local function toggle_last_commit_diff()
   end
 end
 
+-- Prompts for how many commits back to rebase, then opens the interactive
+-- rebase todo list full-page (same "tab" pattern as cvc/<leader>gg below).
+local function interactive_rebase()
+  local n = vim.fn.input("Rebase -i HEAD~", "3")
+  if n ~= "" then
+    vim.cmd("tab Git rebase -i HEAD~" .. n)
+  end
+end
+
 -- Tracks whether gitsigns' own sign rendering is currently on. gitsigns
 -- doesn't expose a public getter for this, so we track it ourselves; it
 -- starts `false` to match `signcolumn = false` in the opts below.
@@ -68,9 +77,16 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitive",
   callback = function(event)
+    -- normal commit in a new tab (full screen)
+    vim.keymap.set("n", "cc", "<cmd>silent tab Git commit<cr>", {
+      buffer = event.buf,
+      silent = true,
+      desc = "Git commit (full page, new tab)",
+    })
+
     -- the commit buffer opens in a new tab (full screen), and -v
     -- includes the staged diff in it.
-    vim.keymap.set("n", "cc", "<cmd>silent tab Git commit -v<cr>", {
+    vim.keymap.set("n", "cvc", "<cmd>silent tab Git commit -v<cr>", {
       buffer = event.buf,
       silent = true,
       desc = "Git commit -v (full page, new tab)",
@@ -78,9 +94,38 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- 3-way merge/rebase conflict resolution. Only meaningful while a
+-- Gdiffsplit/Gvdiffsplit! conflict view is open, but harmless elsewhere
+-- since diffget on a non-existent buffer number just errors quietly.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "fugitive", "gitrebase" },
+  callback = function(event)
+    vim.keymap.set("n", "gh", "<cmd>diffget //2<cr>", {
+      buffer = event.buf,
+      desc = "Diffget //2 (target/ours)",
+    })
+    vim.keymap.set("n", "gl", "<cmd>diffget //3<cr>", {
+      buffer = event.buf,
+      desc = "Diffget //3 (merge/theirs)",
+    })
+  end,
+})
+
+-- `:Git blame` opens a scrollbound vertical split whose default width is
+-- too narrow for author + date + summary; widen it every time it opens.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "fugitiveblame",
+  callback = function()
+    vim.cmd("vertical resize 45")
+  end,
+})
+
 return {
   {
     "tpope/vim-fugitive",
+    -- vim-rhubarb teaches :GBrowse how to resolve GitHub (and GitHub
+    -- Enterprise) URLs; without it, GBrowse has no host to open.
+    dependencies = { "tpope/vim-rhubarb" },
     cmd = { "Git", "G", "Gdiffsplit", "Gvdiffsplit", "Gread", "Gwrite", "GBrowse" },
     -- `keys` (rather than a separate vim.keymap.set block) makes these
     -- lazy-load the plugin on first press, and keeps them next to the
@@ -88,14 +133,19 @@ return {
     keys = {
       -- any :Git subcommand that opens a window (status, commit, push, log)
       -- does so as a vertical split instead of its horizontal default.
-      { "<leader>gs", "<cmd>vertical Git<cr>",               desc = "Git status" },
-      { "<leader>gl", "<cmd>vertical Git log --oneline<cr>", desc = "Git log" },
-      { "<leader>gc", "<cmd>vertical Git commit<cr>",        desc = "Git commit" },
-      { "<leader>gp", "<cmd>vertical Git push<cr>",          desc = "Git push" },
-      { "<leader>gd", "<cmd>Gvdiffsplit<cr>",                desc = "Diff against index/HEAD (uncommitted changes)" },
-      { "<leader>gD", toggle_last_commit_diff,               desc = "Toggle diff against last commit" },
+      { "<leader>gs", "<cmd>vertical Git<cr>",                                  desc = "Git status" },
+      { "<leader>gl", "<cmd>vertical Git log --oneline --decorate --graph<cr>", desc = "Git log" },
+      { "<leader>gc", "<cmd>vertical Git commit<cr>",                           desc = "Git commit" },
+      { "<leader>gp", "<cmd>vertical Git push<cr>",                             desc = "Git push" },
+      { "<leader>gf", "<cmd>Git fetch<cr>",                                     desc = "Git fetch" },
+      { "<leader>gP", "<cmd>vertical Git pull<cr>",                             desc = "Git pull" },
+      { "<leader>gB", "<cmd>Git blame<cr>",                                     desc = "Git blame (current file)" },
+      { "<leader>gd", "<cmd>Gvdiffsplit<cr>",                                   desc = "Diff against index/HEAD (uncommitted changes)" },
+      { "<leader>gD", toggle_last_commit_diff,                                  desc = "Toggle diff against last commit" },
       -- Full-page status in its own tab, unobstructed by other splits.
-      { "<leader>gg", "<cmd>tabnew | Git | only<cr>",        desc = "Git status (full page, new tab)" },
+      { "<leader>gg", "<cmd>tabnew | Git | only<cr>",                           desc = "Git status (full page, new tab)" },
+      { "<leader>gr", interactive_rebase,                                       desc = "Interactive rebase (full page, prompts for HEAD~N)" },
+      { "<leader>go", "<cmd>.GBrowse<cr>",                                      mode = { "n", "v" },                                        desc = "Open in browser (GBrowse)" },
     },
   },
   {
