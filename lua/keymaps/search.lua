@@ -23,6 +23,10 @@ km("n", "{", "{zz", { desc = "Jump to previous paragraph and center cursor" })
 km("v", "*", [[y/\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection forward" })
 km("v", "#", [[y?\V<C-r>=escape(@", '/\')<CR><CR>]], { desc = "Search selection backward" })
 
+-- Sessionizer
+km("n", "<C-f>", "<cmd>silent !tmux neww ~/.local/bin/tmux-sessionizer<CR>",
+  { desc = "Open tmux-sessionizer (fullscreen)" })
+
 -- Clears all searching selections, as well as match and hlsearch selections.
 km("n", "zh", function()
   vim.cmd("match none")
