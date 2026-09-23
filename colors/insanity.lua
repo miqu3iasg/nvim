@@ -73,7 +73,6 @@ local colors = {
 
 -- Tints derived from the palette
 colors.visual_bg = blend(colors.fg_1, colors.bg, 0.35) -- neutral gray, no hue
-colors.code_bg = blend(colors.fg_1, colors.bg, 0.08)   -- subtle surface for fenced/inline code
 
 -- Terminal colors
 
@@ -359,15 +358,12 @@ local groups = {
   ["@comment.note"] = { link = "Special" },
 
   -- Treesitter: markup
-  -- Headings sit on a luminance/weight ladder: h1 brightest + underlined,
-  -- fading and losing weight down to h6, so hierarchy reads at a glance
-  -- without introducing new hues.
   ["@markup.strong"] = { bold = true },
-  ["@markup.italic"] = { italic = true },
+  ["@markup.italic"] = { fg = colors.comment_doc, italic = true },
   ["@markup.strikethrough"] = { strikethrough = true, fg = colors.fg_1 },
   ["@markup.underline"] = { underline = true },
   ["@markup.heading"] = { link = "Title" },
-  ["@markup.heading.1"] = { fg = colors.fg_3, bold = true, underline = true },
+  ["@markup.heading.1"] = { fg = colors.fg_3, bold = true },
   ["@markup.heading.2"] = { fg = colors.fg_3, bold = true },
   ["@markup.heading.3"] = { fg = colors.fg_2, bold = true },
   ["@markup.heading.4"] = { fg = colors.fg_2 },
@@ -375,15 +371,15 @@ local groups = {
   ["@markup.heading.6"] = { fg = colors.fg_1, italic = true },
   ["@markup.quote"] = { fg = colors.fg_1, italic = true },
   ["@markup.math"] = { fg = colors.br_cyan },
-  ["@markup.link"] = { link = "Link" },
-  ["@markup.link.label"] = { link = "Link" },
-  ["@markup.link.url"] = { fg = colors.cyan, underline = true },
-  ["@markup.raw"] = { fg = colors.fg_1, bg = colors.code_bg }, -- inline code (darker than default text)
-  ["@markup.raw.block"] = { fg = colors.fg_3 },                -- fenced code block content (language TS wins)
+  ["@markup.link"] = { fg = colors.cyan },
+  ["@markup.link.label"] = { fg = colors.cyan },
+  ["@markup.link.url"] = { fg = colors.fg_1 },
+  ["@markup.raw"] = { fg = colors.fg_3 },
+  ["@markup.raw.block"] = { fg = colors.fg_2 },
   ["@markup.raw.delimiter"] = { fg = colors.fg_0 },
   ["@markup.list"] = { fg = colors.fg_1 },
-  ["@markup.list.checked"] = { fg = colors.green },
-  ["@markup.list.unchecked"] = { fg = colors.yellow },
+  ["@markup.list.checked"] = { fg = colors.fg_0 },
+  ["@markup.list.unchecked"] = { fg = colors.fg_2 },
 
   ["@tag"] = { link = "Statement" },
   ["@tag.attribute"] = { fg = colors.fg_3, italic = true },
