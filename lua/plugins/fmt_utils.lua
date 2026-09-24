@@ -140,4 +140,24 @@ return {
       { "[t", function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
     },
   },
+
+  -- Keep the cursor vertically centered in all contexts.
+  {
+    "arnamak/stay-centered.nvim",
+    event = "VeryLazy",
+    opts = {
+      -- Set to false so it starts disabled; toggle with the keymap below.
+      enabled = false,
+      skip_filetypes = { "oil", "help", "qf", "netrw", "TelescopePrompt" },
+    },
+    keys = {
+      {
+        "<leader>ve",
+        function()
+          require("stay-centered").toggle()
+        end,
+        desc = "Toggle stay-centered cursor",
+      },
+    },
+  },
 }
