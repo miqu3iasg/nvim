@@ -9,27 +9,28 @@ return {
     file_icons = false,
     git_icons  = false,
     winopts    = {
-      cursorline   = true,
-      title        = false,
-      border       = "none",
-      header       = false,
-      title_pos    = "center",
-      cursorcolumn = false,
-      list         = false,
-      foldenable   = false,
-      foldmethod   = "manual",
+      cursorline     = true,
+      title          = false,
+      number         = true,
+      relativenumber = false,
+      border         = "none",
+      header         = false,
+      title_pos      = "center",
+      cursorcolumn   = false,
+      list           = false,
+      foldenable     = false,
+      foldmethod     = "manual",
 
-      split        = function()
+
+      split   = function()
         local height = math.floor(vim.o.lines * 0.25)
         vim.cmd(("belowright %dnew"):format(height))
 
         vim.wo.number = true
         vim.wo.relativenumber = false
-        vim.wo.signcolumn = "no"
-        vim.wo.statuscolumn = ""
       end,
 
-      preview      = {
+      preview = {
         default = "bat",
         layout = "horizontal",
         horizontal = "right:50%",
