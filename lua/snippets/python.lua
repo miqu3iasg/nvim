@@ -28,7 +28,7 @@ return {
     i(0),
   }),
 
-  s("dcc", {
+  s("doc", {
     t('"""'),
     i(1, "Short description."),
     t({ "", "", "Args:", "    " }),

@@ -38,7 +38,7 @@ return {
   -- Linux kernel style doc comment for structs (and similarly for
   -- functions): one-line description followed by @field: description
   -- bullets. Delete unused @field lines, or duplicate one for more fields.
-  s("dcc", {
+  s("doc", {
     t("/* "),
     i(1, "Short description"),
     t({ "", " * @" }),

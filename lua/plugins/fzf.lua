@@ -21,8 +21,7 @@ return {
       foldenable     = false,
       foldmethod     = "manual",
 
-
-      split   = function()
+      split          = function()
         local height = math.floor(vim.o.lines * 0.25)
         vim.cmd(("belowright %dnew"):format(height))
 
@@ -30,7 +29,7 @@ return {
         vim.wo.relativenumber = false
       end,
 
-      preview = {
+      preview        = {
         default = "bat",
         layout = "horizontal",
         horizontal = "right:50%",

@@ -74,6 +74,8 @@ return {
           load_snippets("c", "snippets.c")
           load_snippets("python", "snippets.python")
           load_snippets("java", "snippets.java")
+          load_snippets("scheme", "snippets.lisp")
+          load_snippets("lisp", "snippets.lisp")
 
           -- Global snippets.
           load_snippets("common", "snippets.common")

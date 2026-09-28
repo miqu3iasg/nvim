@@ -34,8 +34,8 @@ local comment_styles = {
   toml       = { kind = "line", sym = "#" },
   vim        = { kind = "line", sym = '"' },
   zig        = { kind = "line", sym = "//" },
-  scheme     = { kind = "line", sym = ";" },
-  lisp       = { kind = "line", sym = ";" },
+  scheme     = { kind = "line", sym = ";;;" },
+  lisp       = { kind = "line", sym = ";;;" },
   c          = { kind = "block", open = "/*", close = "*/" },
   cpp        = { kind = "block", open = "/*", close = "*/" },
   cs         = { kind = "block", open = "/*", close = "*/" },
@@ -106,6 +106,18 @@ local DEFAULT_LINE_COMMENT = "#"
 local function line_comment_sym(ft)
   return line_comment_by_ft[ft] or DEFAULT_LINE_COMMENT
 end
+
+-- Shebang line per filetype, used by the standalone `shebang` snippet.
+-- Only scripting languages that are normally run directly need one.
+local shebang_by_ft = {
+  sh     = "#!/usr/bin/env sh",
+  bash   = "#!/usr/bin/env bash",
+  zsh    = "#!/usr/bin/env zsh",
+  python = "#!/usr/bin/env python3",
+  ruby   = "#!/usr/bin/env ruby",
+  perl   = "#!/usr/bin/env perl",
+  php    = "#!/usr/bin/env php",
+}
 
 local FIELD_WIDTH = 15
 
@@ -450,6 +462,97 @@ local test_usage_by_ft = {
 test_usage_by_ft.bash = test_usage_by_ft.sh
 test_usage_by_ft.zsh = test_usage_by_ft.sh
 
+-- Function/method doc-comment body per filetype, used by the `fnhead`/`doc`
+-- snippet. Each entry returns nodes in that language's idiomatic doc format
+-- (JSDoc, a Google-style docstring, Javadoc/KDoc, Doxygen, Go doc comments,
+-- Rust doc comments, PHPDoc, C# XML doc comments, or YARD for Ruby). Takes
+-- no `style` argument: unlike `usage_by_ft`, the doc format itself dictates
+-- the comment syntax, so these build their own delimiters directly.
+local doc_by_ft = {}
+
+doc_by_ft.javascript = function()
+  return {
+    t({ "/**", " * " }), i(1, "Short description."),
+    t({ "", " *", " * @param {" }), i(2, "type"), t("} "), i(3, "name"), t(" - "), i(4, "description"),
+    t({ "", " * @returns {" }), i(5, "type"), t("} "), i(6, "description"),
+    t({ "", " */" }),
+  }
+end
+doc_by_ft.typescript = doc_by_ft.javascript
+
+doc_by_ft.python = function()
+  return {
+    t('"""'), i(1, "Short description."),
+    t({ "", "", "Args:" }),
+    t({ "", "    " }), i(2, "name"), t(" ("), i(3, "type"), t("): "), i(4, "description."),
+    t({ "", "", "Returns:" }),
+    t({ "", "    " }), i(5, "type"), t(": "), i(6, "description."),
+    t({ "", '"""' }),
+  }
+end
+
+doc_by_ft.java = function()
+  return {
+    t({ "/**", " * " }), i(1, "Short description."),
+    t({ "", " *", " * @param " }), i(2, "name"), t(" "), i(3, "description"),
+    t({ "", " * @return " }), i(4, "description"),
+    t({ "", " */" }),
+  }
+end
+doc_by_ft.kotlin = doc_by_ft.java
+
+doc_by_ft.c = function()
+  return {
+    t({ "/**", " * @brief " }), i(1, "Short description."),
+    t({ "", " *", " * @param " }), i(2, "name"), t(" "), i(3, "description"),
+    t({ "", " * @return " }), i(4, "description"),
+    t({ "", " */" }),
+  }
+end
+doc_by_ft.cpp = doc_by_ft.c
+
+doc_by_ft.go = function()
+  return {
+    t("// "), i(1, "FuncName"), t(" "), i(2, "does X."),
+    t({ "", "//", "// Parameters:" }),
+    t({ "", "//   - " }), i(3, "name"), t(": "), i(4, "description"),
+    t({ "", "//", "// Returns " }), i(5, "description."),
+  }
+end
+
+doc_by_ft.rust = function()
+  return {
+    t("/// "), i(1, "Short description."),
+    t({ "", "///", "/// # Arguments", "///", "/// * `" }), i(2, "name"), t("` - "), i(3, "description"),
+    t({ "", "///", "/// # Returns", "///", "/// " }), i(4, "description"),
+  }
+end
+
+doc_by_ft.php = function()
+  return {
+    t({ "/**", " * " }), i(1, "Short description."),
+    t({ "", " *", " * @param " }), i(2, "type"), t(" $"), i(3, "name"), t(" "), i(4, "description"),
+    t({ "", " * @return " }), i(5, "type"), t(" "), i(6, "description"),
+    t({ "", " */" }),
+  }
+end
+
+doc_by_ft.cs = function()
+  return {
+    t({ "/// <summary>", "/// " }), i(1, "Short description."),
+    t({ "", "/// </summary>", '/// <param name="' }), i(2, "name"), t('">'), i(3, "description"), t("</param>"),
+    t({ "", "/// <returns>" }), i(4, "description"), t("</returns>"),
+  }
+end
+
+doc_by_ft.ruby = function()
+  return {
+    t("# "), i(1, "Short description."),
+    t({ "", "#", "# @param " }), i(2, "name"), t(" ["), i(3, "Type"), t("] "), i(4, "description"),
+    t({ "", "# @return [" }), i(5, "Type"), t("] "), i(6, "description"),
+  }
+end
+
 -- Emits the header opener and the first field. Block and docstring styles
 -- need a line break between the opener and the first field; a line style
 -- doesn't.
@@ -620,7 +723,8 @@ end
 
 -- `exs`: exercise/assignment header. Adds a Problem Statement and a
 -- Usage section (compile/run commands from `usage_by_ft`) on top of the
--- standard File/Author/Created/Modified/Description fields.
+-- standard File/Author/Created/Modified/Source/By/Location/Description
+-- fields.
 local function build_exs(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -636,23 +740,29 @@ local function build_exs(_, _)
   add(f(get_date, {}))
   add(t({ "", wrap(style, label("Modified:")) }))
   add(f(get_date, {}))
+  add(t({ "", wrap(style, label("Source:")) }))
+  add(i(2, "title of the book/article"))
+  add(t({ "", wrap(style, label("By:")) }))
+  add(i(3, "actual author(s) of the source material"))
+  add(t({ "", wrap(style, label("Location:")) }))
+  add(i(4, "chapter / pages / section"))
   add(t({ "", wrap(style, ""), line_prefix(style) }))
-  add(i(2, "Longer description, if needed."))
+  add(i(5, "Longer description, if needed."))
   add(t({ "", wrap(style, ""), wrap(style, label("Problem Statement:")) }))
   add(t({ "", wrap(style, "    ") }))
-  add(i(3, "Paste the exercise/assignment text here."))
+  add(i(6, "Paste the exercise/assignment text here."))
   add(t({ "", wrap(style, ""), wrap(style, label("Usage:")) }))
 
   if usage_fn then
     for _, n in ipairs(usage_fn(style)) do add(n) end
   else
     add(t({ "", wrap(style, "    ") }))
-    add(i(4, "how to compile/run this file"))
+    add(i(7, "how to compile/run this file"))
   end
 
   add(t({ "", wrap(style, ""), wrap(style, label("References:")) }))
   add(t({ "", wrap(style, "    - ") }))
-  add(i(5, "https://..."))
+  add(i(8, "https://..."))
   add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: AGPL-3.0-only") }))
   add(t({ "", wrap(style, label("Copyright:")) }))
   add(t("(c) "))
@@ -699,6 +809,23 @@ local function build_testhead(_, _)
   close_header(add, style)
   add(i(0))
 
+  return sn(nil, nodes)
+end
+
+-- `fnhead` / `doc`: function/method doc comment in the idiomatic format
+-- for the current filetype (see `doc_by_ft` above). Falls back to a
+-- single descriptive comment line for filetypes with no format defined.
+local function build_fnhead(_, _)
+  local ft = vim.bo.filetype
+  local fn = doc_by_ft[ft]
+
+  if not fn then
+    local sym = line_comment_sym(ft)
+    return sn(nil, { t(sym .. " "), i(1, "Short description."), i(0) })
+  end
+
+  local nodes = fn()
+  table.insert(nodes, i(0))
   return sn(nil, nodes)
 end
 
@@ -767,6 +894,24 @@ local function build_todo(_, _)
   return sn(nil, nodes)
 end
 
+-- `chg`: changelog entry, dropped inline to record a single change
+-- without touching the file header's Modified: field. Block comment
+-- where the language has one, line comment otherwise.
+local function build_chg(_, _)
+  local style = inline_style(vim.bo.filetype)
+  local nodes = {}
+  local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
+
+  open_inline(add, style)
+  add(f(get_date, {}))
+  add(t(": "))
+  add(i(1, "what changed"))
+  close_inline(add, style)
+  add(i(0))
+
+  return sn(nil, nodes)
+end
+
 -- `scratch`: smallest header, for throwaway or exploratory files. Just
 -- File, Created, and Description.
 local function build_scratch(_, _)
@@ -787,6 +932,15 @@ local function build_scratch(_, _)
   return sn(nil, nodes)
 end
 
+-- `shebang`: standalone shebang line for scripting languages, without the
+-- rest of a header. Useful when `head`/`chead` would be overkill for a
+-- quick throwaway script that still needs to be directly executable.
+local function build_shebang(_, _)
+  local ft = vim.bo.filetype
+  local line = shebang_by_ft[ft] or "#!/usr/bin/env sh"
+  return sn(nil, { t(line), i(0) })
+end
+
 -- `see`: single line, single reference. `-- See: <url>`
 local function build_see(_, _)
   local sym = line_comment_sym(vim.bo.filetype)
@@ -794,6 +948,16 @@ local function build_see(_, _)
     t(sym .. " See: "),
     i(1, "https://..."),
   })
+end
+
+-- `mail`: just the raw email address, no comment prefix, no label.
+local function build_mail(_, _)
+  return sn(nil, { i(1, "contatomiqueiasalvesdev@gmail.com") })
+end
+
+-- `gh`: just the raw GitHub URL, no comment prefix, no label.
+local function build_gh(_, _)
+  return sn(nil, { i(1, "https://github.com/miqu3iasg") })
 end
 
 -- `refs`: bullet list of references, no description. Copy the bullet
@@ -866,7 +1030,7 @@ local arts = {
   },
 }
 
-local miq_art = arts.morse
+local miq_art = arts.line_name
 
 local function build_miq(_, _)
   local style = inline_style(vim.bo.filetype)
@@ -898,9 +1062,15 @@ local snippets = {
   s("thead", { d(1, build_testhead, {}) }),
   s("chead", { d(1, build_scratch, {}) }),
   s("ehead", { d(1, build_exs, {}) }),
+  s("fnhead", { d(1, build_fnhead, {}) }),
+  s("dcc", { d(1, build_fnhead, {}) }),
+  s("shebang", { d(1, build_shebang, {}) }),
   s("fixme", { d(1, build_fixme, {}) }),
   s("todo", { d(1, build_todo, {}) }),
+  s("chg", { d(1, build_chg, {}) }),
   s("see", { d(1, build_see, {}) }),
+  s("mail", { d(1, build_mail, {}) }),
+  s("gh", { d(1, build_gh, {}) }),
   s("refs", { d(1, build_refs, {}) }),
   s("drefs", { d(1, build_snip, {}) }),
   s("miq", { d(1, build_miq, {}) }),

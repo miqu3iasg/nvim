@@ -50,7 +50,7 @@ return {
 
   -- Javadoc-style doc comment for classes and methods. For a class doc,
   -- just delete the @param/@return lines you don't need.
-  s("dcc", {
+  s("doc", {
     t({ "/**", " * " }),
     i(1, "Description."),
     t({ "", " *" }),

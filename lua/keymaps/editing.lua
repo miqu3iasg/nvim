@@ -21,6 +21,10 @@ km("n", "gl", "v$", { desc = "Select to end of line" })
 km("n", "gh", "v^", { desc = "Select to start of line" })
 km("n", "gV", "`[v`]", { desc = "Reselect last changed text" })
 
+-- Line movement
+km({ "n", "v" }, "H", "^", { desc = "Start of line" })
+km({ "n", "v" }, "L", "$", { desc = "End of line" })
+
 -- Insert N blank lines above/below without entering insert mode
 km("n", "ZH", function()
   vim.cmd("put!=repeat(nr2char(10), " .. vim.v.count1 .. ")")
