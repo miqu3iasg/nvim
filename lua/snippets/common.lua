@@ -760,9 +760,11 @@ local function build_exs(_, _)
     add(i(7, "how to compile/run this file"))
   end
 
+  local refs_idx = usage_fn and 7 or 8
+
   add(t({ "", wrap(style, ""), wrap(style, label("References:")) }))
   add(t({ "", wrap(style, "    - ") }))
-  add(i(8, "https://..."))
+  add(i(refs_idx, "https://..."))
   add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: AGPL-3.0-only") }))
   add(t({ "", wrap(style, label("Copyright:")) }))
   add(t("(c) "))
