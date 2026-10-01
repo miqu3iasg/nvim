@@ -9,7 +9,7 @@ opt.spell = true
 opt.spelllang = { "en", "pt_br" }
 opt.complete:append("kspell") -- dictionary words in <C-n>/<C-p> completion
 opt.textwidth = 72
-opt.colorcolumn = "50,72"     -- subject line / body limits
+opt.colorcolumn = ""
 opt.wrap = true
 opt.linebreak = true
 opt.formatoptions:append("t") -- auto-wrap text at textwidth

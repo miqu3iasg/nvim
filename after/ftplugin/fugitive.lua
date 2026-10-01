@@ -1,6 +1,6 @@
 -- after/ftplugin/fugitive.lua
 
--- Fugitive status window (:Git / :G)
+-- Fugitive status window
 
 local opt = vim.opt_local
 
