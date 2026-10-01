@@ -9,7 +9,7 @@ if vim.fn.exists("syntax_on") == 1 then
   vim.cmd("syntax reset")
 end
 vim.o.termguicolors = true
-vim.g.colors_name = "gruber-black"
+vim.g.colors_name = "nox"
 vim.o.background = "dark"
 
 -- CursorLineNr only takes effect when 'cursorline' is on, but we don't want

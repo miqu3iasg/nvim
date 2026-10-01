@@ -77,6 +77,10 @@ km({ "n", "v" }, "<leader>p", '"+p', { desc = "Paste from system clipboard" })
 -- Undo and redo
 km("n", "U", "<C-r>", { desc = "Redo" })
 
+-- Scroll line
+vim.keymap.set('n', '<C-S-j>', '<C-e>', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-S-k>', '<C-y>', { noremap = true, silent = true })
+
 -- External actions
 km("n", "gx", function()
   local url = vim.fn.expand("<cWORD>")
