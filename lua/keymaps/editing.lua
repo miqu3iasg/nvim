@@ -16,14 +16,10 @@ km("v", "zk", ":t '<-1<CR>gv", { desc = "Duplicate selection above" })
 km("n", "zj", ":t .+0<CR>", { desc = "Duplicate line below" })
 km("n", "zk", ":t .-1<CR>", { desc = "Duplicate line above" })
 
--- Selection
-km("n", "gl", "v$", { desc = "Select to end of line" })
-km("n", "gh", "v^", { desc = "Select to start of line" })
+-- Movement / Selection
+km({ "n", "x", "o" }, "gl", "$", { desc = "End of line (extends selection in visual)" })
+km({ "n", "x", "o" }, "gh", "^", { desc = "Start of line (extends selection in visual)" })
 km("n", "gV", "`[v`]", { desc = "Reselect last changed text" })
-
--- Line movement
-km({ "n", "v" }, "H", "^", { desc = "Start of line" })
-km({ "n", "v" }, "L", "$", { desc = "End of line" })
 
 -- Insert N blank lines above/below without entering insert mode
 km("n", "ZH", function()

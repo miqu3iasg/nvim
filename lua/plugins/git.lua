@@ -208,10 +208,8 @@ return {
       -- Disabled - apply/reset/textobject and hunk navigation overlap with
       -- gitsigns' own hunk keymaps above. '' unmaps a default entirely.
       mappings = {
-        apply_hunks = "",
-        apply_hunks_visual = "",
-        reset_hunks = "",
-        reset_hunks_visual = "",
+        apply = "",
+        reset = "",
         textobject = "",
         goto_first = "",
         goto_prev = "",

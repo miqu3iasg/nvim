@@ -15,7 +15,7 @@ return {
   }),
 
   -- Code block documentation (2 semicolons).
-  s("doc", {
+  s("cm", {
     t(";; "),
     i(1, "Explanation of the block below"),
     i(0),
