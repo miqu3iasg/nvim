@@ -41,19 +41,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 -- being attached (diagnostics can come from other sources too).
 local km = vim.keymap.set
 
--- severity_sort keeps errors above warnings, update_in_insert keeps
--- diagnostics updating while typing. The float size is computed once at
--- startup, so it won't follow later window resizes.
-vim.diagnostic.config({
-  severity_sort = true,
-  update_in_insert = true,
-  float = {
-    border = "single",
-    max_width = math.floor(vim.o.columns * 0.4),
-    max_height = math.floor(vim.o.lines * 0.4),
-  },
-})
-
 -- Only the diagnostic under the cursor, not the whole line
 km("n", "<leader>e", function()
   vim.diagnostic.open_float({ scope = "cursor" })

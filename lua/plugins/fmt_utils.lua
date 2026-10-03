@@ -1,16 +1,6 @@
 -- lua/plugins/fmt_utils.lua
 
 return {
-  -- Split and join code blocks with a single keymap.
-  {
-    "Wansmer/treesj",
-    keys = { "<space>i" },
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    config = function()
-      require("treesj").setup({})
-    end,
-  },
-
   -- Highlight color codes with their actual colors.
   {
     "norcalli/nvim-colorizer.lua",
@@ -25,7 +15,12 @@ return {
   -- Jump out of brackets and quotes using Tab.
   {
     "abecodes/tabout.nvim",
-    lazy = false,
+    -- Lazy-load right before the first character is inserted
+    event = "InsertCharPre",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+      "L3MON4D3/LuaSnip",
+    },
     config = function()
       require("tabout").setup({
         -- Keybindings for forward and backward tabout.
@@ -65,22 +60,7 @@ return {
         exclude = {},
       })
     end,
-
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "L3MON4D3/LuaSnip",
-      "hrsh7th/nvim-cmp",
-    },
-
-    -- Load the plugin as an optional dependency.
-    opt = true,
-
-    -- Load before inserting a character for better compatibility.
-    event = "InsertCharPre",
-
-    priority = 1000,
   },
-
   -- Disable LuaSnip's default Tab keybinding.
   {
     "L3MON4D3/LuaSnip",

@@ -1,4 +1,13 @@
 -- colors/insanity.lua
+--
+-- Colorscheme for insane people.
+--
+-- Copyright (c) Robertus Chris <diawan@pm.me>
+-- Copyright (c) Miquéias Medeiros <contatomiqueiasalvesdev@gmail.com>
+--
+-- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/colors/insanity.vim
+--
+-- SPDX-License-Identifier: MIT
 
 local M = {}
 
@@ -30,7 +39,7 @@ local function hi(group, opts)
   vim.api.nvim_set_hl(0, group, opts)
 end
 
--- Palette (unchanged hues: grays + green strings + cyan keywords)
+-- Palette (grays, green strings and cyan keywords)
 
 local colors = {
   -- single background; the only other "surface" tone is `cursorline`
@@ -164,7 +173,7 @@ local groups = {
   WinBar = { link = "StatusLine" },
   WinBarNC = { link = "StatusLineNC" },
 
-  Folded = { fg = colors.fg_1, italic = true },
+  Folded = { fg = colors.fg_1 },
   FoldColumn = { link = "Conceal" },
 
   MoreMsg = { link = "WarningMsg" },
@@ -208,6 +217,28 @@ local groups = {
   Visual = { bg = colors.visual_bg },
   VisualNOS = { link = "Visual" },
 
+  -- Legacy syntax groups (mirror the Treesitter captures above, so
+  -- filetypes without a Treesitter parser look the same)
+  Keyword = { link = "Statement" },
+  Conditional = { link = "Statement" },
+  Repeat = { link = "Statement" },
+  Label = { link = "Statement" },
+  Tag = { link = "Statement" },
+  Operator = { fg = colors.fg_3 },
+  Number = { link = "Constant" },
+  Float = { link = "Constant" },
+  Boolean = { fg = colors.fg_3, bold = true },
+  Include = { link = "PreProc" },
+  Define = { link = "PreProc" },
+  Macro = { link = "PreProc" },
+  PreCondit = { link = "PreProc" },
+  StorageClass = { link = "Type" },
+  Structure = { link = "Type" },
+  Typedef = { link = "Type" },
+  SpecialChar = { fg = colors.br_cyan },
+  SpecialComment = { link = "Special" },
+  Debug = { link = "WarningMsg" },
+
   -- Classic syntax groups
   -- (no bg on Comment/Special/Todo so the cursorline shows through)
   String = { fg = colors.green, nocombine = true },
@@ -219,7 +250,7 @@ local groups = {
   Ignore = { link = "Comment" },
 
   Function = { link = "Special" },
-  FunctionBuiltin = { fg = colors.fg_2, italic = true },
+  FunctionBuiltin = { fg = colors.fg_2 },
   Identifier = { link = "Special" },
   IdentifierBuiltin = { link = "Special" },
   PreProc = { link = "Special" },
@@ -275,19 +306,22 @@ local groups = {
   LspSignatureActiveParameter = { link = "MatchParen" },
   LspCodeLens = { link = "Comment" },
   LspCodeLensSeparator = { link = "Comment" },
-  LspInlayHint = { fg = colors.comment, italic = true },
+  LspInlayHint = { fg = colors.comment },
 
   -- Treesitter: variables
   ["@variable"] = { fg = colors.fg_2 },
-  ["@variable.builtin"] = { fg = colors.fg_3, italic = true },
-  ["@variable.parameter"] = { fg = colors.fg_3, italic = true },
-  ["@variable.parameter.builtin"] = { fg = colors.fg_3, italic = true },
   ["@variable.member"] = { fg = colors.fg_3 },
+  ["@variable.builtin"] = { fg = colors.fg_3 },
+  ["@variable.parameter"] = { fg = colors.fg_3 },
+  ["@variable.parameter.builtin"] = { fg = colors.fg_3 },
   ["@property"] = { fg = colors.fg_3 },
 
   ["@module"] = { link = "Special" },
   ["@module.builtin"] = { fg = colors.fg_3 },
   ["@label"] = { link = "Link" },
+
+  ["@string.documentation"] = { fg = colors.green },
+  ["@tag.attribute"] = { fg = colors.fg_3 },
 
   -- Treesitter: literals
   ["@constant"] = { link = "Constant" },
@@ -316,7 +350,7 @@ local groups = {
   ["@attribute"] = { link = "PreProc" },
   ["@attribute.builtin"] = { link = "PreProc" },
 
-  -- Treesitter: functions (only weight differs: definition bold)
+  -- Treesitter: functions
   ["@function"] = { fg = colors.fg_2 },
   ["@function.builtin"] = { link = "FunctionBuiltin" },
   ["@function.call"] = { link = "Function" },
@@ -349,7 +383,7 @@ local groups = {
   ["@punctuation.delimiter"] = { fg = colors.fg_3 },
   ["@punctuation.special"] = { fg = colors.fg_3 },
 
-  -- Treesitter: comments (doc comments slightly brighter, in italic)
+  -- Treesitter: comments (doc comments slightly brighter)
   ["@comment"] = { link = "Comment" },
   ["@comment.documentation"] = { fg = colors.comment_doc },
   ["@comment.error"] = { link = "ErrorMsg" },

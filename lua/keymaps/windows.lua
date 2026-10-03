@@ -3,6 +3,26 @@
 local utils = require("utils")
 local km = vim.keymap.set
 
+-- Helpers
+local function is_terminal(buf)
+  return vim.bo[buf].buftype == "terminal"
+end
+
+-- Saves the buffer only if it is a regular file buffer
+-- (terminals have nothing to save)
+local function save_current()
+  if not is_terminal(vim.api.nvim_get_current_buf()) then
+    utils.save_if_modified()
+  end
+end
+
+-- Normal (non-floating) windows in the current tab
+local function normal_wins()
+  return vim.tbl_filter(function(win)
+    return vim.api.nvim_win_get_config(win).relative == ""
+  end, vim.api.nvim_tabpage_list_wins(0))
+end
+
 -- Window navigation
 km("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
 km("n", "<C-j>", "<C-w>j", { desc = "Move to lower window" })
@@ -25,19 +45,49 @@ km("n", "<leader>mx", "<C-w>x", { desc = "Swap window with next" })
 km("n", "<leader>mr", "<C-w>r", { desc = "Rotate windows" })
 
 -- Window management
-km("n", "<leader>sv", ":vsplit<CR>", { desc = "Split window vertically" })
-km("n", "<leader>sh", ":split<CR>", { desc = "Split window horizontally" })
+km("n", "<leader>sv", "<cmd>vsplit<CR>", { desc = "Split window vertically" })
+km("n", "<leader>sh", "<cmd>split<CR>", { desc = "Split window horizontally" })
 km("n", "<leader>se", "<C-w>=", { desc = "Equalize window sizes" })
 
 km("n", "<leader>sc", function()
-  utils.save_if_modified()
-  vim.cmd("close")
+  if #normal_wins() <= 1 then
+    vim.notify("Last window, nothing to close", vim.log.levels.INFO)
+    return
+  end
+  save_current()
+  -- Closing a window never kills a terminal job; the buffer just stays hidden
+  local ok, err = pcall(vim.cmd, "close")
+  if not ok then
+    vim.notify(tostring(err), vim.log.levels.WARN)
+  end
 end, { desc = "Save and close current window" })
 
 km("n", "<leader>so", function()
-  utils.save_if_modified()
-  vim.cmd("only")
-end, { desc = "Save and close other windows" })
+  save_current()
+
+  local current = vim.api.nvim_get_current_win()
+  local kept = 0
+
+  -- Not using :only, since it errors when another window has unsaved changes.
+  -- Windows with modified file buffers are left open instead.
+  for _, win in ipairs(normal_wins()) do
+    if win ~= current then
+      local buf = vim.api.nvim_win_get_buf(win)
+      if not is_terminal(buf) and vim.bo[buf].modified then
+        kept = kept + 1
+      else
+        pcall(vim.api.nvim_win_close, win, false)
+      end
+    end
+  end
+
+  if kept > 0 then
+    vim.notify(
+      kept .. " window(s) kept (unsaved changes)",
+      vim.log.levels.INFO
+    )
+  end
+end, { desc = "Save and close other windows (keeps modified ones)" })
 
 -- Window resizing
 km("n", "+", "<cmd>resize +5<cr>", { desc = "Increase window height" })

@@ -112,7 +112,7 @@ vim.g.zig_fmt_parse_errors = 0
 -- Diagnostics
 vim.diagnostic.config({
   virtual_text = false,
-  underline = true,
+  underline = false,
   severity_sort = true,
   update_in_insert = false,
   float = {

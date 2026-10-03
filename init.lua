@@ -19,8 +19,8 @@ require("statusline")
 
 utils.color_overrides.setup_colorscheme_overrides()
 
-vim.cmd.colorscheme("enfocadomod")
--- vim.cmd.colorscheme("insanity")
+vim.cmd.colorscheme("insanity")
+-- vim.cmd.colorscheme("enfocadomod")
 -- vim.cmd.colorscheme("nox")
 
 utils.fix_telescope_parens_win()

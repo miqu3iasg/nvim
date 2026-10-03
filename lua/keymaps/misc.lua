@@ -57,9 +57,9 @@ end, { desc = "Toggle diagnostics" })
 
 -- Toggle inline diagnostics (virtual text); off by default in options.lua
 km("n", "<leader>vi", function()
-  local enabled = vim.diagnostic.config().virtual_text
-  vim.diagnostic.config({ virtual_text = not enabled })
-end, { desc = "Toggle inline diagnostics" })
+  local cfg = vim.diagnostic.config()
+  vim.diagnostic.config({ virtual_text = not cfg.virtual_text })
+end)
 
 -- Info and health
 

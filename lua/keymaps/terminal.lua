@@ -2,20 +2,29 @@
 
 local km = vim.keymap.set
 
+-- Split commands with a fixed size
+local VSPLIT = "botright 90vsplit"
+local HSPLIT = "botright 15split"
+
+-- Open a terminal using the given window command (split, tabnew, ...)
+local function open_term(win_cmd)
+  vim.cmd(win_cmd .. " | terminal")
+end
+
 -- Open terminal splits / in-place
 km("n", "<leader>tv", function()
-  vim.cmd("botright vsplit | terminal")
+  open_term(VSPLIT)
 end, { desc = "Open terminal in vertical split (right)" })
 
 km("n", "<leader>th", function()
-  vim.cmd("botright split | terminal")
+  open_term(HSPLIT)
 end, { desc = "Open terminal in horizontal split (bottom)" })
 
 km("n", "<leader>tt", function()
-  vim.cmd("tabnew | terminal")
+  open_term("tabnew")
 end, { desc = "Open terminal in a new tab" })
 
--- Toggle terminal: reopens the same buffer/process if hidden,
+-- Toggle terminal reopens the same buffer/process if hidden,
 -- hides the window (without killing the process) if visible.
 local term_buf = nil
 local term_win = nil
@@ -28,14 +37,14 @@ local function toggle_terminal()
   end
 
   if term_buf and vim.api.nvim_buf_is_valid(term_buf) then
-    vim.cmd("botright vsplit")
+    vim.cmd(VSPLIT)
     vim.api.nvim_win_set_buf(0, term_buf)
     term_win = vim.api.nvim_get_current_win()
     vim.cmd("startinsert")
     return
   end
 
-  vim.cmd("botright vsplit | terminal")
+  open_term(VSPLIT)
   term_buf = vim.api.nvim_get_current_buf()
   term_win = vim.api.nvim_get_current_win()
 end
@@ -53,14 +62,27 @@ vim.api.nvim_create_autocmd("TermOpen", {
   end,
 })
 
+-- When the shell exits (e.g. `exit`), forget the toggle state and wipe the
+-- dead buffer so the toggle never reopens a stopped terminal
+vim.api.nvim_create_autocmd("TermClose", {
+  callback = function(args)
+    if args.buf == term_buf then
+      term_buf, term_win = nil, nil
+    end
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(args.buf) then
+        vim.api.nvim_buf_delete(args.buf, { force = true })
+      end
+    end)
+  end,
+})
+
 -- Exit terminal insert mode back to normal mode
-km("t", "<Esc><Esc>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
+km("t", "<C-b>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
 -- Close the terminal window (job keeps running in the background, same as
--- the toggle above) without having to hit <Esc> first. If you're already in
--- normal mode inside the terminal buffer (e.g. after pressing <Esc>), the
--- generic <leader>sc (windows.lua) closes it the exact same way.
-km("t", "<C-d>", [[<C-\><C-n>:close<CR>]], { desc = "Close terminal window" })
+-- the toggle above) without having to leave terminal mode first (<C-b>).
+km("t", "<C-q>", [[<C-\><C-n>:close<CR>]], { desc = "Close terminal window" })
 
 -- Window navigation from inside terminal mode (mirrors <C-hjkl> in windows.lua)
 km("t", "<C-h>", [[<C-\><C-n><C-w>h]], { desc = "Move to left window from terminal" })
