@@ -22,33 +22,17 @@ return {
         n_lines = 500,
 
         custom_textobjects = {
-          -- Functions
           f = ts({ a = "@function.outer", i = "@function.inner" }),
-
-          -- Classes
           c = ts({ a = "@class.outer", i = "@class.inner" }),
-
-          -- Arguments / parameters
           a = ts({ a = "@parameter.outer", i = "@parameter.inner" }),
-
-          -- Conditionals
           i = ts({ a = "@conditional.outer", i = "@conditional.inner" }),
-
-          -- Loops
           l = ts({ a = "@loop.outer", i = "@loop.inner" }),
-
-          -- Generic Treesitter block. Uses "B" to avoid conflicting
-          -- with the default "b" (nearest bracket).
           B = ts({ a = "@block.outer", i = "@block.inner" }),
-
-          -- Comments (around only, as in the original config)
           C = ts({ a = "@comment.outer", i = "@comment.outer" }),
-
-          -- Function calls (already existed in the original config)
           u = ai.gen_spec.function_call(),
           U = ai.gen_spec.function_call({ name_pattern = "[%w_]" }),
 
-          -- Entire file: ae / ie
+          -- Entire file
           e = function()
             local from = { line = 1, col = 1 }
             local to = {

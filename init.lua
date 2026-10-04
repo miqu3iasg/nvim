@@ -15,7 +15,7 @@ require("lazynvim")
 require("autocmds")
 require("commands")
 require("snippets")
-require("statusline")
+require("statusline").setup()
 
 utils.color_overrides.setup_colorscheme_overrides()
 
