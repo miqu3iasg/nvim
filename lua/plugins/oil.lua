@@ -3,7 +3,7 @@
 return {
   -- "stevearc/oil.nvim",
   "barrettruth/canola.nvim",
-  -- enabled = false,
+  enabled = true,
   -- dependencies = {
   --   "refractalize/oil-git-status.nvim",
   -- },
