@@ -1,18 +1,25 @@
 -- lua/plugins/git.lua
 
--- Function must be defined before the plugin spec below, since it's
--- referenced directly as a `keys` handler.
+-- Better alignment of similar lines inside diff hunks. `histogram` produces
+-- more readable hunks than the default Myers algorithm on refactored code,
+-- and `linematch` aligns changed lines within a hunk.
+vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:60" })
+
+-- This handler toggles the diff view against the previous commit.
+-- When invoked from a diff window, it closes the diff buffers through
+-- Fugitive's `dq`, which keeps the working file open and runs `diffoff!`.
 local function toggle_last_commit_diff()
   if vim.wo.diff then
-    vim.cmd("diffoff!")
-    vim.cmd("q")
+    vim.cmd.normal("dq")
   else
     vim.cmd("Gvdiffsplit HEAD~1")
   end
 end
 
--- Prompts for how many commits back to rebase, then opens the interactive
--- rebase todo list full-page (same "tab" pattern as cvc/<leader>gg below).
+-- Opens an interactive rebase in a dedicated tab. The number of commits
+-- is provided interactively so the same mapping can be used for different
+-- rebase ranges without maintaining separate mappings. For rebasing from a
+-- specific commit, `ri` in the log view is usually faster.
 local function interactive_rebase()
   local n = vim.fn.input("Rebase -i HEAD~", "3")
   if n ~= "" then
@@ -20,73 +27,50 @@ local function interactive_rebase()
   end
 end
 
--- Tracks whether gitsigns' own sign rendering is currently on. gitsigns
--- doesn't expose a public getter for this, so we track it ourselves; it
--- starts `false` to match `signcolumn = false` in the opts below.
-local gitsigns_signs_visible = false
-
--- Turns the sign column on (only if it isn't already) and makes sure
--- gitsigns signs are shown. Leaves the sign column alone if something
--- else already has it active.
-local function gitsigns_show()
-  if vim.o.signcolumn == "no" then
-    vim.o.signcolumn = "yes"
-  end
-  if not gitsigns_signs_visible then
-    require("gitsigns").toggle_signs(true)
-    gitsigns_signs_visible = true
+-- Returns a handler that retrieves one side of a three-way conflict. The
+-- guard avoids `diffget` errors when the current window is not part of a
+-- conflict diff opened with `Gvdiffsplit!`.
+local function diffget(n)
+  return function()
+    if not vim.wo.diff then
+      return vim.notify("Not in a 3-way diff (use <leader>gm)", vim.log.levels.WARN)
+    end
+    vim.cmd("diffget //" .. n)
   end
 end
 
--- Turns everything off: gitsigns signs and the sign column itself.
--- Checks current state first so it never does redundant work.
-local function gitsigns_hide()
-  if gitsigns_signs_visible then
-    require("gitsigns").toggle_signs(false)
-    gitsigns_signs_visible = false
-  end
-  if vim.o.signcolumn ~= "no" then
-    vim.o.signcolumn = "no"
-  end
-end
-
--- Per-buffer toggle for mini.diff. mini.diff enables itself on every
--- buffer by default, so we keep our own flag (`minidiff_user_on`) to know
--- whether the user explicitly turned it on for a given buffer.
-local function minidiff_toggle()
-  local md = require("mini.diff")
-  local buf = vim.api.nvim_get_current_buf()
-  if vim.b[buf].minidiff_user_on then
-    vim.b[buf].minidiff_user_on = false
-    md.disable(buf)
-  else
-    vim.b[buf].minidiff_user_on = true
-    md.enable(buf)
-  end
-end
-
+-- Fugitive-owned buffers use `q` to close the current view. The mapping is
+-- buffer-local so it does not alter Vim's global behavior. It is restricted
+-- to buffers where `gq` closes the view, because `gq` is the native format
+-- operator in `gitcommit` and `gitrebase`, and `q` would break macro recording.
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "fugitive", "git", "gitcommit", "gitrebase" },
+  pattern = { "fugitive", "fugitiveblame", "git" },
   callback = function(event)
-    vim.keymap.set("n", "q", "gq", { buffer = event.buf, remap = true, desc = "Close" })
+    vim.keymap.set("n", "q", function()
+      -- Delegate to Fugitive's own `gq` when it exists in this buffer and
+      -- fall back to closing the window otherwise.
+      if vim.fn.mapcheck("gq", "n") ~= "" then
+        vim.api.nvim_feedkeys(vim.keycode("gq"), "m", false)
+      else
+        vim.cmd("close")
+      end
+    end, {
+      buffer = event.buf,
+      desc = "Close",
+    })
   end,
 })
 
--- `cc` only in the fugitive status buffer. In `gitcommit`/`gitrebase`
--- it must stay as Vim's native "change whole line".
+-- Fugitive's status buffer provides a Git-specific action through `cc`. The
+-- mapping is intentionally restricted to this buffer so native `cc` behavior
+-- remains unchanged in commit and rebase buffers. Commits are always verbose:
+-- the staged diff is included in the commit buffer, providing the context
+-- needed to review changes before completing the commit. This makes the
+-- native `cvc` redundant, so it is left untouched.
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitive",
   callback = function(event)
-    -- normal commit in a new tab (full screen)
-    vim.keymap.set("n", "cc", "<cmd>silent tab Git commit<cr>", {
-      buffer = event.buf,
-      silent = true,
-      desc = "Git commit (full page, new tab)",
-    })
-
-    -- the commit buffer opens in a new tab (full screen), and -v
-    -- includes the staged diff in it.
-    vim.keymap.set("n", "cvc", "<cmd>silent tab Git commit -v<cr>", {
+    vim.keymap.set("n", "cc", "<cmd>silent tab Git commit -v<cr>", {
       buffer = event.buf,
       silent = true,
       desc = "Git commit -v (full page, new tab)",
@@ -94,25 +78,9 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- 3-way merge/rebase conflict resolution. Only meaningful while a
--- Gdiffsplit/Gvdiffsplit! conflict view is open, but harmless elsewhere
--- since diffget on a non-existent buffer number just errors quietly.
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "fugitive", "gitrebase" },
-  callback = function(event)
-    vim.keymap.set("n", "gh", "<cmd>diffget //2<cr>", {
-      buffer = event.buf,
-      desc = "Diffget //2 (target/ours)",
-    })
-    vim.keymap.set("n", "gl", "<cmd>diffget //3<cr>", {
-      buffer = event.buf,
-      desc = "Diffget //3 (merge/theirs)",
-    })
-  end,
-})
-
--- `:Git blame` opens a scrollbound vertical split whose default width is
--- too narrow for author + date + summary; widen it every time it opens.
+-- Fugitive's blame view uses a vertical split. The default width is
+-- insufficient for the author, timestamp, and commit summary, so the
+-- window is given a fixed width when the blame buffer is created.
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitiveblame",
   callback = function()
@@ -123,130 +91,151 @@ vim.api.nvim_create_autocmd("FileType", {
 return {
   {
     "tpope/vim-fugitive",
-    -- vim-rhubarb teaches :GBrowse how to resolve GitHub (and GitHub
-    -- Enterprise) URLs; without it, GBrowse has no host to open.
+    -- vim-rhubarb provides GitHub URL resolution for Fugitive's `GBrowse`
+    -- command. GitHub Enterprise additionally requires setting
+    -- `vim.g.github_enterprise_urls` to the list of enterprise hosts.
     dependencies = { "tpope/vim-rhubarb" },
-    cmd = { "Git", "G", "Gdiffsplit", "Gvdiffsplit", "Gread", "Gwrite", "GBrowse" },
-    -- `keys` (rather than a separate vim.keymap.set block) makes these
-    -- lazy-load the plugin on first press, and keeps them next to the
-    -- plugin they belong to.
+
+    -- Every Fugitive command that may be typed before the plugin is loaded
+    -- must be listed here, otherwise it fails until another trigger loads it.
+    cmd = {
+      "Git",
+      "G",
+      "Ggrep",
+      "Glgrep",
+      "Gclog",
+      "Gllog",
+      "Gedit",
+      "Gsplit",
+      "Gvsplit",
+      "Gtabedit",
+      "Gdiffsplit",
+      "Gvdiffsplit",
+      "Ghdiffsplit",
+      "Gread",
+      "Gwrite",
+      "GMove",
+      "GRename",
+      "GDelete",
+      "GRemove",
+      "GBrowse",
+    },
+
+    -- Keymaps are declared with the plugin specification so Fugitive is
+    -- loaded only when one of its Git operations is actually requested.
     keys = {
-      -- any :Git subcommand that opens a window (status, commit, push, log)
-      -- does so as a vertical split instead of its horizontal default.
+      -- Git commands that produce a window are opened as vertical splits
+      -- to preserve the available horizontal editing space.
       { "<leader>gs", "<cmd>vertical Git<cr>",                                  desc = "Git status" },
       { "<leader>gl", "<cmd>vertical Git log --oneline --decorate --graph<cr>", desc = "Git log" },
-      { "<leader>gc", "<cmd>vertical Git commit<cr>",                           desc = "Git commit" },
+      { "<leader>gc", "<cmd>vertical Git commit -v<cr>",                        desc = "Git commit -v" },
       { "<leader>gp", "<cmd>vertical Git push<cr>",                             desc = "Git push" },
-      { "<leader>gf", "<cmd>Git fetch<cr>",                                     desc = "Git fetch" },
-      { "<leader>gP", "<cmd>vertical Git pull<cr>",                             desc = "Git pull" },
-      { "<leader>gB", "<cmd>Git blame<cr>",                                     desc = "Git blame (current file)" },
       { "<leader>gd", "<cmd>Gvdiffsplit<cr>",                                   desc = "Diff against index/HEAD (uncommitted changes)" },
-      { "<leader>gD", toggle_last_commit_diff,                                  desc = "Toggle diff against last commit" },
-      -- Full-page status in its own tab, unobstructed by other splits.
-      { "<leader>gg", "<cmd>tabnew | Git | only<cr>",                           desc = "Git status (full page, new tab)" },
-      { "<leader>gr", interactive_rebase,                                       desc = "Interactive rebase (full page, prompts for HEAD~N)" },
-      { "<leader>go", "<cmd>.GBrowse<cr>",                                      mode = { "n", "v" },                                        desc = "Open in browser (GBrowse)" },
-    },
-  },
-  {
-    "lewis6991/gitsigns.nvim",
-    -- BufReadPre/BufNewFile is gitsigns' own recommended lazy-load trigger:
-    -- it guarantees attachment happens as soon as a buffer is opened,
-    -- rather than depending on lazy.nvim's VeryLazy user-event timing.
-    event = { "BufReadPre", "BufNewFile" },
-    -- Also lazy-load on these keys, in case they're pressed before any
-    -- buffer-opening event has fired.
-    keys = {
-      { "<leader>hv", gitsigns_show, desc = "Show sign column + gitsigns signs" },
-      { "<leader>hx", gitsigns_hide, desc = "Hide sign column + gitsigns signs" },
-    },
-    opts = {
-      -- All visual indicators disabled on purpose: this config only wants
-      -- gitsigns for its hunk actions (stage/reset/preview/blame), not for
-      -- gutter signs, line highlighting, or inline blame text.
-      signcolumn = false,
-      numhl = false,
-      linehl = false,
-      word_diff = false,
-      current_line_blame = false,
-      status_formatter = nil,
-      on_attach = function(bufnr)
-        local gs = package.loaded.gitsigns
-        local map = function(mode, lhs, rhs, desc)
-          vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
-        end
+      { "<leader>gt", toggle_last_commit_diff,                                  desc = "Toggle diff against last commit" },
+      { "<leader>gb", "<cmd>Git blame<cr>",                                     desc = "Git blame (current file)" },
 
-        -- Hunk-level actions live under <leader>h, separate from the
-        -- repo/file-level <leader>g actions above, so the two sets never
-        -- collide (e.g. <leader>gs = Git status, <leader>hs = stage hunk).
-        map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
-        map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
-        map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
-        map("n", "<leader>hb", gs.blame_line, "Blame line")
-        map("n", "]h", gs.next_hunk, "Next hunk")
-        map("n", "[h", gs.prev_hunk, "Previous hunk")
-      end,
+      -- Fetch prunes remote-tracking branches that no longer exist, and pull
+      -- is restricted to fast-forwards to avoid surprise merge commits.
+      { "<leader>gf", "<cmd>Git fetch --all --prune<cr>",                       desc = "Git fetch (all remotes, prune)" },
+      { "<leader>gu", "<cmd>vertical Git pull --ff-only<cr>",                   desc = "Git pull (fast-forward only)" },
+
+      -- The status view is isolated in its own tab to provide an
+      -- unobstructed workspace for reviewing repository state.
+      { "<leader>gg", "<cmd>tab Git<cr>",                                       desc = "Git status (full page, new tab)" },
+
+      -- The full-page commit includes the staged diff in the commit buffer
+      -- so changes can be reviewed while the message is written.
+      { "<leader>gn", "<cmd>tab Git commit -v<cr>",                             desc = "Git commit -v (full page, new tab)" },
+
+      -- Amend variants: the first opens the message for editing alongside
+      -- the diff, the second reuses the previous message and only folds in
+      -- the staged changes.
+      { "<leader>ga", "<cmd>tab Git commit --amend -v<cr>",                     desc = "Amend last commit" },
+      { "<leader>gq", "<cmd>Git commit --amend --no-edit<cr>",                  desc = "Amend last commit (keep message)" },
+
+      -- The rebase range is requested interactively because the appropriate
+      -- number of commits depends on the operation being performed.
+      { "<leader>gr", interactive_rebase,                                       desc = "Interactive rebase (full page, prompts for HEAD~N)" },
+
+      -- File history is loaded into the quickfix list. The visual mapping
+      -- uses `:` so Vim passes the selected range to `Gclog`, which then
+      -- lists every commit that touched those lines.
+      { "<leader>gh", "<cmd>0Gclog<cr>",                                        desc = "File history (quickfix)" },
+      { "<leader>gh", ":Gclog<cr>",                                             mode = "x",                                                 desc = "Line history (quickfix)" },
+
+      -- A three-way diff is only available while a merge or rebase has
+      -- conflicts. The window layout is: //2 on the left, working copy in
+      -- the middle, //3 on the right. During a merge `//2` is the target
+      -- branch and `//3` the merged branch. During a rebase the roles are
+      -- inverted: `//2` is the upstream being rebased onto and `//3` is the
+      -- commit being replayed.
+      { "<leader>gm", "<cmd>Gvdiffsplit!<cr>",                                  desc = "Merge: open 3-way diff" },
+      { "<leader>g2", diffget(2),                                               desc = "Diffget //2 (merge: target, rebase: upstream)" },
+      { "<leader>g3", diffget(3),                                               desc = "Diffget //3 (merge: incoming, rebase: your commit)" },
+
+      -- The normal-mode mappings operate on the current line. The visual
+      -- mappings use `:` so Vim passes the selected range to `GBrowse`.
+      { "<leader>go", "<cmd>.GBrowse<cr>",                                      desc = "Open in browser (GBrowse)" },
+      { "<leader>go", ":GBrowse<cr>",                                           mode = "x",                                                 desc = "Open selection in browser (GBrowse)" },
+
+      -- The bang form copies the permalink to the clipboard instead of
+      -- opening the browser, which is the common case for sharing links.
+      { "<leader>gy", "<cmd>.GBrowse!<cr>",                                     desc = "Copy browser link (GBrowse!)" },
+      { "<leader>gy", ":GBrowse!<cr>",                                          mode = "x",                                                 desc = "Copy selection link (GBrowse!)" },
     },
   },
+
   {
     "echasnovski/mini.diff",
     version = false,
     event = { "BufReadPre", "BufNewFile" },
-    -- mini.diff's own binds for these two are the reason to reach for it:
-    -- gitsigns already owns hunk stage/reset/preview/navigation (<leader>hs,
-    -- <leader>hr, <leader>hp, ]h/[h), so those are disabled below to avoid
-    -- two plugins fighting over the same keys.
+
     keys = {
-      { "<leader>ho", function() require("mini.diff").toggle_overlay(0) end, desc = "Toggle diff overlay" },
-      { "<leader>ht", minidiff_toggle,                                       desc = "Toggle mini.diff signs for buffer" },
-    },
-    opts = {
-      view = {
-        style = "sign",
-        signs = { add = "▎", change = "▎", delete = "" },
-      },
-      -- Disabled - apply/reset/textobject and hunk navigation overlap with
-      -- gitsigns' own hunk keymaps above. '' unmaps a default entirely.
-      mappings = {
-        apply = "",
-        reset = "",
-        textobject = "",
-        goto_first = "",
-        goto_prev = "",
-        goto_next = "",
-        goto_last = "",
-      },
-    },
-    config = function(_, opts)
-      local md = require("mini.diff")
-      md.setup(opts)
+      {
+        "<leader>ho",
+        function()
+          local md = require("mini.diff")
 
-      -- setup() enables the plugin on every buffer. Turn it off here and
-      -- on any buffer opened later, unless the user explicitly enabled it
-      -- for that buffer with <leader>ht.
-      local function ensure_off(buf)
-        if not vim.b[buf].minidiff_user_on then
-          md.disable(buf)
-        end
-      end
+          -- Diff overlays require buffer-local diff state. Enable the
+          -- feature on demand when the current buffer has no diff data.
+          if not md.get_buf_data(0) then
+            md.enable(0)
+          end
 
-      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-        if vim.api.nvim_buf_is_loaded(buf) then
-          ensure_off(buf)
-        end
-      end
-
-      vim.api.nvim_create_autocmd("BufEnter", {
-        group = vim.api.nvim_create_augroup("MiniDiffOffByDefault", { clear = true }),
-        callback = function(ev)
-          -- runs after mini.diff's own auto-enable on BufEnter
-          vim.schedule(function()
-            if vim.api.nvim_buf_is_valid(ev.buf) then
-              ensure_off(ev.buf)
-            end
-          end)
+          md.toggle_overlay(0)
         end,
-      })
-    end,
+        desc = "Toggle diff overlay",
+      },
+    },
+
+    opts = {
+      -- Hunk navigation, the hunk text object, and stage/reset operations
+      -- are exposed so mini.diff covers the full hunk workflow without a
+      -- second plugin. `apply` and `reset` are operators, so they accept a
+      -- motion or a visual selection. They live under `<leader>h` to stay
+      -- clear of the native `gh`-style mappings used by other plugins.
+      mappings = {
+        apply = "<leader>ha",
+        reset = "<leader>hr",
+        textobject = "ih",
+        goto_first = "[H",
+        goto_prev = "[h",
+        goto_next = "]h",
+        goto_last = "]H",
+      },
+    },
+  },
+
+  -- Branch, commit, and stash pickers. Declared as an optional spec so the
+  -- mappings are merged into the existing fzf-lua setup and are ignored
+  -- when fzf-lua is not installed.
+  {
+    "ibhagwan/fzf-lua",
+    optional = true,
+    keys = {
+      { "<leader>gw", "<cmd>FzfLua git_branches<cr>", desc = "Git branches (checkout)" },
+      { "<leader>gi", "<cmd>FzfLua git_commits<cr>",  desc = "Git commits" },
+      { "<leader>gz", "<cmd>FzfLua git_stash<cr>",    desc = "Git stash" },
+    },
   },
 }
