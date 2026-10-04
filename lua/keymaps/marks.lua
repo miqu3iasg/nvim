@@ -15,3 +15,16 @@ km({ "n", "v", "o" }, "gM", "'", { desc = "Jump to mark (start of line)" })
 -- next/previous mark, matching the [e / ]e bracket convention used for diagnostics
 km("n", "]m", "]`", { desc = "Jump to next mark" })
 km("n", "[m", "[`", { desc = "Jump to previous mark" })
+
+-- delete a mark by name (dm{a-zA-Z}), mirrors the `m{a-zA-Z}` set-mark
+-- convention
+km("n", "dm", function()
+  local ok, char = pcall(vim.fn.getcharstr)
+
+  if ok and char:match("^%a$") then
+    pcall(vim.cmd.delmarks, char)
+  end
+end, { desc = "Delete mark" })
+
+-- delete all lowercase marks in the current buffer
+km("n", "<leader>dm", "<cmd>silent! delmarks!<cr>", { desc = "Delete all marks in buffer" })

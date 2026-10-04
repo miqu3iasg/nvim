@@ -81,7 +81,9 @@ km("n", "<leader>nr", function()
 end, { desc = "Rename current file" })
 
 -- Print the current working directory.
-km("n", "<leader>.", "<cmd>pwd<CR>", { desc = "Show current working directory", silent = true })
+km("n", "<leader>.", function()
+  vim.notify(vim.fn.getcwd(), vim.log.levels.INFO)
+end, { desc = "Show current working directory", silent = true })
 
 -- Move the current file to a timestamped path in Neovim's data trash directory after confirmation.
 km("n", "<leader>nz", function()

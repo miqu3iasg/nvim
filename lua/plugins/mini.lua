@@ -31,7 +31,7 @@ return {
           prefix = "gx", -- Exchange two pieces of text
         },
         multiply = {
-          prefix = "gm", -- Duplicate text
+          prefix = "ge", -- Duplicate text
         },
         replace = {
           prefix = "gr", -- Replace text with register content
