@@ -12,7 +12,7 @@ local function toggle_last_commit_diff()
   if vim.wo.diff then
     vim.cmd.normal("dq")
   else
-    vim.cmd("Gvdiffsplit HEAD~1")
+    vim.cmd("silent Gvdiffsplit HEAD~1")
   end
 end
 
@@ -23,7 +23,7 @@ end
 local function interactive_rebase()
   local n = vim.fn.input("Rebase -i HEAD~", "3")
   if n ~= "" then
-    vim.cmd("tab Git rebase -i HEAD~" .. n)
+    vim.cmd("silent tab Git rebase -i HEAD~" .. n)
   end
 end
 
@@ -35,7 +35,7 @@ local function diffget(n)
     if not vim.wo.diff then
       return vim.notify("Not in a 3-way diff (use <leader>gm)", vim.log.levels.WARN)
     end
-    vim.cmd("diffget //" .. n)
+    vim.cmd("silent diffget //" .. n)
   end
 end
 
@@ -61,16 +61,45 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Fugitive's status buffer provides a Git-specific action through `cc`. The
--- mapping is intentionally restricted to this buffer so native `cc` behavior
--- remains unchanged in commit and rebase buffers. Commits are always verbose:
--- the staged diff is included in the commit buffer, providing the context
--- needed to review changes before completing the commit. This makes the
--- native `cvc` redundant, so it is left untouched.
+-- Fugitive's status buffer provides Git-specific actions through `cc` and
+-- `CC`. The mappings are intentionally restricted to this buffer so native
+-- behavior remains unchanged in commit and rebase buffers. Commits are always
+-- verbose: the staged diff is included in the commit buffer, providing the
+-- context needed to review changes before completing the commit. This makes
+-- the native `cvc` redundant, so it is left untouched.
+--   cc: commit replaces the status in the same vertical split
+--   CC: commit in a full-screen new tab
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitive",
   callback = function(event)
-    vim.keymap.set("n", "cc", "<cmd>silent tab Git commit -v<cr>", {
+    vim.keymap.set("n", "cc", function()
+      local status_win = vim.api.nvim_get_current_win()
+
+      -- `:Git commit` opens the message buffer asynchronously, so the status
+      -- window can only be closed once the gitcommit buffer actually exists.
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "gitcommit",
+        once = true,
+        callback = function()
+          vim.schedule(function()
+            if
+                vim.api.nvim_win_is_valid(status_win)
+                and vim.api.nvim_get_current_win() ~= status_win
+            then
+              vim.api.nvim_win_close(status_win, false)
+            end
+          end)
+        end,
+      })
+
+      vim.cmd("silent vertical Git commit -v")
+    end, {
+      buffer = event.buf,
+      silent = true,
+      desc = "Git commit -v (replaces status in the same split)",
+    })
+
+    vim.keymap.set("n", "CC", "<cmd>silent tab Git commit -v<cr>", {
       buffer = event.buf,
       silent = true,
       desc = "Git commit -v (full page, new tab)",
@@ -123,45 +152,47 @@ return {
 
     -- Keymaps are declared with the plugin specification so Fugitive is
     -- loaded only when one of its Git operations is actually requested.
+    -- All commands use `silent` to avoid the "Press ENTER" prompt.
     keys = {
       -- Git commands that produce a window are opened as vertical splits
       -- to preserve the available horizontal editing space.
-      { "<leader>gs", "<cmd>vertical Git<cr>",                                  desc = "Git status" },
-      { "<leader>gl", "<cmd>vertical Git log --oneline --decorate --graph<cr>", desc = "Git log" },
-      { "<leader>gc", "<cmd>vertical Git commit -v<cr>",                        desc = "Git commit -v" },
-      { "<leader>gp", "<cmd>vertical Git push<cr>",                             desc = "Git push" },
-      { "<leader>gd", "<cmd>Gvdiffsplit<cr>",                                   desc = "Diff against index/HEAD (uncommitted changes)" },
-      { "<leader>gt", toggle_last_commit_diff,                                  desc = "Toggle diff against last commit" },
-      { "<leader>gb", "<cmd>Git blame<cr>",                                     desc = "Git blame (current file)" },
+      { "<leader>gs", "<cmd>silent vertical Git<cr>",                                  desc = "Git status" },
+      { "<leader>gl", "<cmd>silent vertical Git log --oneline --decorate --graph<cr>", desc = "Git log" },
+      { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",                        desc = "Git commit -v" },
+      { "<leader>gp", "<cmd>silent vertical Git push<cr>",                             desc = "Git push" },
+      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                                   desc = "Diff against index/HEAD (uncommitted changes)" },
+      { "<leader>gt", toggle_last_commit_diff,                                         desc = "Toggle diff against last commit" },
+      { "<leader>gb", "<cmd>silent Git blame<cr>",                                     desc = "Git blame (current file)" },
 
       -- Fetch prunes remote-tracking branches that no longer exist, and pull
       -- is restricted to fast-forwards to avoid surprise merge commits.
-      { "<leader>gf", "<cmd>Git fetch --all --prune<cr>",                       desc = "Git fetch (all remotes, prune)" },
-      { "<leader>gu", "<cmd>vertical Git pull --ff-only<cr>",                   desc = "Git pull (fast-forward only)" },
+      { "<leader>gf", "<cmd>silent Git fetch --all --prune<cr>",                       desc = "Git fetch (all remotes, prune)" },
+      { "<leader>gu", "<cmd>silent vertical Git pull --ff-only<cr>",                   desc = "Git pull (fast-forward only)" },
 
       -- The status view is isolated in its own tab to provide an
       -- unobstructed workspace for reviewing repository state.
-      { "<leader>gg", "<cmd>tab Git<cr>",                                       desc = "Git status (full page, new tab)" },
+      { "<leader>gg", "<cmd>silent tab Git<cr>",                                       desc = "Git status (full page, new tab)" },
 
       -- The full-page commit includes the staged diff in the commit buffer
       -- so changes can be reviewed while the message is written.
-      { "<leader>gn", "<cmd>tab Git commit -v<cr>",                             desc = "Git commit -v (full page, new tab)" },
+      { "<leader>gn", "<cmd>silent tab Git commit -v<cr>",                             desc = "Git commit -v (full page, new tab)" },
 
       -- Amend variants: the first opens the message for editing alongside
       -- the diff, the second reuses the previous message and only folds in
       -- the staged changes.
-      { "<leader>ga", "<cmd>tab Git commit --amend -v<cr>",                     desc = "Amend last commit" },
-      { "<leader>gq", "<cmd>Git commit --amend --no-edit<cr>",                  desc = "Amend last commit (keep message)" },
+      { "<leader>ga", "<cmd>silent tab Git commit --amend -v<cr>",                     desc = "Amend last commit" },
+      { "<leader>gq", "<cmd>silent Git commit --amend --no-edit<cr>",                  desc = "Amend last commit (keep message)" },
 
       -- The rebase range is requested interactively because the appropriate
       -- number of commits depends on the operation being performed.
-      { "<leader>gr", interactive_rebase,                                       desc = "Interactive rebase (full page, prompts for HEAD~N)" },
+      { "<leader>gr", interactive_rebase,                                              desc = "Interactive rebase (full page, prompts for HEAD~N)" },
 
       -- File history is loaded into the quickfix list. The visual mapping
       -- uses `:` so Vim passes the selected range to `Gclog`, which then
-      -- lists every commit that touched those lines.
-      { "<leader>gh", "<cmd>0Gclog<cr>",                                        desc = "File history (quickfix)" },
-      { "<leader>gh", ":Gclog<cr>",                                             mode = "x",                                                 desc = "Line history (quickfix)" },
+      -- lists every commit that touched those lines. `<C-u>` clears the
+      -- automatic `'<,'>` so `silent` can come before the range.
+      { "<leader>gh", "<cmd>silent 0Gclog<cr>",                                        desc = "File history (quickfix)" },
+      { "<leader>gh", ":<C-u>silent '<,'>Gclog<cr>",                                   mode = "x",                                                 desc = "Line history (quickfix)" },
 
       -- A three-way diff is only available while a merge or rebase has
       -- conflicts. The window layout is: //2 on the left, working copy in
@@ -169,19 +200,19 @@ return {
       -- branch and `//3` the merged branch. During a rebase the roles are
       -- inverted: `//2` is the upstream being rebased onto and `//3` is the
       -- commit being replayed.
-      { "<leader>gm", "<cmd>Gvdiffsplit!<cr>",                                  desc = "Merge: open 3-way diff" },
-      { "<leader>g2", diffget(2),                                               desc = "Diffget //2 (merge: target, rebase: upstream)" },
-      { "<leader>g3", diffget(3),                                               desc = "Diffget //3 (merge: incoming, rebase: your commit)" },
+      { "<leader>gm", "<cmd>silent Gvdiffsplit!<cr>",                                  desc = "Merge: open 3-way diff" },
+      { "<leader>g2", diffget(2),                                                      desc = "Diffget //2 (merge: target, rebase: upstream)" },
+      { "<leader>g3", diffget(3),                                                      desc = "Diffget //3 (merge: incoming, rebase: your commit)" },
 
       -- The normal-mode mappings operate on the current line. The visual
       -- mappings use `:` so Vim passes the selected range to `GBrowse`.
-      { "<leader>go", "<cmd>.GBrowse<cr>",                                      desc = "Open in browser (GBrowse)" },
-      { "<leader>go", ":GBrowse<cr>",                                           mode = "x",                                                 desc = "Open selection in browser (GBrowse)" },
+      { "<leader>go", "<cmd>silent .GBrowse<cr>",                                      desc = "Open in browser (GBrowse)" },
+      { "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>",                                 mode = "x",                                                 desc = "Open selection in browser (GBrowse)" },
 
       -- The bang form copies the permalink to the clipboard instead of
       -- opening the browser, which is the common case for sharing links.
-      { "<leader>gy", "<cmd>.GBrowse!<cr>",                                     desc = "Copy browser link (GBrowse!)" },
-      { "<leader>gy", ":GBrowse!<cr>",                                          mode = "x",                                                 desc = "Copy selection link (GBrowse!)" },
+      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                                     desc = "Copy browser link (GBrowse!)" },
+      { "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>",                                mode = "x",                                                 desc = "Copy selection link (GBrowse!)" },
     },
   },
 
