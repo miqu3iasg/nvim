@@ -65,10 +65,7 @@ vim.api.nvim_create_autocmd("FileType", {
 -- `CC`. The mappings are intentionally restricted to this buffer so native
 -- behavior remains unchanged in commit and rebase buffers. Commits are always
 -- verbose: the staged diff is included in the commit buffer, providing the
--- context needed to review changes before completing the commit. This makes
--- the native `cvc` redundant, so it is left untouched.
---   cc: commit replaces the status in the same vertical split
---   CC: commit in a full-screen new tab
+-- context needed to review changes before completing the commit.
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitive",
   callback = function(event)
@@ -163,6 +160,7 @@ return {
       { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                                   desc = "Diff against index/HEAD (uncommitted changes)" },
       { "<leader>gt", toggle_last_commit_diff,                                         desc = "Toggle diff against last commit" },
       { "<leader>gb", "<cmd>silent Git blame<cr>",                                     desc = "Git blame (current file)" },
+      { "<leader>g.", "<cmd>silent Git add -A<cr>",                                    desc = "Git add -A (stage all)" },
 
       -- Fetch prunes remote-tracking branches that no longer exist, and pull
       -- is restricted to fast-forwards to avoid surprise merge commits.
