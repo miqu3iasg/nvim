@@ -198,6 +198,12 @@ return {
           -- 2-space indentation, matching common shell style guides
           prepend_args = { "-i", "2" },
         },
+        sql_formatter = {
+          prepend_args = {
+            "-l", "mysql",
+            "-c", '{"keywordCase":"upper","dataTypeCase":"upper","functionCase":"upper","tabWidth":2}',
+          },
+        },
       },
       format_on_save = {
         timeout_ms = 500,
