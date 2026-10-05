@@ -61,7 +61,7 @@ vim.opt.laststatus = 1
 -- Display
 vim.opt.number = false
 vim.opt.relativenumber = false
-vim.opt.scrolloff = 5
+vim.opt.scrolloff = 0
 vim.opt.cmdheight = 1
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
