@@ -149,7 +149,7 @@ function M.render()
 
   local right = join({
     -- diagnostics(),
-    vim.t.zoom and "[Z]" or "",
+    -- vim.t.zoom and "[Z]" or "",
     -- lsp(),
     esc(vim.bo.filetype),
     encoding(),
