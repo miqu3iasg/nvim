@@ -1,6 +1,6 @@
 -- lua/langs/sql/statement.lua
 
--- Statement and selection helpers shared by the dadbod and REPL runners.
+-- Statement and selection helpers.
 
 local M = {}
 

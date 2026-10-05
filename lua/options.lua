@@ -1,7 +1,6 @@
 -- lua/options.lua
 
 -- General behavior
-vim.g.netrw_banner = 0
 vim.opt.hidden = true
 vim.opt.autoread = true
 vim.opt.history = 10000
@@ -14,6 +13,7 @@ vim.opt.updatetime = 300
 vim.opt.switchbuf = "uselast"
 vim.opt.exrc = true
 vim.opt.secure = true
+vim.opt.startofline = false
 
 -- Search and completion
 vim.opt.ignorecase = true
@@ -61,8 +61,8 @@ vim.opt.laststatus = 1
 -- Display
 vim.opt.number = false
 vim.opt.relativenumber = false
-vim.opt.scrolloff = 15
-vim.opt.cmdheight = 0
+vim.opt.scrolloff = 5
+vim.opt.cmdheight = 1
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
 vim.opt.title = true
@@ -74,8 +74,7 @@ vim.opt.fillchars = { eob = " " }
 vim.opt.more = false
 
 -- Folding
-vim.opt.foldmethod = "expr"
-vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldmethod = "manual"
 vim.opt.foldlevel = 99
 vim.opt.foldnestmax = 1
 vim.opt.foldopen:remove("hor")
@@ -92,7 +91,7 @@ vim.opt.mouse = ""
 vim.opt.mousescroll = "ver:0,hor:0"
 
 -- Cursor
-vim.opt.guicursor = "n-v-c:block-blinkon1-CursorInsert,i:block-CursorInsert"
+vim.opt.guicursor = "n-v-c:block-CursorInsert,i:block-CursorInsert"
 
 -- Shell
 local ok, utils = pcall(require, "utils")

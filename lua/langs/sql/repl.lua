@@ -35,8 +35,8 @@ end
 
 local function split(vertical)
   if vertical then
-    -- Opens a real vertical split on the right with 40% of the screen width
-    local width = math.floor(vim.o.columns * 0.4)
+    -- Opens a real vertical split on the right with 50% of the screen width
+    local width = math.floor(vim.o.columns * 0.5)
     vim.cmd("botright " .. width .. "vnew")
   else
     vim.cmd("botright 15new")
