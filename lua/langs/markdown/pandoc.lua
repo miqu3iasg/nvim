@@ -18,11 +18,17 @@
 local M = {}
 
 M.formats = { "pdf", "epub" }
+
 M.opts = {
   "--standalone",
   "--pdf-engine=xelatex",
   "-V", "geometry:margin=2.5cm",
+  "-V", "indent=true",
+  "-V", "linkcolor=blue",
+  "-V", "booktabs=true",
+  "--to",
 }
+
 M.viewer = "zathura"
 
 local function notify_error(msg)
