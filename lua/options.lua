@@ -9,7 +9,6 @@ vim.opt.fileencoding = "utf-8"
 vim.opt.timeoutlen = 500
 vim.opt.showtabline = 0
 vim.opt.ttimeoutlen = 30
-vim.opt.updatetime = 300
 vim.opt.switchbuf = "uselast"
 vim.opt.exrc = true
 vim.opt.secure = true
@@ -20,7 +19,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.wildignorecase = true
 vim.opt.wildignore:append("*/.git/*")
-vim.opt.completeopt = "menuone,noselect,preview"
+vim.opt.completeopt = "menuone,noselect"
 vim.opt.inccommand = "split"
 
 -- Native fuzzy file/buffer finding via command-line
@@ -62,7 +61,7 @@ vim.opt.laststatus = 1
 vim.opt.number = false
 vim.opt.relativenumber = false
 vim.opt.scrolloff = 0
-vim.opt.cmdheight = 1
+vim.opt.cmdheight = 0
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
 vim.opt.title = true
@@ -70,13 +69,11 @@ vim.opt.titlestring = "%t"
 vim.opt.fillchars = { eob = " " }
 vim.opt.shortmess:append("acFWIS")
 vim.opt.display:append("lastline")
-vim.opt.fillchars = { eob = " " }
 vim.opt.more = false
 
 -- Folding
 vim.opt.foldmethod = "manual"
 vim.opt.foldlevel = 99
-vim.opt.foldnestmax = 1
 vim.opt.foldopen:remove("hor")
 
 -- Persistence
@@ -91,19 +88,14 @@ vim.opt.mouse = ""
 vim.opt.mousescroll = "ver:0,hor:0"
 
 -- Cursor
-vim.opt.guicursor = "n-v-c:block-CursorInsert,i:block-CursorInsert"
+vim.opt.guicursor = "a:block-CursorInsert"
 
--- Shell
+-- shell
 local ok, utils = pcall(require, "utils")
 local os_name = ok and utils.get_os() or "linux"
 if os_name == "windows" then
   vim.opt.shell = "powershell"
-else
-  vim.opt.shell = "/bin/zsh"
 end
-vim.opt.shellcmdflag = "-c"
-vim.opt.shellquote = ""
-vim.opt.shellxquote = ""
 
 -- Language-specific settings
 vim.g.zig_fmt_parse_errors = 0

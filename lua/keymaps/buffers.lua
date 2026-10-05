@@ -78,6 +78,6 @@ km("n", "<leader>bo", function()
 end, { desc = "Close other windows and buffers (keeps modified ones)" })
 
 -- Buffer navigation
-km("n", "L", "<cmd>bnext<CR>", { desc = "Next buffer" })
-km("n", "H", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
+km("n", "]b", "<cmd>bnext<CR>", { desc = "Next buffer" })
+km("n", "[b", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
 km("n", "<leader><Space>", "<C-^>", { desc = "Toggle between last two buffers" })
