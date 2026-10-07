@@ -129,28 +129,28 @@ return {
     cmd = { "Git", "G", "GBrowse", "Gvdiffsplit", "Gdiffsplit" },
 
     keys = {
-      { "<leader>gs", "<cmd>silent vertical Git<cr>",                                  desc = "Git status (vertical split)" },
-      { "<leader>gl", "<cmd>silent vertical Git log --oneline --decorate --graph<cr>", desc = "Git log (vertical split)" },
-      { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",                        desc = "Git commit -v (vertical split)" },
-      { "<leader>gp", "<cmd>Git push<cr>",                                             desc = "Git push" },
-      { "<leader>gb", "<cmd>silent Git blame<cr>",                                     desc = "Git blame (current file)" },
-      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                                   desc = "Diff against index (close with dq)" },
-      { "<leader>g.", "<cmd>silent Git add -A<cr>",                                    desc = "Git add -A (stage all)" },
+      { "<leader>gs", "<cmd>silent vertical Git<cr>",                desc = "Git status (vertical split)" },
+      { "<leader>gl", "<cmd>silent vertical Git log<cr>",            desc = "Git log (vertical split)" },
+      { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",      desc = "Git commit -v (vertical split)" },
+      { "<leader>gp", "<cmd>Git push<cr>",                           desc = "Git push" },
+      { "<leader>gb", "<cmd>silent Git blame<cr>",                   desc = "Git blame (current file)" },
+      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                 desc = "Diff against index (close with dq)" },
+      { "<leader>g.", "<cmd>silent Git add -A<cr>",                  desc = "Git add -A (stage all)" },
 
       -- Fetch prunes stale remote branches; pull is fast-forward only to avoid
       -- surprise merge commits.
-      { "<leader>gf", "<cmd>silent Git fetch --all --prune<cr>",                       desc = "Git fetch (all remotes, prune)" },
-      { "<leader>gu", "<cmd>silent vertical Git pull --ff-only<cr>",                   desc = "Git pull (fast-forward only)" },
+      { "<leader>gf", "<cmd>silent Git fetch --all --prune<cr>",     desc = "Git fetch (all remotes, prune)" },
+      { "<leader>gu", "<cmd>silent vertical Git pull --ff-only<cr>", desc = "Git pull (fast-forward only)" },
 
       -- Leaves the command line open so only the number needs to be typed.
-      { "<leader>gr", ":Git rebase -i HEAD~",                                          desc = "Interactive rebase (type HEAD~N)" },
+      { "<leader>gr", ":Git rebase -i HEAD~",                        desc = "Interactive rebase (type HEAD~N)" },
 
       -- Visual mappings use `:` so the selected range reaches `GBrowse`. The
       -- bang form copies the permalink instead of opening the browser.
-      { "<leader>go", "<cmd>silent .GBrowse<cr>",                                      desc = "Open in browser (GBrowse)" },
-      { "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>",                                 mode = "x",                                 desc = "Open selection in browser (GBrowse)" },
-      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                                     desc = "Copy browser link (GBrowse!)" },
-      { "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>",                                mode = "x",                                 desc = "Copy selection link (GBrowse!)" },
+      { "<leader>go", "<cmd>silent .GBrowse<cr>",                    desc = "Open in browser (GBrowse)" },
+      { "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>",               mode = "x",                                 desc = "Open selection in browser (GBrowse)" },
+      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                   desc = "Copy browser link (GBrowse!)" },
+      { "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>",              mode = "x",                                 desc = "Copy selection link (GBrowse!)" },
     },
   },
 
