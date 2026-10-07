@@ -30,7 +30,7 @@ return {
       end,
 
       preview        = {
-        default = "bat",
+        default = "builtin",
         layout = "horizontal",
         horizontal = "right:50%",
         hidden = true,
@@ -46,31 +46,11 @@ return {
       ["--no-separator"]   = "",
       ["--no-scrollbar"]   = "",
     },
-    -- fzf_colors = {
-    --   ["fg"]        = { "fg", "Normal" },
-    --   ["bg"]        = { "bg", "Normal" },
-    --   ["fg+"]       = { "fg", "Visual" },
-    --   ["bg+"]       = { "bg", "CursorLine" },
-    --   ["hl"]        = { "fg", "MatchParen" },
-    --   ["hl+"]       = { "fg", "MatchParen" },
-    --   ["gutter"]    = { "bg", "Normal" },
-    --   ["border"]    = { "fg", "FloatBorder" },
-    --   ["separator"] = { "fg", "FloatBorder" },
-    --   ["scrollbar"] = { "fg", "NonText" },
-    --   ["header"]    = { "fg", "NonText" },
-    --   ["info"]      = { "fg", "NonText" },
-    --   ["pointer"]   = { "fg", "CursorLine" },
-    --   ["marker"]    = { "fg", "DiagnosticWarn" },
-    --   ["spinner"]   = { "fg", "DiagnosticHint" },
-    --   ["prompt"]    = { "fg", "DiagnosticHint" },
-    --   ["query"]     = { "fg", "Visual" },
-    --   ["header-bg"] = { "bg", "Normal" },
-    --   ["input-bg"]  = { "bg", "Normal" },
-    --   ["list-bg"]   = { "bg", "Normal" },
-    --   ["footer-bg"] = { "bg", "Normal" },
-    -- },
     previewers = {
       builtin = {
+        builtin = {
+          ["ctrl-/"] = "toggle-preview",
+        },
         treesitter = {
           enabled    = true,
           fzf_colors = { ["hl"] = "-1:reverse", ["hl+"] = "-1:reverse" },
@@ -79,14 +59,10 @@ return {
     },
     keymap     = {
       fzf = {
-        -- fzf '--bind=' options
-        -- true,        -- uncomment to inherit all the below in your custom config
         ["ctrl-z"] = "abort",
         ["ctrl-u"] = "unix-line-discard",
         ["ctrl-a"] = "beginning-of-line",
         ["ctrl-e"] = "end-of-line",
-        -- Only valid with fzf previewers (bat/cat/git/etc)
-        ["ctrl-/"] = "toggle-preview",
         ["ctrl-q"] = "select-all+accept",
       },
     },
