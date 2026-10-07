@@ -161,7 +161,7 @@ return {
 
     keys = {
       {
-        "<leader>ho",
+        "td",
         function()
           local md = require("mini.diff")
           local buf = vim.api.nvim_get_current_buf()
