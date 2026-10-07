@@ -5,6 +5,7 @@ vim.opt.hidden = true
 vim.opt.autoread = true
 vim.opt.history = 10000
 vim.opt.encoding = "utf-8"
+vim.opt.messagesopt = "wait:500,history:500"
 vim.opt.fileencoding = "utf-8"
 vim.opt.timeoutlen = 500
 vim.opt.showtabline = 0
@@ -62,13 +63,13 @@ vim.opt.laststatus = 1
 vim.opt.number = false
 vim.opt.relativenumber = false
 vim.opt.scrolloff = 0
-vim.opt.cmdheight = 0
+vim.opt.cmdheight = 1
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
 vim.opt.title = true
 vim.opt.titlestring = "%t"
 vim.opt.fillchars = { eob = " " }
-vim.opt.shortmess:append("acFWIS")
+vim.opt.shortmess:append({ c = true, F = true, W = true })
 vim.opt.display:append("lastline")
 vim.opt.more = false
 

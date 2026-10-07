@@ -40,7 +40,7 @@ return {
     },
     fzf_opts   = {
       ["--ansi"]           = true,
-      ["--info"]           = "inline-right", -- fzf < v0.42 = "inline"
+      ["--info"]           = "inline-right",
       ["--layout"]         = "reverse",
       ["--highlight-line"] = true,
       ["--no-separator"]   = "",
