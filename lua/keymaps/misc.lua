@@ -93,9 +93,3 @@ km("n", "<leader>rl", ":source $MYVIMRC<CR>", { desc = "Reload nvim config" })
 -- Restart Neovim
 km("n", "<leader>re", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 
--- Source the current file
-km("n", "<leader>rf", "<cmd>source %<cr>", { desc = "Source current file" })
-
--- Run the current line or the visual selection as Lua
-km("n", "<leader>rx", "<cmd>.lua<cr>", { desc = "Run current Lua line" })
-km("v", "<leader>rx", ":lua<cr>", { desc = "Run selected Lua" })

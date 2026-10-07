@@ -1,8 +1,7 @@
--- ftplugin/csv.lua
+-- after/ftplugin/csv.lua
 
--- References:
--- - https://github.com/chrisbra/csv.vim/blob/master/autoload/csv.vim
--- - https://github.com/chrisbra/csv.vim/blob/master/syntax/csv.vim
+-- See: https://github.com/chrisbra/csv.vim/blob/master/autoload/csv.vim
+-- See: https://github.com/chrisbra/csv.vim/blob/master/syntax/csv.vim
 
 vim.opt_local.wrap = false
 vim.opt_local.colorcolumn = ""

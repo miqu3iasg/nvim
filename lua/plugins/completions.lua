@@ -77,6 +77,8 @@ return {
           load_snippets("scheme", "snippets.lisp")
           load_snippets("lisp", "snippets.lisp")
           load_snippets("sql", "snippets.sql")
+          load_snippets("mysql", "snippets.sql")
+          load_snippets("plsql", "snippets.sql")
 
           -- Global snippets.
           load_snippets("common", "snippets.common")
@@ -95,6 +97,8 @@ return {
           luasnip.filetype_extend("markdown", { "common" })
           luasnip.filetype_extend("tex", { "common" })
           luasnip.filetype_extend("sql", { "common" })
+          luasnip.filetype_extend("mysql", { "common" })
+          luasnip.filetype_extend("plsql", { "common" })
 
           -- Fallback mappings for LuaSnip.
           -- blink.cmp normally handles these mappings.

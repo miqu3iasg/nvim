@@ -37,6 +37,7 @@ end
 
 -- Buffers
 km("n", "<leader>bn", "<cmd>enew<CR>", { desc = "New buffer" })
+km("n", "<leader>q", "<cmd>q!<CR>", { desc = "Quit without saving" })
 
 km("n", "<leader>bd", function()
   local buf = vim.api.nvim_get_current_buf()

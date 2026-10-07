@@ -2,7 +2,7 @@
 
 return {
   -- Make sure the markdown parsers are present for everything below
-  -- (render-markdown, obsidian's own LSP, treesitter folding, etc).
+  -- (obsidian's own LSP, treesitter folding, etc).
   {
     "nvim-treesitter/nvim-treesitter",
     opts = function(_, opts)
@@ -12,119 +12,7 @@ return {
     end,
   },
 
-  -- Inline rendering: headings, bullets, checkboxes, code blocks,
-  -- tables and callouts rendered "live" while still editing plain
-  -- text underneath.
-  {
-    "MeanderingProgrammer/render-markdown.nvim",
-    ft = { "markdown" },
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    keys = {
-      { "<leader>om", "<cmd>RenderMarkdown toggle<cr>", ft = "markdown", desc = "Toggle in-editor preview" },
-    },
-    opts = {
-      enabled = false, -- off by default; toggle with <leader>om
-
-      win_options = {
-        conceallevel = { default = 0, rendered = 2 },
-        concealcursor = { default = "", rendered = "nc" },
-      },
-
-      heading = {
-        sign = false,
-        icons = { "\u{f4e0} " }, -- nf-oct-heading
-        position = "inline",
-        backgrounds = {},        -- no background color on headings
-        -- All six levels point at the same highlight group -> no
-        -- color hierarchy between H1..H6. The group itself is defined
-        -- (and kept theme-synced) in config() below.
-        foregrounds = {
-          "RenderMarkdownH1", "RenderMarkdownH1", "RenderMarkdownH1",
-          "RenderMarkdownH1", "RenderMarkdownH1", "RenderMarkdownH1",
-        },
-      },
-
-      code = {
-        sign = false,
-        width = "block",
-        border = "thick",
-        style = "normal", -- no background on the code block's line
-        language = false, -- don't show the language name label
-      },
-
-      bullet = {
-        enabled = false,
-        -- icons = { "●", "○", "◆", "◇" },
-      },
-
-      checkbox = {
-        unchecked = { icon = "󰄱 " },
-        checked = { icon = "󰱒 " },
-        custom = {
-          in_progress = { raw = "[-]", rendered = "󰥔 ", highlight = "RenderMarkdownTodo" },
-        },
-      },
-    },
-    config = function(_, opts)
-      require("render-markdown").setup(opts)
-
-      -- Pulls colors from whatever colorscheme is active right now,
-      -- instead of hardcoding hex. Re-run on every colorscheme change
-      -- so switching themes throughout the day just works.
-      local function set_colors()
-        local hl = vim.api.nvim_set_hl
-
-        -- link = false forces resolution of linked groups into their
-        -- final effective color, instead of possibly returning no fg
-        -- at all if the theme defines Title via a link.
-        local title = vim.api.nvim_get_hl(0, { name = "Title", link = false })
-        local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
-        local heading_fg = title.fg or normal.fg -- fallback if Title has no fg
-
-        -- Single group used by all heading levels (see opts.heading.foregrounds above)
-        hl(0, "RenderMarkdownH1", { fg = heading_fg, bold = true })
-
-        -- Code blocks: no extra background, text color inherits from
-        -- Normal/syntax highlighting underneath.
-        hl(0, "RenderMarkdownCode", { bg = "NONE" })
-        hl(0, "RenderMarkdownCodeInline", { bg = "NONE" })
-      end
-
-      set_colors()
-      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_colors })
-    end,
-  },
-
-  -- Paste an image from the clipboard straight into the note as a
-  -- file + link, with automatic naming/resizing. obsidian.nvim
-  -- auto-detects this plugin and upgrades its own `:Obsidian paste_img`
-  -- (bound to <leader>ii in obsidian.lua) to use it -- no new keymap
-  -- needed here.
-  {
-    "HakonHarnes/img-clip.nvim",
-    ft = { "markdown" },
-    opts = {
-      default = {
-        dir_path = "Resources", -- matches attachments.folder in obsidian.lua
-        relative_to_current_file = false,
-      },
-    },
-  },
-
-  -- Smart lists: continues bullets/numbers/checkboxes on `o`/`O`,
-  -- renumbers ordered lists after deleting or reordering items.
-  --
-  -- <CR> in insert mode is deliberately guarded: if blink.cmp's menu
-  -- is open, it defers to blink's own accept action first (so your
-  -- completions.lua keymaps keep working exactly as before); only
-  -- when nothing is being completed does it fall through to
-  -- AutolistNewBullet. <Tab>/<S-Tab> are intentionally left alone
-  -- since they're already doing double duty for blink.cmp + LuaSnip.
-  --
-  -- Wrapped in a FileType autocmd (rather than relying on config()
-  -- running once) so keymaps and the recalculate autocmd are (re)set
-  -- for every markdown buffer you open, not just the first one in the
-  -- session.
+  -- Smart lists
   {
     "gaoDean/autolist.nvim",
     ft = { "markdown" },

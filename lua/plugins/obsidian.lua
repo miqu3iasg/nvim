@@ -5,6 +5,7 @@ local VAULT_PATH = "~/personal/documents/vault"
 return {
   "obsidian-nvim/obsidian.nvim",
   version = "*",
+  enabled = false,
   event = { "BufReadPre " .. vim.fn.expand(VAULT_PATH) .. "/**.md" },
   dependencies = {
     "nvim-lua/plenary.nvim",

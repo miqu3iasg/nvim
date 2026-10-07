@@ -1,4 +1,4 @@
--- ftplugin/tex.lua
+-- after/ftplugin/tex.lua
 
 -- This file MUST be named `tex.lua`, not `latex.lua`.
 -- Neovim's ftplugin autoload is keyed off the buffer's `filetype`

@@ -57,6 +57,5 @@ return {
         end)
       end
     end,
-
   },
 }

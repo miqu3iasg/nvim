@@ -71,12 +71,11 @@ km("n", "<leader>,", "mzA,<Esc>`z", { desc = "Append , to end of line" })
 -- Change case word
 km("n", "<leader>u", "viwU", { desc = "Uppercase word" })
 km("n", "<leader>l", "viwu", { desc = "Lowercase word" })
+km("v", "<leader>u", "U", { desc = "Uppercase selection" })
+km("v", "<leader>l", "u", { desc = "Lowercase selection" })
 
--- Clipboard
-km({ "n", "x" }, "<leader>y", '"+y', { desc = "Yank to system clipboard" })
-km("n", "<leader>Y", '"+y$', { desc = "Yank to end of line to system clipboard" })
-km("n", "<leader>p", '"+p', { desc = "Paste from system clipboard" })
-km("x", "<leader>p", '"+P', { desc = "Paste from system clipboard over selection" })
+-- Replace the word under the cursor with the contents of the visual register
+km("x", "<leader>p", '"_dP', { desc = "Replace selection with yanked text" })
 
 -- Undo and redo
 km("n", "U", "<C-r>", { desc = "Redo" })

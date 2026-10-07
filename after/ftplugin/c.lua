@@ -1,7 +1,7 @@
--- ftplugin/c.lua
+-- after/ftplugin/c.lua
 
 -- Following the linux kernel coding style.
--- ref: https://www.kernel.org/doc/html/v4.10/process/coding-style.html
+-- See: https://www.kernel.org/doc/html/v4.10/process/coding-style.html
 --
 -- Confirmed against Documentation/process/coding-style.rst and the
 -- kernel's own .editorconfig: tabs are 8 characters, indentation is

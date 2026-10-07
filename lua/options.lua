@@ -12,6 +12,7 @@ vim.opt.ttimeoutlen = 30
 vim.opt.switchbuf = "uselast"
 vim.opt.exrc = true
 vim.opt.secure = true
+vim.opt.wrap = false
 vim.opt.startofline = false
 
 -- Search and completion
@@ -48,7 +49,7 @@ vim.opt.clipboard:append("unnamedplus")
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
-vim.bo.softtabstop = 2
+vim.opt.softtabstop = 2
 
 -- Window layout
 vim.opt.splitright = true

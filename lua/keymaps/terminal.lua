@@ -82,7 +82,7 @@ km("t", "<C-b>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
 -- Close the terminal window (job keeps running in the background, same as
 -- the toggle above) without having to leave terminal mode first (<C-b>).
-km("t", "<C-q>", [[<C-\><C-n>:close<CR>]], { desc = "Close terminal window" })
+km("t", "<C-d>", [[<C-\><C-n>:close<CR>]], { desc = "Close terminal window" })
 
 -- Window navigation from inside terminal mode (mirrors <C-hjkl> in windows.lua)
 km("t", "<C-h>", [[<C-\><C-n><C-w>h]], { desc = "Move to left window from terminal" })
