@@ -43,11 +43,9 @@ return {
 
       require("mini.jump").setup({
         mappings = {
-          forward = "f",       -- Jump forward to char
-          backward = "F",      -- Jump backward to char
-          forward_till = "t",  -- Jump forward till char (before it)
-          backward_till = "T", -- Jump backward till char (after it)
-          repeat_jump = "\\",  -- Repeat last jump
+          forward = "f",      -- Jump forward to char
+          backward = "F",     -- Jump backward to char
+          repeat_jump = "\\", -- Repeat last jump
         },
       })
 
