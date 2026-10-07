@@ -34,7 +34,7 @@ return {
           prefix = "ge", -- Duplicate text
         },
         replace = {
-          prefix = "gr", -- Replace text with register content
+          prefix = "gu", -- Replace text with register content
         },
         sort = {
           prefix = "gs", -- Sort text

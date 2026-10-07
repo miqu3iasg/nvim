@@ -189,9 +189,9 @@ return {
     opts = {
       mappings = {
         apply = "<leader>hs",
-        goto_first = "[C",
         reset = "<leader>hr",
         textobject = "ih",
+        goto_first = "[C",
         goto_prev = "[c",
         goto_next = "]c",
         goto_last = "]C",
