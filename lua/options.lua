@@ -5,7 +5,7 @@ vim.opt.hidden = true
 vim.opt.autoread = true
 vim.opt.history = 10000
 vim.opt.encoding = "utf-8"
-vim.opt.messagesopt = "wait:500,history:500"
+vim.opt.messagesopt = "hit-enter,history:500"
 vim.opt.fileencoding = "utf-8"
 vim.opt.timeoutlen = 500
 vim.opt.showtabline = 0
@@ -70,7 +70,11 @@ vim.opt.title = true
 vim.opt.titlestring = "%t"
 vim.opt.fillchars = { eob = " " }
 vim.opt.display:append("lastline")
-vim.opt.more = false
+vim.opt.more = true
+
+-- Messages
+vim.opt.shortmess:append("aIWsF")
+vim.opt.shortmess:remove("S")
 
 -- Folding
 vim.opt.foldmethod = "manual"
