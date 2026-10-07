@@ -69,7 +69,6 @@ vim.opt.termguicolors = true
 vim.opt.title = true
 vim.opt.titlestring = "%t"
 vim.opt.fillchars = { eob = " " }
-vim.opt.shortmess:append({ c = true, F = true, W = true })
 vim.opt.display:append("lastline")
 vim.opt.more = false
 
