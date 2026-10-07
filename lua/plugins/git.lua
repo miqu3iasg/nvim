@@ -126,42 +126,53 @@ return {
     -- Provides GitHub URL resolution for `GBrowse`. GitHub Enterprise also
     -- needs `vim.g.github_enterprise_urls`.
     dependencies = { "tpope/vim-rhubarb" },
-    cmd = { "Git", "G", "GBrowse", "Gvdiffsplit", "Gdiffsplit" },
+
+    cmd = { "Git", "G", "GBrowse", "Gvdiffsplit", "Gdiffsplit", "Gwrite", "Gread", "Gclog", "Gedit", "GMove" },
 
     keys = {
-      { "<leader>gs", "<cmd>silent vertical Git<cr>",                desc = "Git status (vertical split)" },
-      { "<leader>gl", "<cmd>silent vertical Git log<cr>",            desc = "Git log (vertical split)" },
-      { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",      desc = "Git commit -v (vertical split)" },
-      { "<leader>gp", "<cmd>Git push<cr>",                           desc = "Git push" },
-      { "<leader>gb", "<cmd>silent Git blame<cr>",                   desc = "Git blame (current file)" },
-      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                 desc = "Diff against index (close with dq)" },
-      { "<leader>g.", "<cmd>silent Git add -A<cr>",                  desc = "Git add -A (stage all)" },
+      -- Repository
+      { "<leader>gs", "<cmd>silent vertical Git<cr>",                 desc = "Git status" },
+      { "<leader>gl", "<cmd>silent vertical Git log<cr>",             desc = "Git log" },
+      { "<leader>gu", "<cmd>silent vertical Git pull --ff-only<cr>",  desc = "Git pull (fast-forward only)" },
+      { "<leader>gp", "<cmd>Git push<cr>",                            desc = "Git push" },
 
-      -- Fetch prunes stale remote branches; pull is fast-forward only to avoid
-      -- surprise merge commits.
-      { "<leader>gf", "<cmd>silent Git fetch --all --prune<cr>",     desc = "Git fetch (all remotes, prune)" },
-      { "<leader>gu", "<cmd>silent vertical Git pull --ff-only<cr>", desc = "Git pull (fast-forward only)" },
+      -- Staging
+      { "<leader>g.", "<cmd>silent Git add -A<cr>",                   desc = "Git add -A (stage all)" },
+      { "<leader>ga", "<cmd>silent Gwrite<cr>",                       desc = "Stage current file" },
 
-      -- Leaves the command line open so only the number needs to be typed.
-      { "<leader>gr", ":Git rebase -i HEAD~",                        desc = "Interactive rebase (type HEAD~N)" },
+      -- Commits
+      { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",       desc = "Git commit -v" },
+      { "<leader>gA", "<cmd>silent Git commit --amend --no-edit<cr>", desc = "Amend (no edit)" },
 
+      -- History
+      { "<leader>gh", "<cmd>0Gclog<cr>",                              desc = "File history" },
+      { "<leader>gh", ":Gclog<cr>",                                   mode = "x",                           desc = "Line history" },
+
+      -- Diff
+      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                  desc = "Diff against index" },
+      { "<leader>gD", "<cmd>silent Gvdiffsplit HEAD<cr>",             desc = "Diff against HEAD" },
+
+      -- Inspection
+      { "<leader>gb", "<cmd>silent Git blame<cr>",                    desc = "Git blame" },
+
+      -- Browser
       -- Visual mappings use `:` so the selected range reaches `GBrowse`. The
       -- bang form copies the permalink instead of opening the browser.
-      { "<leader>go", "<cmd>silent .GBrowse<cr>",                    desc = "Open in browser (GBrowse)" },
-      { "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>",               mode = "x",                                 desc = "Open selection in browser (GBrowse)" },
-      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                   desc = "Copy browser link (GBrowse!)" },
-      { "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>",              mode = "x",                                 desc = "Copy selection link (GBrowse!)" },
+      { "<leader>go", "<cmd>silent .GBrowse<cr>",                     desc = "Open in browser" },
+      { "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>",                mode = "x",                           desc = "Open selection in browser" },
+      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                    desc = "Copy browser link" },
+      { "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>",               mode = "x",                           desc = "Copy selection link" },
     },
   },
 
   {
-    "echasnovski/mini.diff",
+    "nvim-mini/mini.diff",
     version = false,
     event = { "BufReadPre", "BufNewFile" },
 
     keys = {
       {
-        "td",
+        "<leader>hd",
         function()
           local md = require("mini.diff")
           local buf = vim.api.nvim_get_current_buf()
@@ -191,10 +202,10 @@ return {
         apply = "<leader>hs",
         reset = "<leader>hr",
         textobject = "ih",
-        goto_first = "[C",
-        goto_prev = "[c",
-        goto_next = "]c",
-        goto_last = "]C",
+        goto_first = "[S",
+        goto_prev = "[s",
+        goto_next = "]s",
+        goto_last = "]S",
       },
     },
   },
