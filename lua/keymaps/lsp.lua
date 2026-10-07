@@ -17,9 +17,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     km("n", "gD", vim.lsp.buf.declaration, "Go to declaration")
     km("n", "gi", vim.lsp.buf.implementation, "Go to implementation")
     km("n", "gy", vim.lsp.buf.type_definition, "Go to type definition")
-    km("n", "gr", vim.lsp.buf.references, "Go to references")
     km("n", "gp", vim.lsp.buf.signature_help, "Show signature help")
-    km("n", "gs", vim.lsp.buf.document_symbol, "Document symbols")
 
     -- Go to implementation in a new vertical split
     km("n", "gI", function()
