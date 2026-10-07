@@ -170,9 +170,6 @@ return {
             return vim.notify("mini.diff: not a normal file buffer", vim.log.levels.WARN)
           end
 
-          -- `enable()` does not raise when it cannot attach (untracked file,
-          -- no git repo); it just leaves the buffer disabled. Check the
-          -- result instead of assuming the overlay can be toggled.
           if not md.get_buf_data(buf) then
             pcall(md.enable, buf)
           end
@@ -188,10 +185,7 @@ return {
         desc = "Toggle diff overlay",
       },
     },
-
     opts = {
-      -- Kept under `<leader>h` to stay clear of native `gh` mappings. Hunk
-      -- navigation uses mini.diff's defaults (`[h`, `]h`, `[H`, `]H`).
       mappings = {
         apply = "<leader>ha",
         reset = "<leader>hr",
