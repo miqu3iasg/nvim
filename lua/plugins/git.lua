@@ -173,6 +173,7 @@ return {
           if not md.get_buf_data(buf) then
             pcall(md.enable, buf)
           end
+
           if not md.get_buf_data(buf) then
             return vim.notify(
               "mini.diff: could not attach (file untracked or outside a git repo?)",
@@ -187,9 +188,13 @@ return {
     },
     opts = {
       mappings = {
-        apply = "<leader>ha",
+        apply = "<leader>hs",
+        goto_first = "[C",
         reset = "<leader>hr",
         textobject = "ih",
+        goto_prev = "[c",
+        goto_next = "]c",
+        goto_last = "]C",
       },
     },
   },
