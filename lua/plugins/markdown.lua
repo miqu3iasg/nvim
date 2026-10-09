@@ -1,8 +1,7 @@
 -- lua/plugins/markdown.lua
 
 return {
-  -- Make sure the markdown parsers are present for everything below
-  -- (obsidian's own LSP, treesitter folding, etc).
+  -- Markdown parsers for treesitter highlighting
   {
     "nvim-treesitter/nvim-treesitter",
     opts = function(_, opts)
@@ -12,51 +11,7 @@ return {
     end,
   },
 
-  -- Smart lists
-  {
-    "gaoDean/autolist.nvim",
-    ft = { "markdown" },
-    config = function()
-      require("autolist").setup({})
-
-      vim.api.nvim_create_autocmd("FileType", {
-        pattern = "markdown",
-        callback = function(args)
-          local map = function(mode, lhs, rhs, desc, opts)
-            opts = opts or {}
-            vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", {
-              buffer = args.buf,
-              silent = true,
-              desc = desc,
-            }, opts))
-          end
-
-          map("i", "<CR>", function()
-            local ok, blink = pcall(require, "blink.cmp")
-            if ok and blink.is_visible and blink.is_visible() then
-              return blink.select_and_accept()
-            end
-            return "<CR><cmd>AutolistNewBullet<cr>"
-          end, "Confirm completion, or continue the list", { expr = true })
-
-          map("n", "o", "o<cmd>AutolistNewBullet<cr>", "New line, continuing the list")
-          map("n", "O", "O<cmd>AutolistNewBulletBefore<cr>", "New line above, continuing the list")
-          map("n", "<leader>lr", "<cmd>AutolistRecalculate<cr>", "Recalculate list numbering")
-
-          vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave" }, {
-            buffer = args.buf,
-            callback = function()
-              require("autolist").recalculate()
-            end,
-          })
-        end,
-      })
-    end,
-  },
-
-  -- Markdown linting (style/consistency issues prettier won't catch:
-  -- duplicate headings, bad heading hierarchy, trailing punctuation in
-  -- headings, etc). The binary is pulled in automatically below.
+  -- Markdown linting (duplicate headings, bad hierarchy, etc)
   {
     "mfussenegger/nvim-lint",
     ft = { "markdown" },
@@ -74,8 +29,7 @@ return {
     end,
   },
 
-  -- Installs non-LSP CLI tools through Mason automatically, the same
-  -- way mason-lspconfig's ensure_installed does for language servers.
+  -- Installs the linter binary through Mason automatically
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     dependencies = { "williamboman/mason.nvim" },

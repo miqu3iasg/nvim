@@ -198,21 +198,6 @@ return {
     end,
   },
 
-  -- Converts math inside markdown/Obsidian notes into readable
-  -- Unicode inline (e.g. \alpha -> α, x^2 -> x²), the same idea as
-  -- render-markdown's heading/checkbox rendering. Requires the
-  -- pylatexenc Python package -- see the note at the bottom of this
-  -- file.
-  {
-    "MeanderingProgrammer/render-markdown.nvim",
-    opts = function(_, opts)
-      opts.latex = {
-        enabled = true,
-      }
-      return opts
-    end,
-  },
-
   -- Installs latexindent (the formatter referenced in the conform.lua
   -- edit below) through Mason automatically. See libcrypt note above.
   {

@@ -22,7 +22,6 @@ vim.opt.smartcase = true
 vim.opt.wildignorecase = true
 vim.opt.wildignore:append("*/.git/*")
 vim.opt.completeopt = "menuone,noselect"
-vim.opt.inccommand = "split"
 
 -- Native fuzzy file/buffer finding via command-line
 vim.opt.path:append("**")
@@ -44,6 +43,7 @@ vim.opt.belloff = "all"
 vim.opt.matchpairs:append("<:>")
 vim.opt.nrformats:remove("octal")
 vim.opt.isfname:append("@-@")
+vim.opt.formatoptions:remove("o")
 vim.opt.clipboard:append("unnamedplus")
 
 -- Indentation
