@@ -2,7 +2,8 @@
 
 return {
   -- "stevearc/oil.nvim",
-  "barrettruth/canola.nvim",
+  -- "barrettruth/canola.nvim",
+  url = "https://forge.barrettruth.com/barrettruth/canola.nvim",
   enabled = true,
   -- dependencies = {
   --   "refractalize/oil-git-status.nvim",
