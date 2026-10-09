@@ -12,8 +12,8 @@ vim.opt_local.softtabstop = 2
 
 vim.opt_local.commentstring = "-- %s"
 vim.opt_local.comments = "b:--,s1:/*,mb:*,ex:*/"
-vim.opt_local.formatoptions:append({ "c", "r", "o", "j" })
-vim.opt_local.formatoptions:remove({ "t" })
+vim.opt_local.formatoptions:append("croj")
+vim.opt_local.formatoptions:remove("t")
 
 vim.opt_local.wrap = false
 
