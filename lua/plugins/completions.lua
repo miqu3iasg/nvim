@@ -79,19 +79,18 @@ return {
           load_snippets("sql", "snippets.sql")
           load_snippets("mysql", "snippets.sql")
           load_snippets("plsql", "snippets.sql")
+          load_snippets("markdown", "snippets.markdown")
 
-          -- Global snippets.
+          -- Global snippets
           load_snippets("common", "snippets.common")
 
           luasnip.filetype_extend("python", { "common" })
           luasnip.filetype_extend("c", { "common" })
           luasnip.filetype_extend("scheme", { "common" })
-          luasnip.filetype_extend("cpp", { "common" })
           luasnip.filetype_extend("lua", { "common" })
           luasnip.filetype_extend("java", { "common" })
           luasnip.filetype_extend("javascript", { "common" })
           luasnip.filetype_extend("typescript", { "common" })
-          luasnip.filetype_extend("rust", { "common" })
           luasnip.filetype_extend("go", { "common" })
           luasnip.filetype_extend("sh", { "common" })
           luasnip.filetype_extend("markdown", { "common" })
