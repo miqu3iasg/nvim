@@ -10,6 +10,16 @@ return {
   -- },
   config = function()
     local oil = require("oil")
+
+    local function goto_dir(path_fn, desc)
+      return {
+        desc = desc,
+        callback = function()
+          oil.open(path_fn())
+        end,
+      }
+    end
+
     oil.setup({
       default_file_explorer = true,
       columns = {
@@ -91,6 +101,8 @@ return {
         ["gy"] = "actions.copy_entry_path", -- copy entry path to clipboard
         ["gh"] = "actions.toggle_hidden",   -- toggle hidden files visibility
         ["q"] = "actions.close",            -- close oil buffer
+        ["~"]     = goto_dir(function() return vim.fn.expand("~") end, "Open home directory"),
+        ["_"]     = goto_dir(function() return vim.fn.getcwd() end, "Open cwd"),
       },
       delete_to_trash = true,
       view_options = {
