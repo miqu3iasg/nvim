@@ -33,24 +33,24 @@ return {
         { "birthtime", format = "%d/%m %H:%M" },
       },
       keymaps = {
-        ["<C-c>"] = false,                -- disable default action
-        ["<C-h>"] = false,                -- disable default action
-        ["<C-l>"] = false,                -- disable default action
-        ["h"] = "actions.parent",         -- go up to parent directory
-        ["l"] = "actions.select",         -- open file or enter directory
-        ["<BS>"] = "actions.parent",      -- go up to parent directory (alt key)
-        ["r"] = "actions.refresh",        -- refresh directory listing
-        ["sh"] = "actions.select_split",  -- open in horizontal split
-        ["sv"] = "actions.select_vsplit", -- open in vertical split
-        ["gp"] = {
-          "actions.preview",              -- preview file contents
+        ["<C-c>"] = false,                   -- disable default action
+        ["<C-h>"] = false,                   -- disable default action
+        ["<C-l>"] = false,                   -- disable default action
+        ["-"]     = "actions.parent",        -- go up to parent directory
+        ["<BS>"]  = "actions.parent",        -- go up to parent directory (alt key)
+        ["<CR>"]  = "actions.select",        -- open file or enter directory
+        ["sh"]    = "actions.select_split",  -- open in horizontal split
+        ["sv"]    = "actions.select_vsplit", -- open in vertical split
+        ["gp"]    = {
+          "actions.preview",                 -- preview file contents
           opts = {
             vertical = true,
             split = "botright",
           },
         },
-        ["gs"] = "actions.change_sort", -- cycle sort order
-        ["gx"] = {
+        ["gR"]    = "actions.refresh",     -- refresh directory listing
+        ["gs"]    = "actions.change_sort", -- cycle sort order
+        ["gx"]    = {
           -- open with a specific app based on extension, or fall back to OS default
           callback = function()
             local entry = oil.get_cursor_entry()
@@ -98,9 +98,9 @@ return {
             end
           end,
         },
-        ["gy"] = "actions.copy_entry_path", -- copy entry path to clipboard
-        ["gh"] = "actions.toggle_hidden",   -- toggle hidden files visibility
-        ["q"] = "actions.close",            -- close oil buffer
+        ["gy"]    = "actions.copy_entry_path", -- copy entry path to clipboard
+        ["gh"]    = "actions.toggle_hidden",   -- toggle hidden files visibility
+        ["q"]     = "actions.close",           -- close oil buffer
         ["~"]     = goto_dir(function() return vim.fn.expand("~") end, "Open home directory"),
         ["_"]     = goto_dir(function() return vim.fn.getcwd() end, "Open cwd"),
       },
