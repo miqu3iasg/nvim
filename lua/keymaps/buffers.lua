@@ -68,6 +68,7 @@ end
 -- Buffers
 km("n", "<leader>bn", "<cmd>enew<CR>", { desc = "New buffer" })
 km("n", "<leader>bw", "<cmd>write<CR>", { desc = "Save buffer" })
+km('n', '<leader>bs', '<cmd>noautocmd write<CR>', { desc = "Save buffer without auto-formatting" })
 
 km("n", "<leader>bq", function()
   local ok, err = pcall(vim.cmd, "wall")
