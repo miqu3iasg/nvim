@@ -29,7 +29,3 @@ vim.opt_local.cinoptions = ":0,l1,t0,g0,(0"
 
 -- Keep multi-line comments formatted and indented on continuation
 vim.opt_local.formatoptions:append("croql")
-
--- Flag trailing whitespace, which coding-style.rst explicitly calls out
-vim.opt_local.list = false
-vim.opt_local.listchars = "tab:> ,trail:-,extends:>,precedes:<"

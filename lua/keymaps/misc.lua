@@ -22,6 +22,11 @@ km("n", "<leader>vw", function()
   vim.wo.wrap = not vim.wo.wrap
 end, { desc = "Toggle line wrap" })
 
+-- Toggle visible whitespace characters (tabs, trailing spaces, etc.)
+km("n", "<leader>vl", function()
+  vim.wo.list = not vim.wo.list
+end, { desc = "Toggle list (show whitespace)" })
+
 -- Toggle the sign column (gutter); "no" by default in options.lua
 km("n", "<leader>vg", function()
   vim.wo.signcolumn = vim.wo.signcolumn == "no" and "yes" or "no"
@@ -92,4 +97,3 @@ km("n", "<leader>rl", ":source $MYVIMRC<CR>", { desc = "Reload nvim config" })
 
 -- Restart Neovim
 km("n", "<leader>re", "<cmd>restart<cr>", { desc = "Restart Neovim" })
-

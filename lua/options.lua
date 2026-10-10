@@ -15,6 +15,8 @@ vim.opt.exrc = true
 vim.opt.secure = true
 vim.opt.wrap = false
 vim.opt.startofline = false
+vim.opt.list = false
+vim.opt.listchars = { tab = '¬·', trail = '•', nbsp = '·', space = '·' }
 
 -- Search and completion
 vim.opt.ignorecase = true
