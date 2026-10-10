@@ -124,40 +124,51 @@
 
 return {
   "stevearc/conform.nvim",
+  event = { "BufWritePre" },
+  cmd = { "ConformInfo" },
+  keys = {
+    {
+      "<leader>k",
+      function() require("conform").format({ async = true, lsp_format = "fallback" }) end,
+      desc = "Format buffer",
+    },
+    {
+      "<leader>uf",
+      function()
+        vim.g.disable_autoformat = not vim.g.disable_autoformat
+        vim.notify("Autoformat: " .. (vim.g.disable_autoformat and "OFF" or "ON"))
+      end,
+      desc = "Toggle autoformat",
+    },
+  },
+  init = function()
+    -- makes `gq` use Conform
+    vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
+  end,
   config = function()
     require("conform").setup({
+      notify_on_error = true,
       formatters_by_ft = {
         -- Systems / compiled languages
         lua = { "stylua" },
         rust = { "rustfmt" },
-        go = { "gofumpt", "golines", "goimports-reviser" },
+        go = { "goimports-reviser", "golines" },
         c = { "clang_format" },
         cpp = { "clang_format" },
-        zig = { "zigfmt" },
         csharp = { "csharpier" },
-        swift = { "swiftformat" },
-        kotlin = { "ktlint" },
         java = { "google-java-format" },
-        scala = { "scalafmt" },
-
-        -- Functional languages
-        haskell = { "fourmolu" },
 
         -- Scripting
-        python = { "ruff_format" },
-        ruby = { "rubocop" },
+        python = { "ruff_organize_imports", "ruff_format" },
         php = { "php_cs_fixer" },
         sh = { "shfmt" },
         bash = { "shfmt" },
-        zsh = { "shfmt" },
-        perl = { "perltidy" },
 
         -- Web / frontend
         javascript = { "prettierd", "prettier", stop_after_first = true },
         javascriptreact = { "prettierd", "prettier", stop_after_first = true },
         typescript = { "prettierd", "prettier", stop_after_first = true },
         typescriptreact = { "prettierd", "prettier", stop_after_first = true },
-        vue = { "prettierd", "prettier", stop_after_first = true },
         html = { "prettierd", "prettier", stop_after_first = true },
         css = { "prettierd", "prettier", stop_after_first = true },
         scss = { "prettierd", "prettier", stop_after_first = true },
@@ -194,21 +205,26 @@ return {
           -- of this file in `assets/templates/clang-format.example.yaml`.
           prepend_args = { "--style=file" },
         },
+        golines = {
+          prepend_args = { "--base-formatter=gofumpt", "--max-len=100" },
+        },
         shfmt = {
           -- 2-space indentation, matching common shell style guides
-          prepend_args = { "-i", "2" },
+          prepend_args = { "-i", "2", "-ci" },
         },
         sql_formatter = {
           prepend_args = {
             "-l", "mysql",
-            "-c", '{"keywordCase":"upper","dataTypeCase":"upper","functionCase":"upper","tabWidth":2}',
+            "-c", '{"keywordCase":"upper","dataTypeCase":"upper","functionCase":"upper","tabWidth":4}',
           },
         },
       },
-      format_on_save = {
-        timeout_ms = 500,
-        lsp_format = "fallback",
-      },
+      format_on_save = function(bufnr)
+        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+          return
+        end
+        return { timeout_ms = 2000, lsp_format = "fallback" }
+      end,
     })
   end,
 }

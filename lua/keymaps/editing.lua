@@ -48,11 +48,6 @@ km("x", "<leader>=", function()
   vim.cmd("normal! gv")
 end, { desc = "Indent selection" })
 
--- Formatting
-km("n", "<leader>k", function()
-  require("conform").format({ async = true, lsp_format = "fallback" })
-end, { desc = "Format buffer (conform, fallback to LSP)" })
-
 -- Editing
 km("n", "J", "mzJ`z", { desc = "Join lines, keep cursor position" })
 km("n", "S", '"_cc', { desc = "Replace line without yanking" })
