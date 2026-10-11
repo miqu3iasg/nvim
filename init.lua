@@ -1,6 +1,5 @@
 -- init.lua
 
-local utils = require("utils")
 -- stop annoying deprecation errors that i cant control
 -- because i dont have access to the plugins that use
 -- the deprecated functions
@@ -17,10 +16,6 @@ require("commands")
 require("snippets")
 require("statusline").setup()
 
-utils.color_overrides.setup_colorscheme_overrides()
-
 vim.cmd.colorscheme("insanity")
 -- vim.cmd.colorscheme("enfocadomod")
 -- vim.cmd.colorscheme("nox")
-
-utils.fix_telescope_parens_win()
