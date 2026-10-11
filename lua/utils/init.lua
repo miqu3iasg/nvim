@@ -16,18 +16,6 @@ function utils.get_os()
   end
 end
 
--- fixes parenthesis issue with directories and telescope
-function utils.fix_telescope_parens_win()
-  if vim.fn.has("win32") then
-    local ori_fnameescape = vim.fn.fnameescape
-    ---@diagnostic disable-next-line: duplicate-set-field
-    vim.fn.fnameescape = function(...)
-      local result = ori_fnameescape(...)
-      return result:gsub("\\", "/")
-    end
-  end
-end
-
 -- Save the current buffer if it has unsaved changes and a real file name
 -- (avoids erroring on unnamed/scratch buffers, which :update can't handle)
 function utils.save_if_modified()
@@ -43,7 +31,5 @@ function utils.expand_path(path)
   end
   return path
 end
-
-utils.color_overrides = require("utils.color_overrides")
 
 return utils
