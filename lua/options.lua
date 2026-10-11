@@ -68,7 +68,7 @@ vim.opt.scrolloff = 0
 vim.opt.cmdheight = 1
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
-vim.opt.title = true
+vim.opt.title = false
 vim.opt.titlestring = "%t"
 vim.opt.fillchars = { eob = " " }
 vim.opt.display:append("lastline")
@@ -89,10 +89,6 @@ vim.opt.backup = false
 vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
 vim.opt.undofile = true
 vim.o.sessionoptions = "buffers,curdir,tabpages,winsize,help,globals,skiprtp,folds"
-
--- Mouse
-vim.opt.mouse = ""
-vim.opt.mousescroll = "ver:0,hor:0"
 
 -- Cursor
 vim.opt.guicursor = "a:block-CursorInsert"
