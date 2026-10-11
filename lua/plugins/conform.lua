@@ -141,10 +141,6 @@ return {
       desc = "Toggle autoformat",
     },
   },
-  init = function()
-    -- makes `gq` use Conform
-    vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
-  end,
   config = function()
     require("conform").setup({
       notify_on_error = true,
