@@ -81,11 +81,7 @@ return {
       -- cite-key matching) instead of its default "smart" one (a fuzzy
       -- search over titles/authors done by vimtex itself). vimtex's own
       -- docs recommend "simple" whenever an autocomplete plugin is
-      -- driving the menu (see :h g:vimtex_complete_bib) -- here that's
-      -- cmp-vimtex -> blink.cmp, which already does its own fuzzy
-      -- matching, so "smart" mode was redundant work and slower to
-      -- populate. The title/author/year still show up, just in the
-      -- documentation window instead of being searched directly.
+      -- driving the menu (see :h g:vimtex_complete_bib)
       vim.g.vimtex_complete_bib = {
         simple = 1,
         info_fmt = "@author_all (@year)\n@title",
@@ -128,61 +124,6 @@ return {
           end)
         end,
       })
-    end,
-  },
-
-  -- Completion for \cite{}, \ref{}, labels, environments, packages,
-  -- wired into blink.cmp through blink.compat (blink has no native
-  -- vimtex source, this is the same bridge used below for
-  -- cmp-latex-symbols).
-  { "micangl/cmp-vimtex",        ft = { "tex" } },
-
-  -- LaTeX symbol completion (\alpha, \sum, \Rightarrow -> shown with
-  -- their preview glyph) for both real .tex files and math typed
-  -- inside markdown/Obsidian notes.
-  { "kdheepak/cmp-latex-symbols" },
-
-  -- Bridges old nvim-cmp-only sources (both above) into blink.cmp.
-  { "saghen/blink.compat",       version = "*", lazy = true, opts = {} },
-
-  -- Extends the blink.cmp spec that already exists in completions.lua
-  -- (lazy.nvim merges specs for the same plugin across files) instead
-  -- of duplicating its whole config here.
-  {
-    "saghen/blink.cmp",
-    dependencies = { "saghen/blink.compat", "micangl/cmp-vimtex", "kdheepak/cmp-latex-symbols" },
-    opts = function(_, opts)
-      opts.sources = opts.sources or {}
-      opts.sources.providers = opts.sources.providers or {}
-
-      -- score_offset raised from the shared default (50 for most
-      -- extra sources) to 80: in a .tex buffer, a \ref/\cite/\alpha
-      -- match should almost always outrank a same-looking word pulled
-      -- from the buffer or from ripgrep.
-      opts.sources.providers.latex_symbols = {
-        name = "latex_symbols",
-        module = "blink.compat.source",
-        score_offset = 80,
-      }
-      opts.sources.providers.vimtex = {
-        name = "vimtex",
-        module = "blink.compat.source",
-        score_offset = 80,
-      }
-
-      -- latex_symbols is useful in both tex and markdown (Obsidian
-      -- math); vimtex's own source (citations/refs/labels) only
-      -- makes sense in real .tex files.
-      opts.sources.per_filetype = opts.sources.per_filetype or {}
-
-      -- Listed explicitly (rather than derived from opts.sources.default)
-      -- so that "lazydev" -- irrelevant outside Lua buffers -- isn't
-      -- carried into every .tex buffer's candidate list for no reason.
-      opts.sources.per_filetype.tex = { "lsp", "path", "snippets", "vimtex", "latex_symbols", "buffer", "ripgrep" }
-      opts.sources.per_filetype.markdown =
-          vim.list_extend(vim.deepcopy(opts.sources.default), { "latex_symbols" })
-
-      return opts
     end,
   },
 
