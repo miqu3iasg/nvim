@@ -22,7 +22,7 @@ return {
   }),
 
   -- Multi-line block comment using Scheme syntax (#| ... |#).
-  s("bloc", {
+  s("cmm", {
     t({ "#|", "" }),
     i(1, "Long explanation or pseudocode"),
     t({ "", "|#" }),
