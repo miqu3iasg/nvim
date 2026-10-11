@@ -12,7 +12,6 @@ function M.setup()
   vim.opt_local.spelllang = { "pt_br", "en_us" }
 
   vim.opt_local.textwidth = 88
-  -- Hard wrap automatically at textwidth while typing
   vim.opt_local.formatoptions:append("t")
   vim.opt_local.formatoptions:remove("l")
   vim.opt_local.formatoptions:append("n")
