@@ -1,7 +1,7 @@
 -- lua/plugins/latex.lua
 
 -- The .tex writing-mode setup (wrap, conceallevel, readable width,
--- <leader>x compile/view/toc keymaps) lives in lua/langs/latex/,
+-- <localleader>x compile/view/toc keymaps) lives in lua/langs/latex/,
 -- alongside MarkdownWriting.
 --
 -- For this configuration to work, you need a full TeX distribution,
@@ -30,7 +30,12 @@
 --     - https://github.com/lervag/vimtex
 --     - https://github.com/cmhughes/latexindent.pl
 --     - https://github.com/latex3/latex2e
---     - https://github.com/kylechui/nvim-surround
+--     - https://github.com/echasnovski/mini.surround
+--     - https://github.com/echasnovski/mini.pairs
+
+-- Augroup shared by the buffer-local mini.pairs / nvim-surround
+-- overrides below. Both only apply to .tex buffers.
+local tex_group = vim.api.nvim_create_augroup("latex_buffer_plugins", { clear = true })
 
 return {
   -- Core LaTeX engine, continuous compilation, PDF viewer sync
@@ -150,17 +155,118 @@ return {
     end,
   },
 
-  -- Structural "surround" text objects (ys, ds, cs). Set up with empty
-  -- defaults here (parentheses, quotes, tags, ...); the LaTeX-specific
-  -- surrounds ($, \text{}, \left(\right)) are added per-buffer by
-  -- lua/langs/latex/surround.lua, loaded from ftplugin/tex.lua, so they
-  -- only apply in .tex buffers and never shadow the defaults elsewhere.
+  -- Buffer-local mini.pairs overrides for .tex files.
+  --
+  -- mini.pairs normally prevents "(" and "[" from pairing when the
+  -- preceding character is a backslash (neigh_pattern = "[^\\].").
+  -- This is unsuitable for LaTeX, where "\(" and "\[" are math
+  -- delimiters rather than escaped brackets. Using ".." makes these
+  -- delimiters pair normally, producing "\)" and "\]" as expected.
+  --
+  -- "$" is not a default pair because it uses the same character to
+  -- open and close. A "closeopen" rule is therefore added so typing
+  -- the second "$" moves past the existing character instead of
+  -- creating a nested pair ("$$" -> "$$$$"). The backslash guard
+  -- remains to prevent escaped dollar signs (e.g. "\$5") from pairing.
+  --
+  -- Refs:
+  --     - https://github.com/echasnovski/mini.pairs
+  --     - :h MiniPairs.map_buf()
   {
-    "kylechui/nvim-surround",
+    "echasnovski/mini.pairs",
+    init = function()
+      vim.api.nvim_create_autocmd("FileType", {
+        group = tex_group,
+        pattern = "tex",
+        callback = function(args)
+          local ok, pairs_mod = pcall(require, "mini.pairs")
+          if not ok then
+            return
+          end
+
+          local bufnr = args.buf
+
+          -- "register.cr = false": a bare <CR> after the opening character
+          -- does not close the pair, matching mini.pairs' default behavior;
+          -- only the pairing pattern is overridden here.
+          local always = { register = { cr = false }, neigh_pattern = ".." }
+
+          pairs_mod.map_buf(bufnr, "i", "(", vim.tbl_extend("force", { action = "open", pair = "()" }, always))
+          pairs_mod.map_buf(bufnr, "i", ")", vim.tbl_extend("force", { action = "close", pair = "()" }, always))
+          pairs_mod.map_buf(bufnr, "i", "[", vim.tbl_extend("force", { action = "open", pair = "[]" }, always))
+          pairs_mod.map_buf(bufnr, "i", "]", vim.tbl_extend("force", { action = "close", pair = "[]" }, always))
+
+          pairs_mod.map_buf(bufnr, "i", "$", {
+            action = "closeopen",
+            pair = "$$",
+            neigh_pattern = "[^\\].",
+            register = { cr = false },
+          })
+        end,
+      })
+    end,
+  },
+
+  -- Structural "surround" text objects (sa, sd, sr). Set up with the
+  -- defaults globally (parentheses, quotes, tags, ...); the LaTeX-specific
+  -- surroundings are added per-buffer through `vim.b.minisurround_config`
+  -- in .tex files, so they never shadow the defaults elsewhere.
+  --
+  -- LaTeX-specific surroundings:
+  --
+  -- "$" for inline math, "x" for \text{}, and "l" for \left...\right.
+  --
+  -- Usage:
+  --
+  --   saiw$   -> $x$
+  --   sd$     -> x
+  --   sr$x    -> \text{x}
+  --
+  --   saiwx   -> \text{hello}
+  --   sdx     -> hello
+  --   srx$    -> $x$
+  --
+  --   saiwl   -> \left(x+y\right)
+  --   sdl     -> x+y
+  --
+  -- "x" is used for \text{} instead of "t" to avoid overriding the
+  -- default HTML/XML tag surrounding.
+  --
+  -- In `input` patterns, the two empty captures "()" mark where the
+  -- surrounded text starts and ends; everything outside them is the
+  -- surrounding itself.
+  --
+  -- Refs:
+  --     - https://github.com/echasnovski/mini.surround
+  --     - :h MiniSurround-surrounding-specification
+  {
+    "echasnovski/mini.surround",
     version = "*",
     event = "VeryLazy",
-    config = function()
-      require("nvim-surround").setup({})
+    opts = {},
+    init = function()
+      vim.api.nvim_create_autocmd("FileType", {
+        group = tex_group,
+        pattern = "tex",
+        callback = function(args)
+          vim.b[args.buf].minisurround_config = {
+            custom_surroundings = {
+              ["$"] = {
+                input = { "%$().-()%$" },
+                output = { left = "$", right = "$" },
+              },
+              ["x"] = {
+                input = { "\\text{().-()}" },
+                output = { left = "\\text{", right = "}" },
+              },
+              ["l"] = {
+                input = { "\\left%(().-()\\right%)" },
+                output = { left = "\\left(", right = "\\right)" },
+              },
+            },
+          }
+        end,
+      })
     end,
   },
 }
