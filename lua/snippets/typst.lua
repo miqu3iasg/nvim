@@ -78,7 +78,7 @@ end
 local function heading(level)
   return s("h" .. level, {
     t(string.rep("=", level) .. " "),
-    i(1, "Título"),
+    i(1, "Title"),
     i(0),
   })
 end
@@ -98,7 +98,7 @@ local function thmenv(trig, env)
   return s(trig, {
     t("#" .. env),
     c(1, {
-      sn(nil, { t('("'), i(1, "Nome"), t('")') }),
+      sn(nil, { t('("'), i(1, "Name"), t('")') }),
       t(""),
     }),
     t({ "[", "  " }),
@@ -124,10 +124,10 @@ local function dynamic_table(_, snip)
     end
   end
 
-  cells("Cabeçalho")
+  cells("Header")
   nodes[#nodes + 1] = t({ "),", "  " })
   for r = 1, rows do
-    cells("Célula")
+    cells("Cell")
     nodes[#nodes + 1] = t(r < rows and { ",", "  " } or ",")
   end
   nodes[#nodes + 1] = t({ "", ")" })
@@ -197,11 +197,11 @@ local snippets = {
 
 <>
 ]=], {
-    i(1, "Título"),
-    i(2, "Autor"),
+    i(1, "Title"),
+    i(2, "Author"),
     i(3, "New Computer Modern"),
     i(4, "11"),
-    c(5, { t('lang: "pt", region: "br"'), t('lang: "en"') }),
+    c(5, { t('lang: "en"'), t('lang: "pt", region: "br"') }),
     i(0),
   })),
 
@@ -212,13 +212,13 @@ local snippets = {
   <> \
   #datetime.today().display("[day]/[month]/[year]")
 ]
-<>]=], { i(1, "Título"), i(2, "Autor"), i(0) })),
+<>]=], { i(1, "Title"), i(2, "Author"), i(0) })),
 
   s("page", fmta('#set page(paper: "<>", margin: <>, numbering: "<>")<>',
     { c(1, { t("a4"), t("us-letter"), t("a5") }), i(2, "2.5cm"), i(3, "1"), i(0) })),
 
   s("text", fmta('#set text(font: "<>", size: <>pt, lang: "<>")<>',
-    { i(1, "New Computer Modern"), i(2, "11"), c(3, { t("pt"), t("en") }), i(0) })),
+    { i(1, "New Computer Modern"), i(2, "11"), c(3, { t("en"), t("pt") }), i(0) })),
 
   s("par", fmta("#set par(justify: true, leading: <>em, first-line-indent: <>)<>",
     { i(1, "0.65"), i(2, "1.8em"), i(0) })),
@@ -247,22 +247,22 @@ local snippets = {
     i(0),
   }),
 
-  s("let", { t("#let "), i(1, "nome"), t(" = "), i(2, "valor"), i(0) }),
+  s("let", { t("#let "), i(1, "name"), t(" = "), i(2, "value"), i(0) }),
 
   s("letf", {
-    t("#let "), i(1, "nome"), t("("), i(2, "args"), t({ ") = {", "  " }),
+    t("#let "), i(1, "name"), t("("), i(2, "args"), t({ ") = {", "  " }),
     i(3),
     t({ "", "}" }),
     i(0),
   }),
 
   s("imp", {
-    t('#import "@preview/'), i(1, "pacote"), t(":"), i(2, "0.1.0"), t('": '), i(3, "*"),
+    t('#import "@preview/'), i(1, "package"), t(":"), i(2, "0.1.0"), t('": '), i(3, "*"),
     i(0),
   }),
 
-  s("impl", { t('#import "'), i(1, "arquivo.typ"), t('": '), i(2, "*"), i(0) }),
-  s("inc", { t('#include "'), i(1, "arquivo.typ"), t('"'), i(0) }),
+  s("impl", { t('#import "'), i(1, "file.typ"), t('": '), i(2, "*"), i(0) }),
+  s("inc", { t('#include "'), i(1, "file.typ"), t('"'), i(0) }),
 
   -- Package versions are placeholders, check typst.app/universe for current ones
   s("cetz", {
@@ -276,13 +276,13 @@ local snippets = {
 #import "@preview/ctheorems:<>": *
 #show: thmrules.with(qed-symbol: $square$)
 
-#let theorem = thmbox("theorem", "Teorema", fill: rgb("#e8f5e9"))
-#let lemma = thmbox("lemma", "Lema", base: "theorem", fill: rgb("#e8f5e9"))
-#let corollary = thmbox("corollary", "Corolário", base: "theorem", fill: rgb("#e8f5e9"))
-#let proposition = thmbox("proposition", "Proposição", base: "theorem", fill: rgb("#e8f5e9"))
-#let definition = thmbox("definition", "Definição", fill: rgb("#e3f2fd"))
-#let example = thmplain("example", "Exemplo").with(numbering: none)
-#let proof = thmproof("proof", "Demonstração")
+#let theorem = thmbox("theorem", "Theorem", fill: rgb("#e8f5e9"))
+#let lemma = thmbox("lemma", "Lemma", base: "theorem", fill: rgb("#e8f5e9"))
+#let corollary = thmbox("corollary", "Corollary", base: "theorem", fill: rgb("#e8f5e9"))
+#let proposition = thmbox("proposition", "Proposition", base: "theorem", fill: rgb("#e8f5e9"))
+#let definition = thmbox("definition", "Definition", fill: rgb("#e3f2fd"))
+#let example = thmplain("example", "Example").with(numbering: none)
+#let proof = thmproof("proof", "Proof")
 <>]=], { i(1, "1.1.3"), i(0) })),
 
   thmenv("thm", "theorem"),
@@ -295,10 +295,10 @@ local snippets = {
 
   -- Structure and spacing
 
-  s("toc", { t('#outline(title: "'), i(1, "Sumário"), t('", indent: auto)'), i(0) }),
+  s("toc", { t('#outline(title: "'), i(1, "Contents"), t('", indent: auto)'), i(0) }),
 
   s("bib", {
-    t('#bibliography("'), i(1, "refs.bib"), t('", title: "'), i(2, "Referências"), t('", style: "'),
+    t('#bibliography("'), i(1, "refs.bib"), t('", title: "'), i(2, "References"), t('", style: "'),
     c(3, { t("ieee"), t("apa"), t("chicago-author-date"), t("mla"), t("vancouver") }),
     t('")'),
     i(0),
@@ -311,35 +311,35 @@ local snippets = {
 
   -- Text formatting
 
-  s("bd", { t("*"), i(1, "texto"), t("*"), i(0) }),
-  s("it", { t("_"), i(1, "texto"), t("_"), i(0) }),
-  s("bi", { t("*_"), i(1, "texto"), t("_*"), i(0) }),
-  s("und", { t("#underline["), i(1, "texto"), t("]"), i(0) }),
-  s("hl", { t("#highlight["), i(1, "texto"), t("]"), i(0) }),
-  s("str", { t("#strike["), i(1, "texto"), t("]"), i(0) }),
-  s("sc", { t("#smallcaps["), i(1, "texto"), t("]"), i(0) }),
-  s("sup", { t("#super["), i(1, "texto"), t("]"), i(0) }),
-  s("sbs", { t("#sub["), i(1, "texto"), t("]"), i(0) }),
-  s("col", { t("#text(fill: "), i(1, "red"), t(")["), i(2, "texto"), t("]"), i(0) }),
-  s("sz", { t("#text(size: "), i(1, "14pt"), t(")["), i(2, "texto"), t("]"), i(0) }),
-  s("ic", { t("`"), i(1, "código"), t("`"), i(0) }),
-  s("todo", { t("#text(fill: red)[*TODO:* "), i(1, "descrição"), t("]"), i(0) }),
+  s("bd", { t("*"), i(1, "text"), t("*"), i(0) }),
+  s("it", { t("_"), i(1, "text"), t("_"), i(0) }),
+  s("bi", { t("*_"), i(1, "text"), t("_*"), i(0) }),
+  s("und", { t("#underline["), i(1, "text"), t("]"), i(0) }),
+  s("hl", { t("#highlight["), i(1, "text"), t("]"), i(0) }),
+  s("str", { t("#strike["), i(1, "text"), t("]"), i(0) }),
+  s("sc", { t("#smallcaps["), i(1, "text"), t("]"), i(0) }),
+  s("sup", { t("#super["), i(1, "text"), t("]"), i(0) }),
+  s("sbs", { t("#sub["), i(1, "text"), t("]"), i(0) }),
+  s("col", { t("#text(fill: "), i(1, "red"), t(")["), i(2, "text"), t("]"), i(0) }),
+  s("sz", { t("#text(size: "), i(1, "14pt"), t(")["), i(2, "text"), t("]"), i(0) }),
+  s("ic", { t("`"), i(1, "code"), t("`"), i(0) }),
+  s("todo", { t("#text(fill: red)[*TODO:* "), i(1, "description"), t("]"), i(0) }),
 
   s("quote", {
-    t("#quote(block: true, attribution: ["), i(1, "Autor"), t({ "])[", "  " }),
-    i(2, "Citação"),
+    t("#quote(block: true, attribution: ["), i(1, "Author"), t({ "])[", "  " }),
+    i(2, "Quote"),
     t({ "", "]" }),
     i(0),
   }),
 
   -- Links and references
 
-  s("link", { t('#link("'), i(1, "https://"), t('")['), i(2, "texto"), t("]"), i(0) }),
+  s("link", { t('#link("'), i(1, "https://"), t('")['), i(2, "text"), t("]"), i(0) }),
   s("url", { t('#link("'), i(1, "https://"), t('")'), i(0) }),
   s("lbl", { t("<"), i(1, "label"), t(">"), i(0) }),
   s("ref", { t("@"), i(1, "label"), i(0) }),
-  s("cite", { t("#cite(<"), i(1, "chave"), t(">)"), i(0) }),
-  s("fn", { t("#footnote["), i(1, "Nota."), t("]"), i(0) }),
+  s("cite", { t("#cite(<"), i(1, "key"), t(">)"), i(0) }),
+  s("fn", { t("#footnote["), i(1, "Note."), t("]"), i(0) }),
 
   -- Lists
 
@@ -358,8 +358,8 @@ local snippets = {
   }),
 
   s("term", {
-    t("/ "), i(1, "Termo"), t(": "), i(2, "Descrição"),
-    t({ "", "/ " }), i(3, "Termo"), t(": "), i(4, "Descrição"),
+    t("/ "), i(1, "Term"), t(": "), i(2, "Description"),
+    t({ "", "/ " }), i(3, "Term"), t(": "), i(4, "Description"),
     i(0),
   }),
 
@@ -386,25 +386,25 @@ local snippets = {
   codeblock("cbgo", "go"),
   codeblock("cbts", "typescript"),
 
-  s("cm", { t("// "), i(1, "comentário"), i(0) }),
-  s("cmm", { t({ "/*", "" }), i(1, "comentário"), t({ "", "*/" }), i(0) }),
+  s("cm", { t("// "), i(1, "comment"), i(0) }),
+  s("cmm", { t({ "/*", "" }), i(1, "comment"), t({ "", "*/" }), i(0) }),
 
   -- Figures and tables
 
-  s("img", { t('#image("'), i(1, "caminho/imagem.png"), t('", width: '), i(2, "80%"), t(")"), i(0) }),
+  s("img", { t('#image("'), i(1, "path/image.png"), t('", width: '), i(2, "80%"), t(")"), i(0) }),
 
   s("fig", {
-    t({ "#figure(", '  image("' }), i(1, "caminho/imagem.png"), t('", width: '), i(2, "80%"),
-    t({ "),", "  caption: [" }), i(3, "Legenda"),
+    t({ "#figure(", '  image("' }), i(1, "path/image.png"), t('", width: '), i(2, "80%"),
+    t({ "),", "  caption: [" }), i(3, "Caption"),
     t({ "],", ") <fig:" }), i(4, "label"), t(">"),
     i(0),
   }),
 
   s("tbl", {
     t({ "#table(", "  columns: " }), i(1, "3"), t({ ",", "  table.header([" }),
-    i(2, "Cabeçalho 1"), t("], ["), i(3, "Cabeçalho 2"), t("], ["), i(4, "Cabeçalho 3"),
-    t({ "]),", "  [" }), i(5, "Célula"), t("], ["), i(6, "Célula"), t("], ["), i(7, "Célula"),
-    t({ "],", "  [" }), i(8, "Célula"), t("], ["), i(9, "Célula"), t("], ["), i(10, "Célula"),
+    i(2, "Header 1"), t("], ["), i(3, "Header 2"), t("], ["), i(4, "Header 3"),
+    t({ "]),", "  [" }), i(5, "Cell"), t("], ["), i(6, "Cell"), t("], ["), i(7, "Cell"),
+    t({ "],", "  [" }), i(8, "Cell"), t("], ["), i(9, "Cell"), t("], ["), i(10, "Cell"),
     t({ "],", ")" }),
     i(0),
   }),
@@ -415,9 +415,9 @@ local snippets = {
 
   s("figt", {
     t({ "#figure(", "  table(", "    columns: " }), i(1, "2"),
-    t({ ",", "    table.header([" }), i(2, "Coluna 1"), t("], ["), i(3, "Coluna 2"),
-    t({ "]),", "    [" }), i(4, "Célula"), t("], ["), i(5, "Célula"),
-    t({ "],", "  ),", "  caption: [" }), i(6, "Legenda"),
+    t({ ",", "    table.header([" }), i(2, "Column 1"), t("], ["), i(3, "Column 2"),
+    t({ "]),", "    [" }), i(4, "Cell"), t("], ["), i(5, "Cell"),
+    t({ "],", "  ),", "  caption: [" }), i(6, "Caption"),
     t({ "],", ") <tbl:" }), i(7, "label"), t(">"),
     i(0),
   }),
@@ -441,7 +441,7 @@ local snippets = {
   s("align", {
     t("#align("),
     c(1, { t("center"), t("right"), t("left"), t("center + horizon") }),
-    t(")["), i(2, "conteúdo"), t("]"),
+    t(")["), i(2, "content"), t("]"),
     i(0),
   }),
 
@@ -463,7 +463,7 @@ local snippets = {
       t('rgb("#e8f5e9")'),
       t("luma(240)"),
     }),
-    t({ ", inset: 10pt, radius: 4pt, width: 100%)[", "  *" }), i(2, "Nota:*"), t(" "), i(3, "Conteúdo."),
+    t({ ", inset: 10pt, radius: 4pt, width: 100%)[", "  *" }), i(2, "Note:*"), t(" "), i(3, "Content."),
     t({ "", "]" }),
     i(0),
   }),
@@ -478,14 +478,14 @@ local snippets = {
   }),
 
   s("if", {
-    t("#if "), i(1, "condição"), t({ " {", "  " }),
+    t("#if "), i(1, "condition"), t({ " {", "  " }),
     i(2),
     t({ "", "}" }),
     i(0),
   }),
 
   s("ifel", {
-    t("#if "), i(1, "condição"), t({ " {", "  " }),
+    t("#if "), i(1, "condition"), t({ " {", "  " }),
     i(2),
     t({ "", "} else {", "  " }),
     i(3),
@@ -577,10 +577,10 @@ local snippets = {
   math_snip("vv", { t("arrow("), i(1, "v"), t(")"), i(0) }),
   math_snip("ovl", { t("overline("), i(1), t(")"), i(0) }),
   math_snip("cancel", { t("cancel("), i(1), t(")"), i(0) }),
-  math_snip("ubr", { t("underbrace("), i(1), t(", "), i(2, "texto"), t(")"), i(0) }),
-  math_snip("obr", { t("overbrace("), i(1), t(", "), i(2, "texto"), t(")"), i(0) }),
+  math_snip("ubr", { t("underbrace("), i(1), t(", "), i(2, "text"), t(")"), i(0) }),
+  math_snip("obr", { t("overbrace("), i(1), t(", "), i(2, "text"), t(")"), i(0) }),
 
-  math_snip("tx", { t('"'), i(1, "texto"), t('"'), i(0) }),
+  math_snip("tx", { t('"'), i(1, "text"), t('"'), i(0) }),
   math_snip("bf", { t("bold("), i(1, "x"), t(")"), i(0) }),
   math_snip("up", { t("upright("), i(1, "x"), t(")"), i(0) }),
   math_snip("bb", { t("bb("), i(1, "R"), t(")"), i(0) }),
@@ -588,8 +588,8 @@ local snippets = {
   math_snip("lr", { t("lr("), i(1, "("), t(" "), i(2), t(" "), i(3, ")"), t(")"), i(0) }),
 
   math_snip("cases", {
-    t({ "cases(", "  " }), i(1, "a"), t(' "se" '), i(2, "x > 0"),
-    t({ ",", "  " }), i(3, "b"), t(' "caso contrário"'),
+    t({ "cases(", "  " }), i(1, "a"), t(' "if" '), i(2, "x > 0"),
+    t({ ",", "  " }), i(3, "b"), t(' "otherwise"'),
     t({ ",", ")" }),
     i(0),
   }),
