@@ -137,4 +137,13 @@ return {
     t({ "", "END AS " }), i(4, "alias"),
     i(0),
   }),
+
+  -- Comments
+  s("cm", { t("-- "), i(1, "comment"), i(0) }),
+
+  s("cmm", {
+    t({ "/*", " * " }), i(1, "comment"),
+    t({ "", " */" }),
+    i(0),
+  }),
 }
