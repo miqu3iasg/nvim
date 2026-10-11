@@ -39,6 +39,48 @@ local function hi(group, opts)
   vim.api.nvim_set_hl(0, group, opts)
 end
 
+-- Desaturate theme colors
+local function desaturate(hex, factor)
+  local r, g, b = rgb(hex)
+  r, g, b = r / 255, g / 255, b / 255
+  local max, min = math.max(r, g, b), math.min(r, g, b)
+  local l = (max + min) / 2
+  if max == min then
+    return hex
+  end
+
+  local d = max - min
+  local s = l > 0.5 and d / (2 - max - min) or d / (max + min)
+  local h
+  if max == r then
+    h = (g - b) / d + (g < b and 6 or 0)
+  elseif max == g then
+    h = (b - r) / d + 2
+  else
+    h = (r - g) / d + 4
+  end
+  h = h / 6
+  s = s * factor
+
+  local function hue(p, q, t)
+    if t < 0 then t = t + 1 end
+    if t > 1 then t = t - 1 end
+    if t < 1 / 6 then return p + (q - p) * 6 * t end
+    if t < 1 / 2 then return q end
+    if t < 2 / 3 then return p + (q - p) * (2 / 3 - t) * 6 end
+    return p
+  end
+
+  local q = l < 0.5 and l * (1 + s) or l + s - l * s
+  local p = 2 * l - q
+  return string.format(
+    "#%02x%02x%02x",
+    math.floor(hue(p, q, h + 1 / 3) * 255 + 0.5),
+    math.floor(hue(p, q, h) * 255 + 0.5),
+    math.floor(hue(p, q, h - 1 / 3) * 255 + 0.5)
+  )
+end
+
 -- Palette (grays, green strings and cyan keywords)
 
 local colors = {
@@ -56,6 +98,7 @@ local colors = {
   linenr_above = "#2e2e2e",
 
   border = "#2a2a2a",
+  border_subtle = "#0f0f0f",
 
   comment = "#4a4a4a",
   comment_doc = "#5a5a5a",
@@ -82,6 +125,19 @@ local colors = {
 
 -- Tints derived from the palette
 colors.visual_bg = blend(colors.fg_1, colors.bg, 0.35) -- neutral gray, no hue
+
+-- Colors used for Markdown
+local MD_SAT = 0.8
+local md = {
+  text = "#b9b9b9",                     -- fg_0
+  title = "#dedede",                    -- fg_1
+  cyan = desaturate("#5fafaf", MD_SAT), -- cyan
+  blue = desaturate("#5f87ff", MD_SAT),
+  violet = desaturate("#af87d7", MD_SAT),
+  green = desaturate("#7a9c7a", MD_SAT),
+  br_violet = desaturate("#af87ff", MD_SAT),
+  br_blue = desaturate("#5fafff", MD_SAT),
+}
 
 -- Terminal colors
 
@@ -478,74 +534,10 @@ local groups = {
   diffRemoved = { link = "DiffDelete" },
   diffSubname = { link = "Normal" },
 
-  -- Markdown (legacy :syntax groups, used when the vim regex highlighter
-  -- runs alongside/instead of Treesitter, e.g. inside :Man or diff views)
-  markdownH1 = { link = "@markup.heading.1" },
-  markdownH2 = { link = "@markup.heading.2" },
-  markdownH3 = { link = "@markup.heading.3" },
-  markdownH4 = { link = "@markup.heading.4" },
-  markdownH5 = { link = "@markup.heading.5" },
-  markdownH6 = { link = "@markup.heading.6" },
-  markdownHeadingDelimiter = { fg = colors.fg_0 },
-  markdownHeadingRule = { fg = colors.border },
-  markdownCode = { link = "@markup.raw" },
-  markdownCodeBlock = { link = "@markup.raw.block" },
-  markdownCodeDelimiter = { link = "@markup.raw.delimiter" },
-  markdownBlockquote = { link = "@markup.quote" },
-  markdownListMarker = { link = "@markup.list" },
-  markdownOrderedListMarker = { link = "@markup.list" },
-  markdownRule = { fg = colors.border },
-  markdownBold = { bold = true },
-  markdownItalic = { italic = true },
-  markdownBoldItalic = { bold = true, italic = true },
-  markdownStrike = { link = "@markup.strikethrough" },
-  markdownLinkText = { link = "@markup.link" },
-  markdownUrl = { link = "@markup.link.url" },
-  markdownLinkDelimiter = { fg = colors.fg_0 },
-  markdownIdDelimiter = { fg = colors.fg_0 },
-  markdownAutomaticLink = { link = "@markup.link.url" },
   gitcommitSelectedFile = { link = "Link" },
   gitcommitDiscardedFile = { link = "Link" },
   gitcommitUntrackedFile = { link = "Link" },
   gitcommitSummary = { link = "String" },
-
-  -- Plugins: render-markdown.nvim
-  -- No extra background bars on headings/rules, to match the theme's flat
-  -- single-background look; hierarchy comes from the @markup.heading ladder.
-  RenderMarkdownH1 = { link = "@markup.heading.1" },
-  RenderMarkdownH2 = { link = "@markup.heading.2" },
-  RenderMarkdownH3 = { link = "@markup.heading.3" },
-  RenderMarkdownH4 = { link = "@markup.heading.4" },
-  RenderMarkdownH5 = { link = "@markup.heading.5" },
-  RenderMarkdownH6 = { link = "@markup.heading.6" },
-  RenderMarkdownH1Bg = {},
-  RenderMarkdownH2Bg = {},
-  RenderMarkdownH3Bg = {},
-  RenderMarkdownH4Bg = {},
-  RenderMarkdownH5Bg = {},
-  RenderMarkdownH6Bg = {},
-  RenderMarkdownCode = {},                           -- no fill; let the embedded-language highlighting read clearly
-  RenderMarkdownCodeInline = { link = "@markup.raw" },
-  RenderMarkdownCodeBorder = { fg = colors.border }, -- thin line only, delimits the block without a bg fill
-  RenderMarkdownBullet = { fg = colors.fg_1 },
-  RenderMarkdownIndent = { fg = colors.linenr_above },
-  RenderMarkdownQuote = { link = "@markup.quote" },
-  RenderMarkdownDash = { fg = colors.border },
-  RenderMarkdownLink = { link = "Link" },
-  RenderMarkdownWikiLink = { link = "Link" },
-  RenderMarkdownSign = { fg = colors.fg_1 },
-  RenderMarkdownMath = { link = "@markup.math" },
-  RenderMarkdownUnchecked = { fg = colors.yellow },
-  RenderMarkdownChecked = { fg = colors.green },
-  RenderMarkdownTodo = { fg = colors.br_cyan },
-  RenderMarkdownTableHead = { fg = colors.fg_3, bold = true },
-  RenderMarkdownTableRow = { fg = colors.fg_2 },
-  RenderMarkdownTableFill = { fg = colors.border },
-  RenderMarkdownSuccess = { link = "DiagnosticOk" },
-  RenderMarkdownInfo = { link = "DiagnosticInfo" },
-  RenderMarkdownHint = { link = "DiagnosticHint" },
-  RenderMarkdownWarn = { link = "DiagnosticWarn" },
-  RenderMarkdownError = { link = "DiagnosticError" },
 
   -- Filetype: LaTeX (vimtex)
   --
@@ -639,27 +631,52 @@ local groups = {
   IblIndent = { fg = colors.linenr_above },
   IblScope = { fg = colors.fg_0 },
 
-  -- Plugins: blink.cmp
-  BlinkCmpMenu = { link = "Pmenu" },
-  BlinkCmpMenuSelection = { link = "PmenuSel" },
-  BlinkCmpScrollBarThumb = { link = "PmenuThumb" },
-  BlinkCmpLabel = { link = "Pmenu" },
-  BlinkCmpLabelMatch = { link = "PmenuMatch" },
-  BlinkCmpLabelDeprecated = { fg = colors.fg_1, strikethrough = true },
-  BlinkCmpLabelDescription = { link = "Comment" },
-  BlinkCmpLabelDetail = { link = "Comment" },
-  BlinkCmpKind = { link = "Special" },
-  BlinkCmpDoc = { link = "NormalFloat" },
-  BlinkCmpSignatureHelp = { link = "NormalFloat" },
-  BlinkCmpSignatureHelpActiveParameter = { link = "LspSignatureActiveParameter" },
+  -- Plugins: nvim-cmp
+  CmpBorder = { fg = colors.border_subtle, bg = colors.bg },
+  CmpDocBorder = { fg = colors.border_subtle, bg = colors.bg },
 
-  BlinkCmpMenuBorder = { fg = "#0f0f0f" },
-  BlinkCmpDocBorder = { fg = "#0f0f0f" },
-  BlinkCmpSignatureHelpBorder = { fg = "#0f0f0f" },
+  CmpItemAbbr = { link = "Pmenu" },
+  CmpItemAbbrDeprecated = { fg = colors.fg_1, strikethrough = true },
+  CmpItemAbbrMatch = { link = "PmenuMatch" },
+  CmpItemAbbrMatchFuzzy = { link = "PmenuMatch" },
+  CmpItemKind = { link = "Special" },
+  CmpItemMenu = { link = "Comment" },
 }
 
 for group, opts in pairs(groups) do
   hi(group, opts)
+end
+
+-- Markdown
+local markdown_markup = {
+  strong = { fg = md.green, bold = true },
+  italic = { fg = md.cyan, italic = true },
+  strikethrough = { strikethrough = true },
+  underline = { underline = true },
+  heading = { fg = md.title },
+  ["heading.1"] = { fg = md.title },
+  ["heading.2"] = { fg = md.title },
+  ["heading.3"] = { fg = md.title },
+  ["heading.4"] = { fg = md.title },
+  ["heading.5"] = { fg = md.title },
+  ["heading.6"] = { fg = md.title },
+  quote = { fg = md.text },
+  math = { fg = md.blue },
+  link = { fg = md.blue },
+  ["link.label"] = { fg = md.violet },
+  ["link.url"] = { fg = md.blue },
+  raw = { fg = md.blue },
+  ["raw.block"] = { fg = md.blue },
+  ["raw.delimiter"] = { fg = md.text },
+  list = { fg = md.blue },
+  ["list.checked"] = { fg = md.br_violet },
+  ["list.unchecked"] = { fg = md.br_violet },
+}
+
+for name, opts in pairs(markdown_markup) do
+  hi("@markup." .. name .. ".markdown", opts)
+  hi("@markup." .. name .. ".markdown_inline", opts)
+  hi("@markup.math.latex", { fg = md.blue })
 end
 
 -- Exposed so other themes (e.g. lualine) can reuse the palette
