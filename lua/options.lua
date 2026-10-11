@@ -5,7 +5,6 @@ vim.opt.hidden = true
 vim.opt.autoread = true
 vim.opt.history = 10000
 vim.opt.encoding = "utf-8"
-vim.opt.messagesopt = "hit-enter,history:500"
 vim.opt.fileencoding = "utf-8"
 vim.opt.timeoutlen = 500
 vim.opt.showtabline = 0
