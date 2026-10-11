@@ -166,10 +166,12 @@ local function ui_window()
   local cmp = require("cmp")
   return {
     completion = cmp.config.window.bordered({
+      border = "single",
       scrollbar = false,
       winhighlight = "Normal:Pmenu,FloatBorder:CmpBorder,CursorLine:PmenuSel,Search:None",
     }),
     documentation = cmp.config.window.bordered({
+      border = "single",
       winhighlight = "Normal:NormalFloat,FloatBorder:CmpDocBorder",
     }),
   }

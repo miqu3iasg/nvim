@@ -134,22 +134,6 @@ local snippets = {
   codeblock("cbcss", "css"),
   codeblock("cbdiff", "diff"),
 
-  -- Mermaid diagram
-  s("mermaid", {
-    t({ "```mermaid", "" }),
-    c(1, {
-      t("flowchart TD"),
-      t("sequenceDiagram"),
-      t("classDiagram"),
-      t("erDiagram"),
-      t("gantt"),
-    }),
-    t({ "", "    " }),
-    i(2),
-    t({ "", "```" }),
-    i(0),
-  }),
-
   -- Comments
 
   -- Single-line HTML comment.
