@@ -43,13 +43,15 @@ end
 map("p", "<cmd>TypstPreviewToggle<cr>", "live preview (toggle)")
 map("s", "<cmd>TypstPreviewSyncCursor<cr>", "sync cursor in preview")
 map("e", function() tinymist("tinymist.exportPdf", { file() }) end, "export PDF")
+
 map("o", function()
   local pdf = pdf_path()
   if vim.uv.fs_stat(pdf) then
-    vim.ui.open(pdf)
+    vim.ui.open(pdf, { cmd = { "zathura" } })
   else
     vim.notify("PDF not found: " .. pdf, vim.log.levels.WARN)
   end
 end, "open PDF")
+
 map("m", function() tinymist("tinymist.pinMain", { file() }) end, "pin this file as main")
 map("M", function() tinymist("tinymist.pinMain", { vim.NIL }) end, "unpin main")
