@@ -91,6 +91,7 @@ return {
       vim.g["conjure#mapping#eval_replace_form"] = "e!"
 
       -- eval + insert result as comment
+      vim.g["conjure#eval#comment_prefix"] = "; => "
       vim.g["conjure#mapping#eval_comment_current_form"] = "ece"
       vim.g["conjure#mapping#eval_comment_root_form"] = "ecr"
       vim.g["conjure#mapping#eval_comment_word"] = "ecw"
