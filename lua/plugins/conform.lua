@@ -1,126 +1,43 @@
 -- lua/plugins/conform.lua
 
--- Conform.nvim uses external formatter executables.
--- Mason can install many of the formatters configured below, but
--- some dependencies may need to be installed manually on your machine.
+-- Conform.nvim runs external formatter executables, so they must be on PATH.
+-- Mason can install many of them (stylua, ruff, rustfmt, google-java-format,
+-- fourmolu, yamlfmt, ktlint, swiftformat, csharpier, zigfmt, etc.), but the
+-- ones below may need to be installed manually
 --
--- For JavaScript, TypeScript, HTML, CSS, JSON, Markdown, GraphQL and Vue
--- formatting, install Node.js and npm if they are not already available:
+-- On Arch Linux, most system-level formatters come from pacman: Node.js for
+-- the web formatters, clang-format (C/C++), Go, a TeX distribution with
+-- latexindent (LaTeX), typstyle (Typst), shfmt (shell), taplo (TOML), Elixir,
+-- nixfmt, perltidy, scalafmt and buf (Protobuf):
 --
--- `sudo pacman -S nodejs npm`
+-- $ sudo pacman -S nodejs npm clang go texlive-basic texlive-bin texlive-latexextra texlive-fontsextra typstyle shfmt taplo-cli elixir nixfmt perltidy scalafmt buf
 --
--- Prettier and Prettierd can be installed through Mason.
--- Alternatively, install them globally via npm:
+-- JavaScript, TypeScript, HTML, CSS, JSON, Markdown, GraphQL and Vue use
+-- Prettier. Prettierd is preferred when available, and Conform falls back to
+-- Prettier through `stop_after_first = true`. Both can also come from Mason.
+-- SQL and Elm formatting are Node-based too:
 --
--- `npm install -g prettier prettierd`
+-- $ npm install -g prettier prettierd sql-formatter elm-format
 --
--- Prettierd is preferred when available. Conform falls back to Prettier
--- through `stop_after_first = true`.
+-- Astro formatting needs the Astro CLI, which should come from the project's
+-- own dependencies rather than a global install:
 --
--- Astro formatting requires the Astro CLI to be available.
--- Install Astro through your project dependencies:
+-- $ npm install astro
 --
--- `npm install astro`
+-- The remaining formatters come from other package managers:
 --
--- C and C++ formatting requires clang-format.
--- On Arch Linux:
+-- $ pip install xmlformatter
 --
--- `sudo pacman -S clang`
+-- $ gem install rubocop
 --
--- Go formatting requires Go to be installed.
--- On Arch Linux:
+-- $ R -e 'install.packages("styler")'
 --
--- `sudo pacman -S go`
+-- Some formatters need no separate install because they ship with their
+-- language tooling: `mix format` comes with Elixir and `terraform fmt` with
+-- Terraform. Julia (runic), Clojure (cljfmt) and Dockerfile (dockerfmt) need
+-- their binaries installed by hand or through Mason
 --
--- LaTeX formatting requires a TeX distribution and latexindent.
--- On Arch Linux:
---
--- `sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra`
---
--- Shell formatting requires shfmt.
--- On Arch Linux:
---
--- `sudo pacman -S shfmt`
---
--- SQL formatting uses sql-formatter (Node-based).
---
--- `npm install -g sql-formatter`
---
--- TOML formatting requires taplo.
--- On Arch Linux:
---
--- `sudo pacman -S taplo-cli`
---
--- XML formatting requires xmlformatter (Python-based).
---
--- `pip install xmlformatter`
---
--- Ruby formatting requires rubocop.
---
--- `gem install rubocop`
---
--- Elixir formatting uses `mix format`, bundled with Elixir itself.
--- On Arch Linux:
---
--- `sudo pacman -S elixir`
---
--- Nix formatting requires nixfmt.
--- On Arch Linux:
---
--- `sudo pacman -S nixfmt`
---
--- Terraform formatting uses `terraform fmt`, bundled with Terraform itself.
---
--- Perl formatting requires Perl::Tidy.
---
--- `sudo pacman -S perltidy`
---
--- R formatting requires the `styler` R package.
---
--- `R -e 'install.packages("styler")'`
---
--- Scala formatting requires scalafmt.
--- On Arch Linux:
---
--- `sudo pacman -S scalafmt`
---
--- Julia formatting requires the `runic` package/binary.
---
--- Elm formatting requires elm-format.
---
--- `npm install -g elm-format`
---
--- Clojure formatting requires cljfmt.
---
--- Dockerfile formatting requires dockerfmt.
---
--- Protobuf formatting requires the Buf CLI.
--- On Arch Linux:
---
--- `sudo pacman -S buf`
---
--- Most of the remaining formatters (Stylua, Ruff, Rustfmt, Google Java
--- Format, Fourmolu, yamlfmt, shfmt, sql-formatter, taplo, ktlint,
--- swiftformat, csharpier, zigfmt, etc.) can be installed through Mason.
---
--- Make sure the formatter executables are available on PATH
--- when Conform.nvim attempts to run them.
---
--- refs:
---     - https://github.com/stevearc/conform.nvim
---     - https://github.com/prettier/prettier
---     - https://github.com/fsouza/prettierd
---     - https://docs.astro.build/
---     - https://github.com/cmhughes/latexindent.pl
---     - https://clang.llvm.org/docs/ClangFormat.html
---     - https://go.dev/
---     - https://github.com/mvdan/sh
---     - https://github.com/sql-formatter-org/sql-formatter
---     - https://taplo.tamasfe.dev/
---     - https://github.com/rubocop/rubocop
---     - https://hexdocs.pm/mix/Mix.Tasks.Format.html
---     - https://github.com/NixOS/nixfmt
---     - https://github.com/bufbuild/buf
+-- See: https://github.com/stevearc/conform.nvim
 
 return {
   "stevearc/conform.nvim",
@@ -183,6 +100,7 @@ return {
         -- Docs
         markdown = { "prettierd", "prettier", stop_after_first = true },
         tex = { "latexindent" },
+        typst = { "typstyle" },
 
         -- Misc
         asm = { "asmfmt" },

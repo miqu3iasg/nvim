@@ -30,6 +30,7 @@ return {
           "ts_ls",
           "astro",
           "ols",
+          "tinymist",
           "pyright",
           "ruff",
           "clangd",
@@ -163,6 +164,22 @@ return {
               matcher = "fuzzy-ignore-case",
             },
           },
+        },
+      })
+
+      -- Typst
+      lspconfig.tinymist.setup({
+        capabilities = capabilities,
+        single_file_support = true,
+        settings = {
+          formatterMode = "typstyle",
+
+          exportPdf = "onSave", -- "onType" | "onSave" | "never"
+
+          -- Keep in sync with pdf_path() in after/ftplugin/typst.lua
+          outputPath = "$root/build/$dir/$name",
+
+          semanticTokens = "disable", -- highlight comes from treesitter only
         },
       })
 
