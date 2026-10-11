@@ -9,6 +9,7 @@
 -- `common_filetypes`
 local snippet_modules = {
   { "tex",      "snippets.latex" },
+  { "typst",    "snippets.typst" },
   { "c",        "snippets.c" },
   { "python",   "snippets.python" },
   { "java",     "snippets.java" },
@@ -34,6 +35,7 @@ local common_filetypes = {
   "sh",
   "markdown",
   "tex",
+  "typst",
   "sql",
   "mysql",
   "plsql",
