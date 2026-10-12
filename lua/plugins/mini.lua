@@ -24,24 +24,6 @@ return {
         },
       })
 
-      require("mini.operators").setup({
-        evaluate = {
-          prefix = "g=", -- Evaluate text and replace with result
-        },
-        exchange = {
-          prefix = "gx", -- Exchange two pieces of text
-        },
-        multiply = {
-          prefix = "ge", -- Duplicate text
-        },
-        replace = {
-          prefix = "gu", -- Replace text with register content
-        },
-        sort = {
-          prefix = "gs", -- Sort text
-        },
-      })
-
       require("mini.jump").setup({
         mappings = {
           forward = "f",      -- Jump forward to char

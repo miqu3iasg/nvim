@@ -129,7 +129,6 @@ return {
     keys = {
       { "<leader>gw", "<cmd>FzfLua git_branches<cr>", desc = "Git branches (checkout)" },
       { "<leader>gi", "<cmd>FzfLua git_commits<cr>",  desc = "Git commits" },
-      { "<leader>gz", "<cmd>FzfLua git_stash<cr>",    desc = "Git stash" },
     },
   },
 }

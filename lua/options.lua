@@ -61,6 +61,7 @@ vim.opt.winborder = "single"
 vim.opt.number = false
 vim.opt.relativenumber = false
 vim.opt.scrolloff = 0
+vim.opt.sidescrolloff = 5
 vim.opt.cmdheight = 1
 vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
