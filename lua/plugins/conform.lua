@@ -107,7 +107,7 @@ return {
 
         -- Fallback for filetypes not explicitly configured above:
         -- just trims trailing whitespace and extra blank lines,
-        -- so `format_on_save` never silently no-ops.
+        -- so `format_on_save` never silently no-ops
         ["_"] = { "trim_whitespace", "trim_newlines" },
       },
       formatters = {
@@ -116,7 +116,7 @@ return {
         },
         clang_format = {
           -- this file must be located in `~/.clang-format`. We have an example
-          -- of this file in `assets/templates/clang-format.example.yaml`.
+          -- of this file in `assets/templates/clang-format.example.yaml`
           prepend_args = { "--style=file" },
         },
         golines = {

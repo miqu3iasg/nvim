@@ -1,5 +1,59 @@
 -- lua/plugins/lspconfig.lua
 
+local function root(patterns, single_file)
+  local function match(name)
+    for _, p in ipairs(patterns) do
+      if p:sub(1, 1) == "*" then
+        if name:sub(-(#p - 1)) == p:sub(2) then
+          return true
+        end
+      elseif name == p then
+        return true
+      end
+    end
+    return false
+  end
+
+  return function(bufnr, on_dir)
+    local found = vim.fs.root(bufnr, match)
+    if found then
+      on_dir(found)
+    elseif single_file then
+      on_dir(vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr)))
+    end
+  end
+end
+
+-- Resolves the Python interpreter for pyright. An active VIRTUAL_ENV wins,
+-- then a virtual environment inside the workspace (.venv, venv, env, .env),
+-- then the python3 found on PATH
+local function get_python_path(workspace)
+  local venv_path = os.getenv("VIRTUAL_ENV")
+
+  if venv_path and venv_path ~= "" then
+    return venv_path .. "/bin/python3"
+  end
+
+  local cwd = workspace or vim.fn.getcwd()
+  local candidates = { ".venv", "venv", "env", ".env" }
+
+  for _, name in ipairs(candidates) do
+    local py = cwd .. "/" .. name .. "/bin/python3"
+
+    if vim.fn.executable(py) == 1 then
+      return py
+    end
+  end
+
+  local global_py = vim.fn.exepath("python3")
+
+  if global_py ~= "" then
+    return global_py
+  end
+
+  return "/usr/bin/python3"
+end
+
 return {
   {
     "williamboman/mason.nvim",
@@ -14,6 +68,7 @@ return {
     "williamboman/mason-lspconfig.nvim",
     config = function()
       require("mason-lspconfig").setup({
+        -- Servers are enabled explicitly in the nvim-lspconfig block below
         automatic_enable = false,
         ensure_installed = {
           "fortls",
@@ -21,6 +76,7 @@ return {
           "omnisharp",
           "lua_ls",
           "gopls",
+          "sqlls",
           "jdtls",
           "templ",
           "html",
@@ -37,9 +93,7 @@ return {
           "prismals",
           "yamlls",
           "jsonls",
-          "eslint",
           "marksman",
-          "sqlls",
           "wgsl_analyzer",
           "texlab",
           "intelephense",
@@ -49,19 +103,20 @@ return {
     end,
   },
 
-  -- Precise Neovim/Lua API support for lua_ls.
+  -- Precise Neovim/Lua API support for lua_ls. It also manages the lua_ls
+  -- workspace library, so none is configured by hand below
   {
     "folke/lazydev.nvim",
     ft = "lua",
     opts = {
       library = {
-        -- Load vim.uv when referenced.
-        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+        { path = "${3rd}/luv/library",    words = { "vim%.uv" } },
+        { path = "${3rd}/love2d/library", words = { "love%." } },
       },
     },
   },
 
-  -- Provides schemas for jsonls and yamlls.
+  -- Provides schemas for jsonls and yamlls
   {
     "b0o/schemastore.nvim",
     lazy = true,
@@ -72,184 +127,53 @@ return {
     dependencies = { "hrsh7th/cmp-nvim-lsp" },
     config = function()
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
-      local lspconfig = require("lspconfig")
-      local util = require("lspconfig").util
-      local configs = require("lspconfig.configs")
 
-      -- Diagnostic UI is configured centrally in options.lua.
-
-      lspconfig.cmake.setup({
+      -- Applied to every server.
+      vim.lsp.config("*", {
         capabilities = capabilities,
       })
 
-      lspconfig.fortls.setup({
-        capabilities = capabilities,
-        root_dir = require("lspconfig").util.root_pattern("*.f90"),
-      })
+      -- Diagnostic UI is configured centrally in options.lua
 
-      lspconfig.purescriptls.setup({
-        capabilities = capabilities,
-        filetypes = { "purescript" },
-        settings = {
-          purescript = {
-            addSpagoSources = true,
-          },
+      -- clang-tidy only produces diagnostics
+      vim.lsp.config("clangd", {
+        cmd = {
+          "clangd",
+          "--background-index",
+          "--clang-tidy=false",
+          "--pch-storage=memory",
+          "--all-scopes-completion",
+          "--pretty",
+          "--header-insertion=never",
+          "-j=4",
+          "--inlay-hints",
+          "--header-insertion-decorators",
+          "--function-arg-placeholders",
+          "--completion-style=detailed",
         },
-        flags = {
-          debounce_text_changes = 150,
-        },
+        filetypes = { "c", "cpp", "objc", "objcpp" },
+        root_dir = root({
+          "compile_commands.json",
+          "compile_flags.txt",
+          ".clangd",
+          "CMakeLists.txt",
+          "Makefile",
+          ".git",
+        }, true),
+        init_options = { fallbackFlags = { "-std=c++2a" } },
       })
 
-      lspconfig.ols.setup({
-        capabilities = capabilities,
-        root_dir = require("lspconfig").util.root_pattern("*.odin"),
-      })
-
-      lspconfig.ocamllsp.setup({
-        capabilities = capabilities,
-        cmd = { "ocamllsp", "--stdio" },
-        filetypes = { "ocaml", "reason" },
-        root_dir = require("lspconfig").util.root_pattern(
-          "*.opam",
-          "esy.json",
-          "package.json"
-        ),
-      })
-
-      if not configs.roc_ls then
-        configs.roc_ls = {
-          default_config = {
-            cmd = { "roc_language_server", "--stdio" },
-            capabilities = capabilities,
-            filetypes = {
-              "roc",
-            },
-            single_file_support = true,
-          },
-        }
-      end
-
-      lspconfig.roc_ls.setup({
-        capabilities = capabilities,
-      })
-
-      lspconfig.astro.setup({
-        capabilities = capabilities,
-      })
-
-      lspconfig.nil_ls.setup({
-        capabilities = capabilities,
-      })
-
-      -- SQL
-      lspconfig.sqlls.setup({
-        capabilities = capabilities,
-      })
-
-      lspconfig.intelephense.setup({
-        capabilities = capabilities,
-      })
-
-      -- LaTeX
-      lspconfig.texlab.setup({
-        capabilities = capabilities,
-        settings = {
-          texlab = {
-            completion = {
-              -- Use fuzzy, case-insensitive matching instead of the default prefix
-              -- matcher. This lets abbreviations such as "thm" and "eqn" surface
-              -- relevant LaTeX completions like "\theorem" and "\begin{equation}",
-              -- keeping texlab's LSP completions consistent with blink.cmp's other
-              -- fuzzy sources (buffer, ripgrep, and VimTeX).
-              matcher = "fuzzy-ignore-case",
-            },
-          },
-        },
-      })
-
-      -- Typst
-      lspconfig.tinymist.setup({
-        capabilities = capabilities,
-        single_file_support = true,
-        settings = {
-          formatterMode = "typstyle",
-
-          exportPdf = "onSave", -- "onType" | "onSave" | "never"
-
-          -- Keep in sync with pdf_path() in after/ftplugin/typst.lua
-          outputPath = "$root/build/$dir/$name",
-
-          semanticTokens = "disable", -- highlight comes from treesitter only
-        },
-      })
-
-      lspconfig.zls.setup({
-        capabilities = capabilities,
-        cmd = { "zls" },
-      })
-
-      lspconfig.hls.setup({
-        capabilities = capabilities,
-        single_file_support = true,
-      })
-
-      -- BASH
-      lspconfig.bashls.setup({
-        capabilities = capabilities,
-      })
-
-      -- LUA
-      lspconfig.lua_ls.setup({
-        capabilities = capabilities,
-        settings = {
-          Lua = {
-            diagnostics = {
-              globals = { "vim" },
-            },
-            workspace = {
-              library = {
-                vim.api.nvim_get_runtime_file("", true),
-                "${3rd}/love2d/library",
-              },
-              checkThirdParty = false,
-            },
-            telemetry = {
-              enable = false,
-            },
-            hint = {
-              enable = true, -- Enable inlay hints.
-            },
-          },
-        },
-      })
-
-      lspconfig.wgsl_analyzer.setup({
-        capabilities = capabilities,
-      })
-
-      -- JSON
-      lspconfig.jsonls.setup({
-        capabilities = capabilities,
-        settings = {
-          json = {
-            schemas = require("schemastore").json.schemas(),
-            validate = { enable = true },
-          },
-        },
-      })
-
-      -- GO
-      lspconfig.gopls.setup({
-        capabilities = capabilities,
+      -- staticcheck and the extra analyzers only produce diagnostics
+      vim.lsp.config("gopls", {
         settings = {
           gopls = {
             gofumpt = true,
-            staticcheck = true,
+            staticcheck = false,
             usePlaceholders = true,
             completeUnimported = true,
             analyses = {
-              unusedparams = true,
-              shadow = true,
+              unusedparams = false,
+              shadow = false,
             },
             hints = {
               assignVariableTypes = true,
@@ -262,260 +186,80 @@ return {
         },
       })
 
-      -- CSS
-      lspconfig.cssls.setup({
-        capabilities = capabilities,
-        settings = {
-          css = { validate = true },
-          scss = { validate = true },
-          less = { validate = true },
-        },
-      })
-
-      lspconfig.prismals.setup({
-        capabilities = capabilities,
-      })
-
-      -- YAML
-      lspconfig.yamlls.setup({
-        capabilities = capabilities,
-        settings = {
-          yaml = {
-            schemaStore = {
-              -- Use schemastore.nvim instead of yamlls's built-in store.
-              enable = false,
-              url = "",
-            },
-            schemas = require("schemastore").yaml.schemas(),
-          },
-        },
-      })
-
-      -- HTML
-      lspconfig.html.setup({
-        capabilities = capabilities,
-        single_file_support = true,
-        filetypes = {
-          "templ",
-          "html",
-          "php",
-        },
-      })
-
-      -- EMMET (HTML/CSS/JSX/TSX)
-      lspconfig.emmet_ls.setup({
-        capabilities = capabilities,
-        single_file_support = true,
-        filetypes = {
-          "templ",
-          "html",
-          "css",
-          "php",
-          "javascript",
-          "javascriptreact",
-          "typescriptreact",
-          "typescript",
-          "jsx",
-          "tsx",
-        },
-      })
-
-      -- TAILWIND CSS
-      lspconfig.tailwindcss.setup({
-        capabilities = capabilities,
-        filetypes = {
-          "templ",
-          "html",
-          "css",
-          "javascriptreact",
-          "typescriptreact",
-          "javascript",
-          "typescript",
-          "jsx",
-          "tsx",
-        },
-        root_dir = require("lspconfig").util.root_pattern(
-          "tailwind.config.js",
-          "tailwind.config.cjs",
-          "tailwind.config.mjs",
-          "tailwind.config.ts",
-          "postcss.config.js",
-          "postcss.config.cjs",
-          "postcss.config.mjs",
-          "postcss.config.ts",
-          "package.json",
-          "node_modules",
-          ".git"
-        ),
-      })
-
-      lspconfig.templ.setup({
-        capabilities = capabilities,
-        filetypes = { "templ" },
-      })
-
-      -- JAVASCRIPT / TYPESCRIPT
-      if not configs.ts_ls then
-        configs.ts_ls = {
-          default_config = {
-            cmd = { "typescript-language-server", "--stdio" },
-            capabilities = capabilities,
-            filetypes = {
-              "javascript",
-              "javascriptreact",
-              "typescript",
-              "typescriptreact",
-              "html",
-            },
-            root_dir = require("lspconfig").util.root_pattern(
-              "package.json",
-              "tsconfig.json",
-              ".git"
-            ),
-            single_file_support = true,
-          },
-        }
-      end
-
-      lspconfig.ts_ls.setup({
-        capabilities = capabilities,
-      })
-
-      lspconfig.eslint.setup({
-        capabilities = capabilities,
-      })
-
-      -- C / C++
-      lspconfig.clangd.setup({
-        cmd = {
-          "clangd",
-          "--background-index",
-          "--pch-storage=memory",
-          "--all-scopes-completion",
-          "--pretty",
-          "--header-insertion=never",
-          "-j=4",
-          "--inlay-hints",
-          "--header-insertion-decorators",
-          "--function-arg-placeholders",
-          "--completion-style=detailed",
-        },
-        filetypes = { "c", "cpp", "objc", "objcpp" },
-        root_dir = require("lspconfig").util.root_pattern(
-          "compile_commands.json",
-          "compile_flags.txt",
-          ".clangd",
-          "CMakeLists.txt",
-          "Makefile",
-          ".git"
-        ),
-        init_options = { fallbackFlags = { "-std=c++2a" } },
-        capabilities = capabilities,
-        single_file_support = true,
-      })
-
-      -- PYTHON
-      local function get_python_path(workspace)
-        local venv_path = os.getenv("VIRTUAL_ENV")
-
-        if venv_path and venv_path ~= "" then
-          return venv_path .. "/bin/python3"
-        end
-
-        local cwd = workspace or vim.fn.getcwd()
-        local candidates = { ".venv", "venv", "env", ".env" }
-
-        for _, name in ipairs(candidates) do
-          local py = cwd .. "/" .. name .. "/bin/python3"
-
-          if vim.fn.executable(py) == 1 then
-            return py
-          end
-        end
-
-        local global_py = vim.fn.exepath("python3")
-
-        if global_py ~= "" then
-          return global_py
-        end
-
-        return "/usr/bin/python3"
-      end
-
-      lspconfig.pyright.setup({
-        capabilities = capabilities,
-        on_new_config = function(new_config, new_root_dir)
-          new_config.settings.python.pythonPath = get_python_path(new_root_dir)
-        end,
-        settings = {
-          python = {
-            pythonPath = get_python_path(),
-            analysis = {
-              autoSearchPaths = true,
-              useLibraryCodeForTypes = true,
-              diagnosticMode = "workspace",
-              typeCheckingMode = "basic",
-            },
-          },
-        },
-      })
-
-      lspconfig.ruff.setup({
-        capabilities = capabilities,
-        on_attach = function(client, bufnr)
-          client.server_capabilities.hoverProvider = false
-        end,
-      })
-
-      lspconfig.marksman.setup({
-        capabilities = capabilities,
-      })
-
-      lspconfig.gleam.setup({
-        capabilities = capabilities,
-      })
-
-      lspconfig.nim_langserver.setup({
-        capabilities = capabilities,
-      })
-
-      -- C#
-      lspconfig.omnisharp.setup({
-        capabilities = capabilities,
+      -- Roslyn analyzers only produce diagnostics. Import completion and
+      -- organize-imports on format stay enabled
+      vim.lsp.config("omnisharp", {
         cmd = { "OmniSharp" },
-        enable_roslyn_analyzers = true,
-        organize_imports_on_format = true,
-        enable_import_completion = true,
-      })
-
-      -- lspconfig.csharp_ls.setup({
-      --   capabilities = capabilities,
-      -- })
-
-      lspconfig.cmake.setup({
-        capabilities = capabilities,
-        cmd = {
-          os.getenv("HOME")
-          .. "/.local/share/cmake-language-server/bin/cmake-language-server",
+        settings = {
+          FormattingOptions = {
+            OrganizeImports = true,
+          },
+          RoslynExtensionsOptions = {
+            EnableAnalyzersSupport = false,
+            EnableImportCompletion = true,
+            AnalyzeOpenDocumentsOnly = true,
+          },
         },
       })
 
-      lspconfig.fennel_ls.setup({
-        capabilities = capabilities,
+      vim.lsp.config("fortls", {
+        root_dir = root({ "*.f90" }, true),
+      })
+
+      vim.lsp.config("ols", {
+        root_dir = root({ "*.odin" }, true),
+      })
+
+      vim.lsp.config("cmake", {
+        cmd = {
+          vim.fn.expand("~/.local/share/cmake-language-server/bin/cmake-language-server"),
+        },
+      })
+
+      vim.lsp.config("zls", {
+        cmd = { "zls" },
+      })
+
+      vim.lsp.config("c3_lsp", {
+        cmd = { "c3lsp" },
+        root_dir = root({ "project.json", "*.c3" }, true),
+      })
+
+      vim.lsp.config("purescriptls", {
+        settings = {
+          purescript = {
+            addSpagoSources = true,
+          },
+        },
+      })
+
+      vim.lsp.config("ocamllsp", {
+        cmd = { "ocamllsp", "--stdio" },
+        filetypes = { "ocaml", "reason" },
+        root_dir = root({ "*.opam", "esy.json", "package.json" }, true),
+      })
+
+      vim.lsp.config("roc_ls", {
+        cmd = { "roc_language_server", "--stdio" },
+        filetypes = { "roc" },
+      })
+
+      vim.lsp.config("fennel_ls", {
         cmd = { "fennel-ls" },
       })
 
-      lspconfig.rescriptls.setup({
-        capabilities = capabilities,
+      vim.lsp.config("rescriptls", {
         cmd = { "rescript-language-server", "--stdio" },
-        root_dir = require("lspconfig").util.root_pattern("rescript.json"),
+        root_dir = root({ "rescript.json" }, false),
       })
 
-      lspconfig.julials.setup({
-        capabilities = capabilities,
+      -- The language server runs from a dedicated Julia environment, which is
+      -- instantiated on startup. The linter is disabled because it only
+      -- produces diagnostics
+      vim.lsp.config("julials", {
         cmd = {
           "julia",
-          "--project=" .. "~/.julia/environments/lsp/",
+          "--project=" .. vim.fn.expand("~/.julia/environments/lsp/"),
           "--startup-file=no",
           "--history-file=no",
           "-e",
@@ -542,27 +286,219 @@ return {
               project_path,
               depot_path
             )
-            server.runlinter = true
+            server.runlinter = false
             run(server)
           ]],
         },
-        on_attach = function(client, bufnr)
-          vim.api.nvim_buf_set_option(
-            bufnr,
-            "omnifunc",
-            "v:lua.vim.lsp.omnifunc"
-          )
-        end,
-        root_dir = require("lspconfig").util.root_pattern("*.jl"),
+        root_dir = root({ "*.jl" }, true),
       })
 
-      lspconfig.c3_lsp.setup({
-        capabilities = capabilities,
-        cmd = { "c3lsp" },
-        root_dir = require("lspconfig").util.root_pattern({
-          "project.json",
-          "*.c3",
-        }),
+      -- Diagnostics are disabled entirely. Inlay hints stay on
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = {
+            diagnostics = {
+              enable = false,
+            },
+            workspace = {
+              checkThirdParty = false,
+            },
+            telemetry = {
+              enable = false,
+            },
+            hint = {
+              enable = true,
+            },
+          },
+        },
+      })
+
+      -- Type checking only produces diagnostics, so it is turned off. Hover,
+      -- completion and navigation keep working. Only open files are analyzed
+      -- instead of the whole workspace.
+      vim.lsp.config("pyright", {
+        before_init = function(_, config)
+          config.settings = vim.tbl_deep_extend("force", config.settings or {}, {
+            python = { pythonPath = get_python_path(config.root_dir) },
+          })
+        end,
+        settings = {
+          python = {
+            pythonPath = get_python_path(),
+            analysis = {
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+              diagnosticMode = "openFilesOnly",
+              typeCheckingMode = "off",
+            },
+          },
+        },
+      })
+
+      -- Hover is left to pyright. If ruff is only used as a formatter, linting
+      -- can also be turned off with
+      -- init_options = { settings = { lint = { enable = false } } }
+      vim.lsp.config("ruff", {
+        on_attach = function(client)
+          client.server_capabilities.hoverProvider = false
+        end,
+      })
+
+      -- Schemas are kept for completion, but validation is disabled because
+      -- it only produces diagnostics. The same applies to yamlls and cssls
+      vim.lsp.config("jsonls", {
+        settings = {
+          json = {
+            schemas = require("schemastore").json.schemas(),
+            validate = { enable = false },
+          },
+        },
+      })
+
+      vim.lsp.config("yamlls", {
+        settings = {
+          yaml = {
+            validate = false,
+            schemaStore = {
+              -- schemastore.nvim is used instead of the built-in store
+              enable = false,
+              url = "",
+            },
+            schemas = require("schemastore").yaml.schemas(),
+          },
+        },
+      })
+
+      vim.lsp.config("cssls", {
+        settings = {
+          css = { validate = false },
+          scss = { validate = false },
+          less = { validate = false },
+        },
+      })
+
+      vim.lsp.config("html", {
+        filetypes = { "templ", "html", "php" },
+      })
+
+      vim.lsp.config("emmet_ls", {
+        filetypes = {
+          "templ",
+          "html",
+          "css",
+          "php",
+          "javascript",
+          "javascriptreact",
+          "typescriptreact",
+          "typescript",
+          "jsx",
+          "tsx",
+        },
+      })
+
+      vim.lsp.config("tailwindcss", {
+        filetypes = {
+          "templ",
+          "html",
+          "css",
+          "javascriptreact",
+          "typescriptreact",
+          "javascript",
+          "typescript",
+          "jsx",
+          "tsx",
+        },
+        root_dir = root({
+          "tailwind.config.js",
+          "tailwind.config.cjs",
+          "tailwind.config.mjs",
+          "tailwind.config.ts",
+          "postcss.config.js",
+          "postcss.config.cjs",
+          "postcss.config.mjs",
+          "postcss.config.ts",
+          "package.json",
+          "node_modules",
+          ".git",
+        }, false),
+      })
+
+      vim.lsp.config("templ", {
+        filetypes = { "templ" },
+      })
+
+      vim.lsp.config("texlab", {
+        settings = {
+          texlab = {
+            completion = {
+              -- Fuzzy, case-insensitive matching instead of the default prefix
+              -- matcher. Abbreviations such as "thm" and "eqn" then surface
+              -- completions like "\theorem" and "\begin{equation}", which keeps
+              -- texlab consistent with blink.cmp's other fuzzy sources (buffer,
+              -- ripgrep and VimTeX)
+              matcher = "fuzzy-ignore-case",
+            },
+          },
+        },
+      })
+
+      vim.lsp.config("tinymist", {
+        settings = {
+          formatterMode = "typstyle",
+
+          -- One of "onType", "onSave" or "never"
+          exportPdf = "onSave",
+
+          -- Keep in sync with pdf_path() in after/ftplugin/typst.lua
+          outputPath = "$root/build/$dir/$name",
+
+          -- Highlighting comes from treesitter only.
+          semanticTokens = "disable",
+
+          -- Only honored by tinymist versions that support linting
+          lint = { enabled = false },
+        },
+      })
+
+      -- Servers that exist only to produce diagnostics
+      vim.lsp.enable({
+        "astro",
+        "bashls",
+        "c3_lsp",
+        "clangd",
+        "cmake",
+        "cssls",
+        "emmet_ls",
+        "fennel_ls",
+        "fortls",
+        "gleam",
+        "gopls",
+        "hls",
+        "html",
+        "intelephense",
+        "jsonls",
+        "sqlls",
+        "lua_ls",
+        "marksman",
+        "nil_ls",
+        "nim_langserver",
+        "ocamllsp",
+        "ols",
+        "omnisharp",
+        "prismals",
+        "purescriptls",
+        "pyright",
+        "rescriptls",
+        "roc_ls",
+        "ruff",
+        "tailwindcss",
+        "templ",
+        "texlab",
+        "tinymist",
+        "ts_ls",
+        "wgsl_analyzer",
+        "yamlls",
+        "zls",
       })
     end,
   },
