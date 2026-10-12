@@ -1,74 +1,95 @@
 -- lua/plugins/fzf.lua
 
+-- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fzf.vim
+-- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/plugin/fzf.vim
+
 return {
   "ibhagwan/fzf-lua",
-  ---@module "fzf-lua"
-  ---@type fzf-lua.Config|{}
-  ---@diagnostic disable: missing-fields
-  opts = {
-    file_icons = false,
-    git_icons  = false,
-    winopts    = {
-      cursorline     = true,
-      title          = false,
-      number         = true,
-      relativenumber = false,
-      border         = "none",
-      header         = false,
-      title_pos      = "center",
-      cursorcolumn   = false,
-      list           = false,
-      foldenable     = false,
-      foldmethod     = "manual",
+  opts = function()
+    local actions = require("fzf-lua").actions
 
-      split          = function()
-        local height = math.floor(vim.o.lines * 0.25)
-        vim.cmd(("belowright %dnew"):format(height))
+    -- Open the selected file(s) using a custom vim command
+    local function open_with(vimcmd)
+      return function(selected, o)
+        return actions.vimcmd_file(vimcmd, selected, o)
+      end
+    end
 
-        vim.wo.number = true
-        vim.wo.relativenumber = false
-      end,
+    return {
+      file_icons = false,
+      git_icons  = false,
 
-      preview        = {
-        default = "builtin",
-        layout = "horizontal",
-        horizontal = "right:50%",
-        hidden = true,
-        border = "none",
-        scrollbar = false,
+      winopts    = {
+        split   = "botright 10new",
+        border  = "none",
+        title   = false,
+        preview = {
+          default    = "builtin",
+          layout     = "horizontal",
+          horizontal = "left:99%",
+          hidden     = true,
+          wrap       = true,
+          border     = "none",
+          scrollbar  = false,
+          winopts    = {
+            number         = false,
+            relativenumber = false,
+            cursorline     = false,
+            foldenable     = false,
+          },
+        },
       },
-    },
-    fzf_opts   = {
-      ["--ansi"]           = true,
-      ["--info"]           = "inline-right",
-      ["--layout"]         = "reverse",
-      ["--highlight-line"] = true,
-      ["--no-separator"]   = "",
-      ["--no-scrollbar"]   = "",
-    },
-    previewers = {
-      builtin = {
+
+      fzf_opts   = {
+        ["--ansi"]           = true,
+        ["--layout"]         = "reverse",
+        ["--info"]           = false,
+        ["--highlight-line"] = false,
+      },
+
+      previewers = {
         builtin = {
-          ["ctrl-/"] = "toggle-preview",
-        },
-        treesitter = {
-          enabled    = true,
-          fzf_colors = { ["hl"] = "-1:reverse", ["hl+"] = "-1:reverse" },
+          treesitter = { enabled = true },
         },
       },
-    },
-    keymap     = {
-      fzf = {
-        ["ctrl-z"] = "abort",
-        ["ctrl-u"] = "unix-line-discard",
-        ["ctrl-a"] = "beginning-of-line",
-        ["ctrl-e"] = "end-of-line",
-        ["ctrl-q"] = "select-all+accept",
-      },
-    },
-  },
 
-  ---@diagnostic enable: missing-fields
+      actions    = {
+        files = {
+          ["enter"]  = actions.file_edit_or_qf,
+          ["ctrl-t"] = actions.file_tabedit,
+          ["ctrl-x"] = actions.file_split,
+          ["alt-v"]  = open_with("leftabove vsplit"),
+          ["ctrl-v"] = open_with("belowright vsplit"),
+          ["alt-q"]  = actions.file_sel_to_qf,
+          ["alt-Q"]  = actions.file_sel_to_ll,
+        },
+      },
+
+      keymap     = {
+        builtin = {
+          ["<C-j>"] = "preview-page-down",
+          ["<C-k>"] = "preview-page-up",
+        },
+        fzf = {
+          ["ctrl-/"] = "toggle-preview",
+          ["ctrl-g"] = "execute(less -c -i --incsearch --search-options=W -g {})",
+          ["ctrl-z"] = "abort",
+          ["ctrl-u"] = "unix-line-discard",
+          ["ctrl-a"] = "beginning-of-line",
+          ["ctrl-e"] = "end-of-line",
+          ["ctrl-q"] = "select-all+accept",
+        },
+      },
+
+      grep       = {
+        fzf_opts = {
+          ["--delimiter"] = ":",
+          ["--with-nth"]  = "1,4..",
+        },
+      },
+    }
+  end,
+
   keys = {
     { "<leader>fm", "<cmd>FzfLua marks<cr>",                 desc = "Fzf: Marks" },
     { "<leader>fk", "<cmd>FzfLua keymaps<cr>",               desc = "Fzf: Keymaps" },
