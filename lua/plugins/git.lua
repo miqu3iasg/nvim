@@ -1,10 +1,10 @@
 -- lua/plugins/git.lua
 
 -- Histogram diffs read better than Myers on refactored code, and linematch
--- aligns changed lines within a hunk.
+-- aligns changed lines within a hunk
 vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:60" })
 
--- The default blame width is too narrow for author, timestamp and summary.
+-- The default blame width is too narrow for author, timestamp and summary
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitiveblame",
   callback = function()
@@ -12,119 +12,15 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-local function is_fugitive_buf(buf)
-  return vim.api.nvim_buf_get_name(buf):find("^fugitive://") ~= nil
-end
-
--- Keeps the working copy (the only diff window that is not a `fugitive://`
--- buffer) and closes the rest. Replaces Fugitive's `dq`, which is not mapped
--- in every window.
-local function close_diff()
-  if not vim.wo.diff then
-    return
-  end
-  local wins = vim.tbl_filter(function(w)
-    return vim.wo[w].diff
-  end, vim.api.nvim_tabpage_list_wins(0))
-
-  local keep
-  for _, w in ipairs(wins) do
-    if not is_fugitive_buf(vim.api.nvim_win_get_buf(w)) then
-      keep = w
-      break
-    end
-  end
-  keep = keep or vim.api.nvim_get_current_win()
-
-  for _, w in ipairs(wins) do
-    if w ~= keep then
-      pcall(vim.api.nvim_win_close, w, false)
-    end
-  end
-  vim.api.nvim_set_current_win(keep)
-  vim.cmd("diffoff!")
-end
-
--- Closes the Fugitive view under the cursor without ever quitting Neovim.
--- Status and blame delegate to Fugitive's own `gq` so blame state is restored.
--- A `gitcommit` buffer is discarded, which aborts the commit.
-local function close_view()
-  if vim.wo.diff then
-    return close_diff()
-  end
-
-  local ft = vim.bo.filetype
-  if (ft == "fugitive" or ft == "fugitiveblame") and vim.fn.maparg("gq", "n") ~= "" then
-    return vim.api.nvim_feedkeys(vim.keycode("gq"), "m", false)
-  end
-
-  local bang = ft == "gitcommit" and "!" or ""
-  local ok, err = pcall(function()
-    if #vim.api.nvim_tabpage_list_wins(0) > 1 or #vim.api.nvim_list_tabpages() > 1 then
-      vim.cmd("close" .. bang)
-      return
-    end
-    local alt = vim.fn.bufnr("#")
-    if alt > 0 and vim.api.nvim_buf_is_valid(alt) and vim.bo[alt].buftype == "" then
-      vim.cmd("buffer" .. bang .. " " .. alt)
-    else
-      vim.cmd("enew" .. bang)
-    end
-  end)
-  if not ok then
-    vim.notify(tostring(err), vim.log.levels.WARN)
-  end
-end
-
--- Maps `q` on Fugitive views, plus `gq` and `dq` on read-only ones. Status and
--- blame keep Fugitive's own `gq`. Runs on the next tick so our maps override
--- the ones Fugitive installs after setting the filetype.
-local function map_close(buf)
-  if not vim.api.nvim_buf_is_valid(buf) then
-    return
-  end
-  local ft = vim.bo[buf].filetype
-  local opts = { buffer = buf, silent = true, desc = "Close Fugitive view" }
-  if ft == "fugitive" or ft == "fugitiveblame" or ft == "git" or ft == "gitcommit" then
-    vim.keymap.set("n", "q", close_view, opts)
-  end
-  if ft ~= "fugitive" and ft ~= "fugitiveblame" and not vim.bo[buf].modifiable then
-    vim.keymap.set("n", "gq", close_view, opts)
-    vim.keymap.set("n", "dq", close_view, opts)
-  end
-end
-
-local close_group = vim.api.nvim_create_augroup("FugitiveCloseView", { clear = true })
-vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
-  group = close_group,
-  pattern = { "fugitive", "fugitiveblame", "git", "gitcommit", "fugitive://*" },
-  callback = function(e)
-    vim.schedule(function()
-      map_close(e.buf)
-    end)
-  end,
-})
-
--- Also gives the working copy a `dq` once it enters diff mode.
-vim.api.nvim_create_autocmd("OptionSet", {
-  group = close_group,
-  pattern = "diff",
-  callback = function()
-    if vim.wo.diff then
-      vim.keymap.set("n", "dq", close_diff, {
-        buffer = vim.api.nvim_get_current_buf(),
-        silent = true,
-        desc = "Close diff",
-      })
-    end
-  end,
-})
+-- Registers the Fugitive close-view keymaps and autocmds
+-- See: lua/utils/close.lua
+require("utils.close").setup()
 
 return {
   {
     "tpope/vim-fugitive",
     -- Provides GitHub URL resolution for `GBrowse`. GitHub Enterprise also
-    -- needs `vim.g.github_enterprise_urls`.
+    -- needs `vim.g.github_enterprise_urls`
     dependencies = { "tpope/vim-rhubarb" },
 
     cmd = { "Git", "G", "GBrowse", "Gvdiffsplit", "Gdiffsplit", "Gwrite", "Gread", "Gclog", "Gedit", "GMove" },
@@ -146,22 +42,37 @@ return {
 
       -- History
       { "<leader>gh", "<cmd>0Gclog<cr>",                              desc = "File history" },
-      { "<leader>gh", ":Gclog<cr>",                                   mode = "x",                           desc = "Line history" },
+      {
+        "<leader>gh",
+        ":Gclog<cr>",
+        mode = "x",
+        desc = "Line history",
+      },
 
       -- Diff
-      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                  desc = "Diff against index" },
-      { "<leader>gD", "<cmd>silent Gvdiffsplit HEAD<cr>",             desc = "Diff against HEAD" },
+      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",      desc = "Diff against index" },
+      { "<leader>gD", "<cmd>silent Gvdiffsplit HEAD<cr>", desc = "Diff against HEAD" },
 
       -- Inspection
-      { "<leader>gb", "<cmd>silent Git blame<cr>",                    desc = "Git blame" },
+      { "<leader>gb", "<cmd>silent Git blame<cr>",        desc = "Git blame" },
 
       -- Browser
       -- Visual mappings use `:` so the selected range reaches `GBrowse`. The
-      -- bang form copies the permalink instead of opening the browser.
-      { "<leader>go", "<cmd>silent .GBrowse<cr>",                     desc = "Open in browser" },
-      { "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>",                mode = "x",                           desc = "Open selection in browser" },
-      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                    desc = "Copy browser link" },
-      { "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>",               mode = "x",                           desc = "Copy selection link" },
+      -- bang form copies the permalink instead of opening the browser
+      { "<leader>go", "<cmd>silent .GBrowse<cr>",         desc = "Open in browser" },
+      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",        desc = "Copy browser link" },
+      {
+        "<leader>go",
+        ":<C-u>silent '<,'>GBrowse<cr>",
+        mode = "x",
+        desc = "Open selection in browser",
+      },
+      {
+        "<leader>gy",
+        ":<C-u>silent '<,'>GBrowse!<cr>",
+        mode = "x",
+        desc = "Copy selection link",
+      },
     },
   },
 
@@ -202,6 +113,7 @@ return {
         apply = "<leader>hs",
         reset = "<leader>hr",
         textobject = "ih",
+        -- TODO: when there are no hunks to navigate, simply do nothing and do not issue a notification short description
         goto_first = "[S",
         goto_prev = "[s",
         goto_next = "]s",
@@ -210,7 +122,7 @@ return {
     },
   },
 
-  -- Merged into the existing fzf-lua setup; ignored if fzf-lua is absent.
+  -- Merged into the existing fzf-lua setup; ignored if fzf-lua is absent
   {
     "ibhagwan/fzf-lua",
     optional = true,
