@@ -1,4 +1,4 @@
--- lua/snippets/common.lua
+-- snippets/common.lua
 
 local ls  = require("luasnip")
 local s   = ls.snippet
@@ -22,11 +22,19 @@ local function get_basename()
   return name ~= "" and name or "untitled"
 end
 
--- Comment style used for file headers, per filetype. "line" prefixes every
--- line with a symbol; "block" wraps content in an open/close pair; "docstring"
--- is a multi-line opener with no per-line prefix (used only by Python).
-local comment_styles = {
-  lua        = { kind = "line", sym = "--" },
+local C_BLOCK              = { kind = "block", open = "/*", close = "*/" }
+local HTML_BLOCK           = { kind = "block", open = "<!--", close = "-->" }
+
+-- File header comment style per filetype. A line style starts every line
+-- with a symbol, a block style wraps the content in an opener and a closer,
+-- and the docstring style (Python only) is a shebang, an encoding line and
+-- an opening triple quote. Block styles can also set `mid`, the prefix of
+-- each content line (default " * "), and `close_indent`, the whitespace
+-- before the closer (default " "). Filetypes without a real block comment
+-- stay on line comments, and lisp and scheme keep ";;;" because it is the
+-- community convention for file metadata
+local comment_styles       = {
+  lua        = { kind = "block", open = "-" .. "-[" .. "[", close = "]" .. "]", mid = "  ", close_indent = "" },
   sh         = { kind = "line", sym = "#" },
   bash       = { kind = "line", sym = "#" },
   zsh        = { kind = "line", sym = "#" },
@@ -36,28 +44,26 @@ local comment_styles = {
   zig        = { kind = "line", sym = "//" },
   scheme     = { kind = "line", sym = ";;;" },
   lisp       = { kind = "line", sym = ";;;" },
-  c          = { kind = "block", open = "/*", close = "*/" },
-  cpp        = { kind = "block", open = "/*", close = "*/" },
-  cs         = { kind = "block", open = "/*", close = "*/" },
-  java       = { kind = "block", open = "/*", close = "*/" },
-  javascript = { kind = "line", sym = "//" },
-  typescript = { kind = "line", sym = "//" },
-  rust       = { kind = "line", sym = "//" },
-  go         = { kind = "line", sym = "//" },
-  php        = { kind = "line", sym = "//" },
-  sql        = { kind = "line", sym = "--" },
-  haskell    = { kind = "line", sym = "--" },
-  html       = { kind = "block", open = "<!--", close = "-->" },
-  xml        = { kind = "block", open = "<!--", close = "-->" },
-  markdown   = { kind = "block", open = "<!--", close = "-->" },
+  c          = C_BLOCK,
+  cpp        = C_BLOCK,
+  cs         = C_BLOCK,
+  java       = C_BLOCK,
+  javascript = C_BLOCK,
+  typescript = C_BLOCK,
+  rust       = C_BLOCK,
+  go         = C_BLOCK,
+  php        = C_BLOCK,
+  sql        = C_BLOCK,
+  kotlin     = C_BLOCK,
+  haskell    = { kind = "block", open = "{-", close = "-}", mid = "  ", close_indent = "" },
+  html       = HTML_BLOCK,
+  xml        = HTML_BLOCK,
+  markdown   = HTML_BLOCK,
   tex        = { kind = "line", sym = "%" },
   latex      = { kind = "line", sym = "%" },
-  ruby       = { kind = "line", sym = "#" },
-  kotlin     = { kind = "line", sym = "//" },
+  ruby       = { kind = "block", open = "=begin", close = "=end", mid = "", close_indent = "" },
   perl       = { kind = "line", sym = "#" },
-  ps1        = { kind = "line", sym = "#" },
-
-  -- Shebang + encoding line + opening triple-quote; closed by `close` below.
+  ps1        = { kind = "block", open = "<#", close = "#>", mid = "  ", close_indent = "" },
   python     = {
     kind = "docstring",
     open = { "#!/usr/bin/env python3", "# -*- coding: utf-8 -*-", '"""' },
@@ -65,13 +71,11 @@ local comment_styles = {
   },
 }
 
-local DEFAULT_STYLE = { kind = "line", sym = "#" }
+local DEFAULT_STYLE        = { kind = "line", sym = "#" }
 
--- Single-line comment symbol per filetype. Used by inline snippets
--- (TODO, FIXME, attribution comments) that must stay on one comment line
--- even in languages whose file-header style above uses a block comment
--- (c, cpp, java).
-local line_comment_by_ft = {
+-- Single-line comment symbol, for inline snippets that must stay on one
+-- comment line even when the file header is a block comment.
+local line_comment_by_ft   = {
   lua        = "--",
   sh         = "#",
   bash       = "#",
@@ -107,8 +111,18 @@ local function line_comment_sym(ft)
   return line_comment_by_ft[ft] or DEFAULT_LINE_COMMENT
 end
 
--- Shebang line per filetype, used by the standalone `shebang` snippet.
--- Only scripting languages that are normally run directly need one.
+-- Filetypes whose multi-line inline snippets (refs, drefs, cblock) use a
+-- block comment. All others use consecutive line comments.
+local inline_block_fts = {
+  c = true,
+  cpp = true,
+  cs = true,
+  java = true,
+  html = true,
+  xml = true,
+  markdown = true,
+}
+
 local shebang_by_ft = {
   sh     = "#!/usr/bin/env sh",
   bash   = "#!/usr/bin/env bash",
@@ -121,7 +135,7 @@ local shebang_by_ft = {
 
 local FIELD_WIDTH = 15
 
--- Pads a field name to a fixed width so header values line up in a column.
+-- Pads a field name so header values line up in a column.
 local function label(text)
   return text .. string.rep(" ", math.max(1, FIELD_WIDTH - #text))
 end
@@ -132,26 +146,26 @@ local function wrap(style, line)
     if line == "" then return style.sym end
     return style.sym .. " " .. line
   elseif style.kind == "block" then
-    if line == "" then return " *" end
-    return " * " .. line
-  else -- No prefix at all
+    local mid = style.mid or " * "
+    if line == "" then return (mid:gsub("%s+$", "")) end
+    return mid .. line
+  else
     return line
   end
 end
 
--- Comment prefix for a line that starts with a placeholder instead of a
--- "Label:" field.
+-- Comment prefix for a line that starts with a placeholder, not a label.
 local function line_prefix(style)
   if style.kind == "line" then
     return style.sym .. " "
   elseif style.kind == "block" then
-    return " * "
-  else -- docstring / no prefix
+    return style.mid or " * "
+  else
     return ""
   end
 end
 
--- Compile/run instructions per filetype, used by the `exs` header.
+-- Compile/run instructions for the `ehead` header.
 local usage_by_ft = {
   c = function(style)
     return {
@@ -323,9 +337,8 @@ local usage_by_ft = {
 usage_by_ft.bash = usage_by_ft.sh
 usage_by_ft.zsh = usage_by_ft.sh
 
--- Test-runner commands per filetype, used by the `testhead` header. Unlike
--- `usage_by_ft` above, these run the test suite (pytest, cargo test, mvn
--- test, and so on), not just the file itself.
+-- Test-suite commands for the `thead` header. Unlike `usage_by_ft`, these
+-- run the tests, not just the file.
 local test_usage_by_ft = {
   c = function(style)
     return {
@@ -462,12 +475,8 @@ local test_usage_by_ft = {
 test_usage_by_ft.bash = test_usage_by_ft.sh
 test_usage_by_ft.zsh = test_usage_by_ft.sh
 
--- Function/method doc-comment body per filetype, used by the `fnhead`/`doc`
--- snippet. Each entry returns nodes in that language's idiomatic doc format
--- (JSDoc, a Google-style docstring, Javadoc/KDoc, Doxygen, Go doc comments,
--- Rust doc comments, PHPDoc, C# XML doc comments, or YARD for Ruby). Takes
--- no `style` argument: unlike `usage_by_ft`, the doc format itself dictates
--- the comment syntax, so these build their own delimiters directly.
+-- Doc comments for `fnhead`, in each language's idiomatic format. These
+-- build their own delimiters because the doc format dictates the syntax.
 local doc_by_ft = {}
 
 doc_by_ft.javascript = function()
@@ -553,9 +562,22 @@ doc_by_ft.ruby = function()
   }
 end
 
--- Emits the header opener and the first field. Block and docstring styles
--- need a line break between the opener and the first field; a line style
--- doesn't.
+-- Falls back to a one-line comment for filetypes without a doc format.
+local function build_fnhead(_, _)
+  local doc = doc_by_ft[vim.bo.filetype]
+  if doc then
+    local nodes = doc()
+    table.insert(nodes, i(0))
+    return sn(nil, nodes)
+  end
+  return sn(nil, {
+    t(line_comment_sym(vim.bo.filetype) .. " "),
+    i(1, "Short description."),
+    i(0),
+  })
+end
+
+-- Block and docstring styles need a line break after the opener.
 local function open_and_first_line(add, style, first_line)
   if style.kind == "block" or style.kind == "docstring" then
     add(t(style.open))
@@ -565,11 +587,11 @@ local function open_and_first_line(add, style, first_line)
   end
 end
 
--- Emits the header closer and a blank line to separate the header from
--- the code that follows.
+-- Closes the header and adds a blank line before the code.
 local function close_header(add, style)
   if style.kind == "block" then
-    add(t({ "", " " .. style.close, "", "" }))
+    local indent = style.close_indent or " "
+    add(t({ "", indent .. style.close, "", "" }))
   elseif style.kind == "docstring" then
     add(t({ "", style.close, "", "" }))
   else
@@ -577,8 +599,7 @@ local function close_header(add, style)
   end
 end
 
--- `head`: minimal, license-free header. File, Author, Created, Modified,
--- Description. Use this when a full license block is overkill.
+-- `head`: File, Author, Created, Modified, Description. No license.
 local function build_head(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -601,11 +622,8 @@ local function build_head(_, _)
   return sn(nil, nodes)
 end
 
--- `studyhead`: header for code written while studying a book or article.
--- File, Author, Created, Modified, Source, By, Location, Description,
--- SPDX-License-Identifier, Copyright. Hardcoded to AGPL-3.0-only, the
--- license used for this kind of file; unlike `<license>head` below, this
--- isn't meant to be generated per license.
+-- `shead`: for code written while studying a book or article. The license
+-- is fixed to AGPL-3.0-only.
 local function build_study(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -641,10 +659,7 @@ local function build_study(_, _)
   return sn(nil, nodes)
 end
 
--- Attribution comments (see, refs, snip): none of these are file headers.
--- They're dropped inline, above or inside a block of code borrowed or
--- adapted from elsewhere, in increasing order of detail.
-
+-- Trigger prefix -> SPDX identifier, for the `<prefix>head` snippets.
 local licenses = {
   agpl    = "AGPL-3.0-only",
   gpl3    = "GPL-3.0-only",
@@ -655,10 +670,7 @@ local licenses = {
   mpl2    = "MPL-2.0",
 }
 
--- Builds a header snippet for the given SPDX license identifier: File,
--- Author, Created, Modified, Description, SPDX-License-Identifier, and
--- Copyright. Study-specific fields (Source, By, Location) live in
--- `studyhead` instead.
+-- Same as `head`, plus an SPDX line and a copyright notice.
 local function build_licensed_head(spdx)
   return function(_, _)
     local ft = vim.bo.filetype
@@ -690,9 +702,7 @@ local function build_licensed_head(spdx)
   end
 end
 
--- `allhead`: proprietary header, no open license. File, Author, Created,
--- Modified, Description, Copyright. Uses the standard "All rights
--- reserved." notice instead of an SPDX identifier.
+-- `ahead`: proprietary header with an "All rights reserved." notice.
 local function build_allhead(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -721,10 +731,8 @@ local function build_allhead(_, _)
   return sn(nil, nodes)
 end
 
--- `exs`: exercise/assignment header. Adds a Problem Statement and a
--- Usage section (compile/run commands from `usage_by_ft`) on top of the
--- standard File/Author/Created/Modified/Source/By/Location/Description
--- fields.
+-- `ehead`: exercise header. `shead` fields plus a problem statement and
+-- compile/run commands from `usage_by_ft`.
 local function build_exs(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -778,8 +786,8 @@ local function build_exs(_, _)
   return sn(nil, nodes)
 end
 
--- `testhead`: test-file header. States what's under test and how to run
--- the test suite (real test-runner commands from `test_usage_by_ft`).
+-- `thead`: test-file header with what is under test and the commands from
+-- `test_usage_by_ft`.
 local function build_testhead(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -814,37 +822,14 @@ local function build_testhead(_, _)
   return sn(nil, nodes)
 end
 
--- `fnhead` / `doc`: function/method doc comment in the idiomatic format
--- for the current filetype (see `doc_by_ft` above). Falls back to a
--- single descriptive comment line for filetypes with no format defined.
-local function build_fnhead(_, _)
-  local ft = vim.bo.filetype
-  local fn = doc_by_ft[ft]
-
-  if not fn then
-    local sym = line_comment_sym(ft)
-    return sn(nil, { t(sym .. " "), i(1, "Short description."), i(0) })
-  end
-
-  local nodes = fn()
-  table.insert(nodes, i(0))
-  return sn(nil, nodes)
-end
-
--- Comment style for a short inline comment (TODO, FIXME, attribution).
--- Languages with a genuine block-comment form (C, C++, C#, Java, HTML,
--- XML, Markdown) get that form; everything else falls back to its
--- single-line comment symbol.
 local function inline_style(ft)
   local raw = comment_styles[ft]
-  if raw and raw.kind == "block" then
+  if raw and raw.kind == "block" and inline_block_fts[ft] then
     return raw
   end
   return { kind = "line", sym = line_comment_sym(ft) }
 end
 
--- Opens an inline comment that starts with a placeholder rather than a
--- fixed label.
 local function open_inline(add, style)
   if style.kind == "block" then
     add(t(style.open))
@@ -854,68 +839,49 @@ local function open_inline(add, style)
   end
 end
 
--- Closes a block-style inline comment. Line-style comments need no closer.
 local function close_inline(add, style)
   if style.kind == "block" then
-    add(t({ "", " " .. style.close }))
+    add(t({ "", (style.close_indent or " ") .. style.close }))
   end
 end
 
--- `fixme`: FIXME with a second line for context on what's broken and why.
--- A single block comment for languages that have one; a line comment
--- otherwise.
-local function build_fixme(_, _)
-  local style = inline_style(vim.bo.filetype)
-  local nodes = {}
-  local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
-
-  open_inline(add, style)
-  add(t("FIXME: "))
-  add(i(1, "short description"))
-  add(t({ "", wrap(style, "  ") }))
-  add(i(2, "context, if needed"))
-  close_inline(add, style)
-
-  return sn(nil, nodes)
+-- Opener and closer for a one-line comment. Languages with only a block
+-- form (html, xml, markdown) get `<!-- ... -->`.
+local function oneline_delims(ft)
+  local sym = line_comment_by_ft[ft]
+  if sym then
+    return sym .. " ", ""
+  end
+  local raw = comment_styles[ft]
+  if raw and raw.kind == "block" then
+    return raw.open .. " ", " " .. raw.close
+  end
+  return DEFAULT_LINE_COMMENT .. " ", ""
 end
 
--- `todo`: TODO with a second line for context. Same block/line handling
--- as `fixme`.
-local function build_todo(_, _)
-  local style = inline_style(vim.bo.filetype)
-  local nodes = {}
-  local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
-
-  open_inline(add, style)
-  add(t("TODO: "))
-  add(i(1, "short description"))
-  add(t({ "", wrap(style, "  ") }))
-  add(i(2, "context, if needed"))
-  close_inline(add, style)
-
-  return sn(nil, nodes)
+-- Bare marker comment (`// TODO: `) with the cursor after the colon.
+local function build_marker(text)
+  return function(_, _)
+    local pre, post = oneline_delims(vim.bo.filetype)
+    local nodes = { t(pre .. text .. ": "), i(1) }
+    if post ~= "" then table.insert(nodes, t(post)) end
+    table.insert(nodes, i(0))
+    return sn(nil, nodes)
+  end
 end
 
--- `chg`: changelog entry, dropped inline to record a single change
--- without touching the file header's Modified: field. Block comment
--- where the language has one, line comment otherwise.
-local function build_chg(_, _)
-  local style = inline_style(vim.bo.filetype)
-  local nodes = {}
-  local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
-
-  open_inline(add, style)
-  add(f(get_date, {}))
-  add(t(": "))
-  add(i(1, "what changed"))
-  close_inline(add, style)
-  add(i(0))
-
-  return sn(nil, nodes)
+-- `spdx`: standalone SPDX line, without a full header.
+local function build_spdx(_, _)
+  local pre, post = oneline_delims(vim.bo.filetype)
+  return sn(nil, {
+    t(pre .. "SPDX-License-Identifier: "),
+    i(1, "AGPL-3.0-only"),
+    t(post),
+    i(0),
+  })
 end
 
--- `scratch`: smallest header, for throwaway or exploratory files. Just
--- File, Created, and Description.
+-- `chead`: smallest header (File, Created, Description) for scratch files.
 local function build_scratch(_, _)
   local ft = vim.bo.filetype
   local style = comment_styles[ft] or DEFAULT_STYLE
@@ -934,37 +900,30 @@ local function build_scratch(_, _)
   return sn(nil, nodes)
 end
 
--- `shebang`: standalone shebang line for scripting languages, without the
--- rest of a header. Useful when `head`/`chead` would be overkill for a
--- quick throwaway script that still needs to be directly executable.
 local function build_shebang(_, _)
   local ft = vim.bo.filetype
   local line = shebang_by_ft[ft] or "#!/usr/bin/env sh"
   return sn(nil, { t(line), i(0) })
 end
 
--- `see`: single line, single reference. `-- See: <url>`
+-- `see`: one-line reference, cursor ready to paste the link.
 local function build_see(_, _)
   local sym = line_comment_sym(vim.bo.filetype)
   return sn(nil, {
     t(sym .. " See: "),
-    i(1, "https://..."),
+    i(1),
   })
 end
 
--- `mail`: just the raw email address, no comment prefix, no label.
 local function build_mail(_, _)
   return sn(nil, { i(1, "contatomiqueiasalvesdev@gmail.com") })
 end
 
--- `gh`: just the raw GitHub URL, no comment prefix, no label.
 local function build_gh(_, _)
   return sn(nil, { i(1, "https://github.com/miqu3iasg") })
 end
 
--- `refs`: bullet list of references, no description. Copy the bullet
--- line to add more sources. Block comment where the language has one,
--- line comment otherwise.
+-- `refs`: list of references, one bullet per source.
 local function build_refs(_, _)
   local style = inline_style(vim.bo.filetype)
   local nodes = {}
@@ -980,11 +939,8 @@ local function build_refs(_, _)
   return sn(nil, nodes)
 end
 
--- description plus reference(s). Use when the reason the snippet
--- was kept matters as much as where it came from. Deliberately excludes
--- filename and tags, which belong to the file, not to a borrowed snippet
--- sitting mid-function. Block comment where the language has one, line
--- comment otherwise.
+-- `drefs`: description plus references, for borrowed code where the reason
+-- it was kept matters.
 local function build_snip(_, _)
   local style = inline_style(vim.bo.filetype)
   local nodes = {}
@@ -1001,62 +957,6 @@ local function build_snip(_, _)
   return sn(nil, nodes)
 end
 
--- ASCII art signature. Purely decorative — drop the art
--- commented according to the language's inline style (block style when
--- applicable, line style otherwise).
-local arts = {
-  ascii_name = {
-    [[▄▄▄▄ ▄▄  ▄▄  ▄▄▄  ▄▄ ▄▄ ▄▄▄▄▄ ▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄▄]],
-    [[░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ░█ ░█ ░█ ▄▄ ░█ ░█ ░█ ▀▀ ░█ ░█]],
-    [[▒█ ▒█ ▒█ ▒█ ▒█ ░█ ▒█ ░█   ▄▒█ ▒█ ▒█ ░█  ▀▀░▄ ▒█ ░█]],
-    [[▓▓ ▓▓ ▓▓ ▓▓ ▓▓ ▓░ ▓▓ ▓░ ▒░ ▓▓ ▓▓ ▓▓ ▓░ ░█ ▓░ ▀▀▀░█]],
-    [[▀▀ ▀▀ ▀▀ ▀▀  ▀▀▒█ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀  ▀▀▀▀ ▀▀▀▀  ░█ ▓░]],
-    [[               ▀▀                             ▀▀▀▀]],
-  },
-
-  line_name = {
-    [[    __  ____            _____ _]],
-    [[   /  |/  (_)___ ___  _|__  /(_)___ __________ _]],
-    [[  / /|_/ / / __ `/ / / //_ </ / __ `/ ___/ __ `/]],
-    [[ / /  / / / /_/ / /_/ /__/ / / /_/ (__  ) /_/ /]],
-    [[/_/  /_/_/\__, /\__,_/____/_/\__,_/____/\__, /]],
-    [[            /_/                        /____/]],
-  },
-
-  morse = {
-    [[-- .. --.- ..- . .. .- ... --. ]],
-  },
-
-  binary = {
-    [[01101101 01101001 01110001 01110101 01100101 01101001 01100001 01110011 01100111]],
-  },
-}
-
-local miq_art = arts.line_name
-
-local function build_miq(_, _)
-  local style = inline_style(vim.bo.filetype)
-  local nodes = {}
-  local function add(...) for _, n in ipairs({ ... }) do table.insert(nodes, n) end end
-
-  if style.kind == "block" then add(t(style.open)) end
-
-  for idx, line in ipairs(miq_art) do
-    if idx == 1 and style.kind ~= "block" then
-      add(t(wrap(style, line)))
-    else
-      add(t({ "", wrap(style, line) }))
-    end
-  end
-
-  close_inline(add, style)
-  add(i(0))
-
-  return sn(nil, nodes)
-end
-
--- Snippet registration. Licensed headers are appended below by iterating
--- over `licenses`.
 local snippets = {
   s("head", { d(1, build_head, {}) }),
   s("shead", { d(1, build_study, {}) }),
@@ -1065,18 +965,31 @@ local snippets = {
   s("chead", { d(1, build_scratch, {}) }),
   s("ehead", { d(1, build_exs, {}) }),
   s("fnhead", { d(1, build_fnhead, {}) }),
-  s("dcc", { d(1, build_fnhead, {}) }),
   s("shebang", { d(1, build_shebang, {}) }),
-  s("fixme", { d(1, build_fixme, {}) }),
-  s("todo", { d(1, build_todo, {}) }),
-  s("chg", { d(1, build_chg, {}) }),
   s("see", { d(1, build_see, {}) }),
-  s("mail", { d(1, build_mail, {}) }),
-  s("gh", { d(1, build_gh, {}) }),
   s("refs", { d(1, build_refs, {}) }),
   s("drefs", { d(1, build_snip, {}) }),
-  s("miq", { d(1, build_miq, {}) }),
+  s("spdx", { d(1, build_spdx, {}) }),
+  s("mail", { d(1, build_mail, {}) }),
+  s("gh", { d(1, build_gh, {}) }),
+  s("author", { i(1, "Miquéias Alves Medeiros <https://github.com/miqu3iasg>") }),
 }
+
+local markers = {
+  todo  = "TODO",
+  fixme = "FIXME",
+  note  = "NOTE",
+  hack  = "HACK",
+  xxx   = "XXX",
+  bug   = "BUG",
+  warn  = "WARNING",
+  perf  = "PERF",
+  depr  = "DEPRECATED",
+}
+
+for trigger, text in pairs(markers) do
+  table.insert(snippets, s(trigger, { d(1, build_marker(text), {}) }))
+end
 
 for key, spdx in pairs(licenses) do
   table.insert(snippets, s(key .. "head", { d(1, build_licensed_head(spdx), {}) }))
