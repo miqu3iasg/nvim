@@ -1,6 +1,6 @@
 -- lua/keymaps/buffers.lua
 
-local utils = require("utils")
+local utils = require("utils.buffer")
 
 -- Helpers
 local function km(mode, lhs, rhs, opts)

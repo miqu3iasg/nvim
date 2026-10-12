@@ -180,7 +180,7 @@ end, { desc = "Yank file:line reference" })
 -- Linux: runs `xdg-open` on the containing directory, so the file itself is not selected.
 -- Prints a message and does nothing if the buffer has no file.
 km("n", "<leader>ne", function()
-  local utils = require("utils")
+  local utils = require("utils.system")
   local os_name = utils.get_os()
   local file = vim.fn.expand("%:p")
   if file == "" then

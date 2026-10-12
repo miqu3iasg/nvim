@@ -1,6 +1,6 @@
 -- lua/keymaps/windows.lua
 
-local utils = require("utils")
+local utils = require("utils.buffer")
 local km = vim.keymap.set
 
 -- Helpers
