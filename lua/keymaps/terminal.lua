@@ -3,7 +3,7 @@
 local km = vim.keymap.set
 
 -- Split commands with a fixed size
-local VSPLIT = "botright 90vsplit"
+local VSPLIT = "rightbelow vsplit"
 local HSPLIT = "botright 15split"
 
 -- Open a terminal using the given window command (split, tabnew, ...)
