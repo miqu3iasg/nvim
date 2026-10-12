@@ -37,7 +37,9 @@ return {
       { "<leader>ga", "<cmd>silent Gwrite<cr>",                       desc = "Stage current file" },
 
       -- Commits
-      { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",       desc = "Git commit -v" },
+      -- { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",       desc = "Git commit -v" },
+      -- { "<leader>gc", "<cmd>silent Git commit -v | only<cr>",         desc = "Git commit -v (full window)" },
+      { "<leader>gc", "<cmd>silent tab Git commit -v<cr>",            desc = "Git commit -v (new tab)" },
       { "<leader>gA", "<cmd>silent Git commit --amend --no-edit<cr>", desc = "Amend (no edit)" },
 
       -- History
