@@ -19,7 +19,7 @@ local set_hl      = vim.api.nvim_set_hl
 local _           = false
 
 local fg0         = '#dadada'
-local fg1         = '#cecece'
+local fg1         = '#c6c6c6'
 local dim         = '#707070'
 local cmt         = '#626262'
 

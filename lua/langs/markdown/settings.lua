@@ -8,7 +8,7 @@ function M.setup()
   vim.opt_local.breakindent = true
   vim.opt_local.showbreak = "  "
 
-  vim.opt_local.spell = true
+  vim.opt_local.spell = false
   vim.opt_local.spelllang = { "pt_br", "en_us" }
 
   vim.opt_local.textwidth = 88
