@@ -101,6 +101,8 @@ local colors = {
 
   border = "#2a2a2a",
   border_subtle = "#0f0f0f",
+  split = "#5a5a5a",
+  statusline_nc = "#4f4f48",
 
   comment = "#4a4a4a",
   comment_doc = "#5a5a5a",
@@ -226,8 +228,8 @@ local groups = {
   CursorLineSign = { link = "CursorLineNr" },
   EndOfBuffer = { link = "NonText" },
 
-  VertSplit = { fg = colors.border, bg = colors.bg },
-  WinSeparator = { fg = colors.border, bg = colors.bg },
+  VertSplit = { fg = colors.split, bg = colors.bg },
+  WinSeparator = { fg = colors.split, bg = colors.bg },
   WinBar = { link = "StatusLine" },
   WinBarNC = { link = "StatusLineNC" },
 
@@ -260,7 +262,7 @@ local groups = {
 
   -- Status line
   StatusLine = { bg = colors.bg, fg = colors.fg_1, nocombine = true },
-  StatusLineNC = { bg = colors.bg, fg = colors.yellow, nocombine = true },
+  StatusLineNC = { bg = colors.bg, fg = colors.statusline_nc, nocombine = true },
   StatuslineTerm = { link = "StatusLine" },
   StatuslineTermNC = { link = "StatusLineNC" },
 
