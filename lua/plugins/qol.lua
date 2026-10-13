@@ -16,11 +16,10 @@ return {
     },
     opts = {
       -- Keybindings for forward and backward tabout
-      tabkey = "<Tab>",
-      backwards_tabkey = "<S-Tab>",
+      tabkey = "<C-]",
+      backwards_tabkey = "C-[",
 
-      -- Fall back to regular indentation when tabout is unavailable
-      act_as_tab = true,
+      act_as_tab = false,
       act_as_shift_tab = false,
       default_tab = "<C-t>",
       default_shift_tab = "<C-d>",

@@ -87,6 +87,8 @@ local colors = {
   -- single background; the only other "surface" tone is `cursorline`
   bg = "#000000",
   cursorline = "#111111", -- state tone: cursorline, selected menu item, matchparen, references
+  popup_bg = "#0d0d0d",   -- completion menu and docs popup
+  popup_sel = "#1c1c1c",  -- selected item inside the popup
 
   fg_0 = "#3b3b3b",
   fg_1 = "#808080",
@@ -641,6 +643,32 @@ local groups = {
   CmpItemAbbrMatchFuzzy = { link = "PmenuMatch" },
   CmpItemKind = { link = "Special" },
   CmpItemMenu = { link = "Comment" },
+
+  -- Plugins: blink.cmp
+  BlinkCmpMenu = { fg = colors.fg_2, bg = colors.popup_bg },
+  BlinkCmpMenuBorder = { fg = colors.border_subtle, bg = colors.popup_bg },
+  BlinkCmpMenuSelection = { fg = colors.fg_3, bg = colors.popup_sel },
+  BlinkCmpScrollBarThumb = { bg = colors.fg_0 },
+  BlinkCmpScrollBarGutter = { bg = colors.popup_bg },
+
+  BlinkCmpLabel = { fg = colors.fg_2 },
+  BlinkCmpLabelDeprecated = { fg = colors.fg_1, strikethrough = true },
+  BlinkCmpLabelMatch = { fg = colors.fg_3, bold = true },
+  BlinkCmpLabelDetail = { fg = colors.comment },
+  BlinkCmpLabelDescription = { fg = colors.comment },
+
+  BlinkCmpKind = { fg = colors.fg_1 },
+  BlinkCmpSource = { fg = colors.comment },
+  BlinkCmpGhostText = { fg = colors.comment },
+
+  BlinkCmpDoc = { fg = colors.fg_2, bg = colors.popup_bg },
+  BlinkCmpDocBorder = { fg = colors.border_subtle, bg = colors.popup_bg },
+  BlinkCmpDocSeparator = { fg = colors.border, bg = colors.popup_bg },
+  BlinkCmpDocCursorLine = { bg = colors.popup_sel },
+
+  BlinkCmpSignatureHelp = { fg = colors.fg_2, bg = colors.popup_bg },
+  BlinkCmpSignatureHelpBorder = { fg = colors.border_subtle, bg = colors.popup_bg },
+  BlinkCmpSignatureHelpActiveParameter = { link = "LspSignatureActiveParameter" },
 }
 
 for group, opts in pairs(groups) do

@@ -82,7 +82,7 @@ jdtls.start_or_attach({
   },
   cmd_env = { JAVA_HOME = server_jdk },
   root_dir = root,
-  capabilities = require("cmp_nvim_lsp").default_capabilities(),
+  capabilities = require("blink.cmp").default_capabilities(),
   on_attach = on_attach,
   settings = {
     java = {

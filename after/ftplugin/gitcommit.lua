@@ -20,4 +20,14 @@ local function map(lhs, rhs, desc)
 end
 
 map("<leader>w", "<cmd>wq<CR>", "Save and confirm commit")
-map("<leader>q", "<cmd>cq<CR>", "Abort commit")
+map("<leader>q", function()
+  local standalone = #vim.api.nvim_list_tabpages() == 1
+      and #vim.api.nvim_list_wins() == 1
+      and #vim.fn.getbufinfo({ buflisted = 1 }) == 1
+
+  if standalone then
+    vim.cmd("cq")
+  else
+    vim.cmd("bwipeout!")
+  end
+end, "Abort commit")
