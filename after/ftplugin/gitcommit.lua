@@ -4,7 +4,7 @@
 
 local opt = vim.opt_local
 
-opt.spell = true
+opt.spell = false
 opt.spelllang = { "en", "pt_br" }
 opt.complete:append("kspell")
 opt.textwidth = 72
