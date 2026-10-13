@@ -92,7 +92,7 @@ local colors = {
 
   fg_0 = "#3b3b3b",
   fg_1 = "#808080",
-  fg_2 = "#b9b9b9",
+  fg_2 = "#d8d8d8",
   fg_3 = "#d8d8d8",
 
   linenr = "#3a3a3a",
@@ -110,7 +110,7 @@ local colors = {
   yellow = "#7d7d70",
   blue = "#5f87ff",
   magenta = "#d787af",
-  cyan = "#5fafaf",
+  cyan = "#80bdbd",
 
   br_red = "#ff5f5f",
   br_green = "#93b093",

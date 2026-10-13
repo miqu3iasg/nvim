@@ -16,6 +16,5 @@ require("commands")
 require("snippets")
 require("statusline").setup()
 
-vim.cmd.colorscheme("hollow")
--- vim.cmd.colorscheme("enfocadomod")
--- vim.cmd.colorscheme("nox")
+-- vim.cmd.colorscheme("hollow")
+vim.cmd.colorscheme("insanity")
