@@ -107,8 +107,13 @@ return {
     "catgoose/nvim-colorizer.lua",
     event = "BufReadPost",
     opts = {
-      "*",
-      css = { rgb_fn = true },
+      filetypes = {
+        "*",
+        css = { rgb_fn = true },
+      },
+      user_default_options = {
+        names = false,
+      },
     },
   },
 
