@@ -6,55 +6,28 @@ return {
 
   -- Editing
 
-  -- Jump out of brackets and quotes using Tab
   {
-    "abecodes/tabout.nvim",
-    event = "InsertCharPre", -- lazy-load right before the first character is inserted
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "L3MON4D3/LuaSnip",
-    },
-    opts = {
-      -- Keybindings for forward and backward tabout
-      tabkey = "<C-]",
-      backwards_tabkey = "C-[",
+    "echasnovski/mini.nvim",
+    version = false, -- use latest commit (main branch)
+    event = "VeryLazy",
+    config = function()
+      require("mini.align").setup({
+        mappings = {
+          start = "ga",              -- Start align in Normal and Visual modes
+          start_with_preview = "gA", -- Start align with live preview
+        },
+      })
 
-      act_as_tab = false,
-      act_as_shift_tab = false,
-      default_tab = "<C-t>",
-      default_shift_tab = "<C-d>",
+      require("mini.comment").setup({
+        mappings = {
+          comment = "gc",        -- Toggle comment (operator, works with motion)
+          comment_line = "gcc",  -- Toggle comment on current line
+          comment_visual = "gc", -- Toggle comment on visual selection
+          textobject = "gc",     -- Comment textobject (e.g. `dgc`)
+        },
+      })
 
-      -- Allow tabbing backward through supported pairs
-      enable_backwards = true,
-
-      -- Keep Tab available for tabout instead of completion menus
-      completion = false,
-
-      -- Tab out instead of shifting when at the beginning of content
-      ignore_beginning = true,
-
-      -- Filetypes where tabout is disabled
-      exclude = {},
-
-      -- Pairs that trigger tabout
-      tabouts = {
-        { open = "'", close = "'" },
-        { open = '"', close = '"' },
-        { open = "`", close = "`" },
-        { open = "(", close = ")" },
-        { open = "[", close = "]" },
-        { open = "{", close = "}" },
-        { open = "$", close = "$" },
-        { open = "%", close = "%" },
-      },
-    },
-  },
-
-  -- Companion to tabout, free <Tab> from LuaSnip's default keybinding
-  {
-    "L3MON4D3/LuaSnip",
-    keys = function()
-      return {}
+      require("mini.pairs").setup()
     end,
   },
 
