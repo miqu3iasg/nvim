@@ -20,17 +20,25 @@ local _           = false
 
 local fg0         = '#dadada'
 local fg1         = '#c6c6c6'
+local str         = '#b5b5b5'
 local dim         = '#707070'
-local cmt         = '#626262'
+local cmt         = '#6a6a6a'
+local doc         = '#7a7a7a'
+
+local accent      = '#4e73ed'
+local accent_dim  = '#1b2152'
+
+local punct       = '#808080'
+local tw          = '#8c8c8c'
 
 local err         = '#b86a6a'
 local warn        = '#a8884a'
 local ok          = '#3f7a3f'
 
-local function attrs(str)
+local function attrs(s)
   local t = {}
-  if str then
-    for a in str:gmatch('[^,]+') do
+  if s then
+    for a in s:gmatch('[^,]+') do
       if a ~= 'NONE' then t[a] = true end
     end
   end
@@ -53,20 +61,18 @@ end
 
 -- Links (hi! link)
 local links = {
-  Boolean = 'Constant',
+  Boolean = 'Number',
   Character = 'Constant',
   Conditional = 'Statement',
   Debug = 'Special',
   Define = 'PreProc',
-  Delimiter = 'Special',
   Exception = 'Statement',
-  Float = 'Constant',
+  Float = 'Number',
   Include = 'PreProc',
   Keyword = 'Statement',
   Label = 'Statement',
   Macro = 'PreProc',
   MessageWindow = 'Pmenu',
-  Number = 'Constant',
   PopupNotification = 'Todo',
   PreCondit = 'PreProc',
   Repeat = 'Statement',
@@ -75,7 +81,6 @@ local links = {
   StatusLineTerm = 'StatusLine',
   StatusLineTermNC = 'StatusLineNC',
   StorageClass = 'Type',
-  -- String = 'Constant',
   Structure = 'Type',
   Tag = 'Special',
   Terminal = 'Normal',
@@ -137,70 +142,74 @@ local function terminal_colors(list)
 end
 
 local dark = {
-  { 'Normal',        fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'ColorColumn',   _,         '#1c1c1c', _,         'NONE',         _,   234, 'NONE' },
-  { 'Conceal',       _,         _,         _,         'NONE',         _,   _,   'NONE' },
-  { 'Constant',      fg0,       _,         _,         'NONE',         253, _,   'NONE' },
-  { 'CurSearch',     '#ff5fff', '#000000', _,         'reverse',      207, 16,  'reverse' },
-  { 'CursorColumn',  _,         '#303030', _,         'NONE',         _,   236, 'NONE' },
-  { 'CursorIM',      '#000000', '#221cd6', _,         'NONE',         16,  20,  'NONE' },
-  { 'CursorLine',    _,         '#121212', _,         'NONE',         _,   236, 'NONE' },
-  { 'CursorLineNr',  fg0,       '#121212', _,         'bold',         253, 236, 'bold' },
+  { 'Normal',        fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'ColorColumn',   _,         '#1c1c1c',  _,    'NONE',         _,   234, 'NONE' },
+  { 'Conceal',       _,         _,          _,    'NONE',         _,   _,   'NONE' },
+  { 'Constant',      fg0,       _,          _,    'NONE',         253, _,   'NONE' },
+  { 'Number',        accent,    _,          _,    'NONE',         62,  _,   'NONE' },
+  { 'String',        str,       _,          _,    'NONE',         249, _,   'NONE' },
+  { 'CurSearch',     accent,    '#000000',  _,    'reverse',      62,  16,  'reverse' },
+  { 'CursorColumn',  _,         '#303030',  _,    'NONE',         _,   236, 'NONE' },
+  { 'CursorIM',      '#000000', accent,     _,    'NONE',         16,  62,  'NONE' },
+  { 'CursorLine',    _,         '#121212',  _,    'NONE',         _,   233, 'NONE' },
+  { 'CursorLineNr',  fg0,       '#121212',  _,    'bold',         253, 233, 'bold' },
+
+
   -- Diff backgrounds: very dark tints, close to the black background
-  { 'DiffAdd',       _,         '#070f07', _,         'NONE',         _,   233, 'NONE' },
-  { 'DiffChange',    _,         '#070b11', _,         'NONE',         _,   233, 'NONE' },
-  { 'DiffDelete',    '#7a4a4a', '#100707', _,         'NONE',         95,  233, 'NONE' },
-  { 'DiffText',      _,         '#120c1a', _,         'NONE',         _,   234, 'NONE' },
+  { 'DiffAdd',       fg0,       '#070f07',  _,    'NONE',         253, 233, 'NONE' },
+  { 'DiffChange',    fg0,       '#070b11',  _,    'NONE',         253, 233, 'NONE' },
+  { 'DiffDelete',    err,       '#100707',  _,    'NONE',         131, 233, 'NONE' },
+  { 'DiffText',      fg0,       '#120c1a',  _,    'NONE',         253, 234, 'NONE' },
 
   -- Diff signs / text (gitsigns, `diff` filetype, treesitter): muted tones
-  { 'Added',         '#335533', _,         _,         'NONE',         22,  _,   'NONE' },
-  { 'Changed',       '#334a60', _,         _,         'NONE',         60,  _,   'NONE' },
-  { 'Removed',       '#7a4a4a', _,         _,         'NONE',         95,  _,   'NONE' },
-  { 'diffFile',      fg0,       _,         _,         'bold',         253, _,   'bold' },
-  { 'diffLine',      '#4a3560', _,         _,         'NONE',         60,  _,   'NONE' },
+  { 'Added',         '#335533', _,          _,    'NONE',         22,  _,   'NONE' },
+  { 'Changed',       '#334a60', _,          _,    'NONE',         60,  _,   'NONE' },
+  { 'Removed',       '#7a4a4a', _,          _,    'NONE',         95,  _,   'NONE' },
+  { 'diffFile',      fg0,       _,          _,    'bold',         253, _,   'bold' },
+  { 'diffLine',      '#4a3560', _,          _,    'NONE',         60,  _,   'NONE' },
 
-  { 'Directory',     fg0,       _,         _,         'NONE',         253, _,   'NONE' },
-  { 'EndOfBuffer',   dim,       _,         _,         'NONE',         242, _,   'NONE' },
-  { 'Error',         '#ff005f', '#000000', _,         'bold,reverse', 197, 16,  'bold,reverse' },
-  { 'ErrorMsg',      '#ff005f', '#000000', _,         'bold',         197, 16,  'bold' },
-  { 'FoldColumn',    dim,       '#000000', _,         'NONE',         242, 16,  'NONE' },
-  { 'Folded',        dim,       '#000000', _,         'NONE',         242, 16,  'NONE' },
-  { 'Identifier',    fg0,       _,         _,         'NONE',         253, _,   'NONE' },
-  { 'Ignore',        fg0,       _,         _,         'NONE',         253, _,   'NONE' },
-  { 'IncSearch',     '#d75fd7', '#000000', _,         'reverse',      170, 16,  'reverse' },
-  { 'LineNr',        '#585858', _,         _,         'NONE',         240, _,   'NONE' },
-  { 'MatchParen',    '#ffffff', '#221cd6', _,         'bold',         231, 62,  'bold' },
-  { 'ModeMsg',       fg0,       '#000000', _,         'bold',         253, 16,  'bold' },
-  { 'MoreMsg',       fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'MsgArea',       fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'MsgSeparator',  '#444444', '#000000', _,         'NONE',         238, 16,  'NONE' },
-  { 'NonText',       dim,       _,         _,         'NONE',         242, _,   'NONE' },
-  { 'PreProc',       fg1,       _,         _,         'NONE',         251, _,   'NONE' },
-  { 'Question',      fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'QuickFixLine',  '#ff5fff', '#000000', _,         'reverse',      207, 16,  'reverse' },
-  { 'Search',        fg0,       '#221cd6', _,         'NONE',         253, 20,  'NONE' },
-  { 'SignColumn',    fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'Special',       fg0,       _,         _,         'NONE',         253, _,   'NONE' },
-  { 'SpecialKey',    dim,       _,         _,         'bold',         242, _,   'bold' },
-  { 'SpellBad',      '#d7005f', _,         '#d7005f', 'undercurl',    161, _,   'underline' },
-  { 'SpellCap',      '#0087d7', _,         '#0087d7', 'undercurl',    32,  _,   'underline' },
-  { 'SpellLocal',    '#d787d7', _,         '#d787d7', 'undercurl',    176, _,   'underline' },
-  { 'SpellRare',     '#00afaf', _,         '#00afaf', 'undercurl',    37,  _,   'underline' },
-  { 'StatusLine',    '#a8a8a8', '#121212', _,         'NONE',         248, 234, 'NONE' },
-  { 'StatusLineNC',  '#5f5f5f', '#050505', _,         'NONE',         59,  233, 'NONE' },
-  { 'TabLine',       dim,       '#000000', _,         'NONE',         242, 16,  'NONE' },
-  { 'TabLineFill',   fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'TabLineSel',    fg0,       '#000000', _,         'bold',         253, 16,  'bold' },
-  { 'TitleBar',      fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
-  { 'TitleBarNC',    dim,       '#000000', _,         'NONE',         242, 16,  'NONE' },
-  { 'Todo',          '#00ffaf', _,         _,         'bold,reverse', 49,  _,   'bold,reverse' },
-  { 'ToolbarButton', fg0,       '#000000', _,         'bold',         253, 16,  'bold' },
-  { 'ToolbarLine',   _,         '#000000', _,         'NONE',         _,   16,  'NONE' },
-  { 'Underlined',    fg0,       _,         _,         'underline',    253, _,   'underline' },
-  { 'VertSplit',     dim,       '#000000', _,         'NONE',         242, 16,  'NONE' },
-  { 'Visual',        _,         '#444444', _,         'NONE',         _,   238, 'NONE' },
-  { 'VisualNOS',     _,         '#303030', _,         'NONE',         _,   236, 'NONE' },
-  { 'WarningMsg',    fg0,       '#000000', _,         'NONE',         253, 16,  'NONE' },
+  { 'Directory',     fg0,       _,          _,    'NONE',         253, _,   'NONE' },
+  { 'EndOfBuffer',   dim,       _,          _,    'NONE',         242, _,   'NONE' },
+  { 'Error',         err,       '#000000',  _,    'bold,reverse', 131, 16,  'bold,reverse' },
+  { 'ErrorMsg',      err,       '#000000',  _,    'bold',         131, 16,  'bold' },
+  { 'FoldColumn',    dim,       '#000000',  _,    'NONE',         242, 16,  'NONE' },
+  { 'Folded',        dim,       '#000000',  _,    'NONE',         242, 16,  'NONE' },
+  { 'Identifier',    fg0,       _,          _,    'NONE',         253, _,   'NONE' },
+  { 'Ignore',        fg0,       _,          _,    'NONE',         253, _,   'NONE' },
+  { 'IncSearch',     accent,    '#000000',  _,    'reverse',      62,  16,  'reverse' },
+  { 'LineNr',        '#585858', _,          _,    'NONE',         240, _,   'NONE' },
+  { 'MatchParen',    accent,    _,          _,    'bold',         62,  _,   'bold' },
+  { 'ModeMsg',       fg0,       '#000000',  _,    'bold',         253, 16,  'bold' },
+  { 'MoreMsg',       fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'MsgArea',       fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'MsgSeparator',  '#444444', '#000000',  _,    'NONE',         238, 16,  'NONE' },
+  { 'NonText',       dim,       _,          _,    'NONE',         242, _,   'NONE' },
+  { 'PreProc',       fg1,       _,          _,    'NONE',         251, _,   'NONE' },
+  { 'Question',      fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'QuickFixLine',  _,         '#121212',  _,    'bold',         _,   233, 'bold' },
+  { 'Search',        fg0,       accent_dim, _,    'NONE',         253, 17,  'NONE' },
+  { 'SignColumn',    fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'Special',       fg0,       _,          _,    'NONE',         253, _,   'NONE' },
+  { 'SpecialKey',    dim,       _,          _,    'bold',         242, _,   'bold' },
+  { 'SpellBad',      err,       _,          err,  'undercurl',    131, _,   'underline' },
+  { 'SpellCap',      warn,      _,          warn, 'undercurl',    137, _,   'underline' },
+  { 'SpellLocal',    dim,       _,          dim,  'undercurl',    242, _,   'underline' },
+  { 'SpellRare',     dim,       _,          dim,  'undercurl',    242, _,   'underline' },
+  { 'StatusLine',    '#a8a8a8', '#121212',  _,    'NONE',         248, 233, 'NONE' },
+  { 'StatusLineNC',  '#5f5f5f', '#050505',  _,    'NONE',         59,  233, 'NONE' },
+  { 'TabLine',       dim,       '#000000',  _,    'NONE',         242, 16,  'NONE' },
+  { 'TabLineFill',   fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'TabLineSel',    fg0,       '#000000',  _,    'bold',         253, 16,  'bold' },
+  { 'TitleBar',      fg0,       '#000000',  _,    'NONE',         253, 16,  'NONE' },
+  { 'TitleBarNC',    dim,       '#000000',  _,    'NONE',         242, 16,  'NONE' },
+  { 'Todo',          '#000000', warn,       _,    'bold',         16,  137, 'bold' },
+  { 'ToolbarButton', fg0,       '#000000',  _,    'bold',         253, 16,  'bold' },
+  { 'ToolbarLine',   _,         '#000000',  _,    'NONE',         _,   16,  'NONE' },
+  { 'Underlined',    fg0,       _,          _,    'underline',    253, _,   'underline' },
+  { 'VertSplit',     dim,       '#000000',  _,    'NONE',         242, 16,  'NONE' },
+  { 'Visual',        _,         '#444444',  _,    'NONE',         _,   238, 'NONE' },
+  { 'VisualNOS',     _,         '#303030',  _,    'NONE',         _,   236, 'NONE' },
+  { 'WarningMsg',    warn,      '#000000',  _,    'NONE',         137, 16,  'NONE' },
 }
 
 local popups = {
@@ -216,105 +225,176 @@ local popups = {
   { 'PmenuMatch',    '#ffffff', '#000000', _, 'bold', 231, 16,  'bold' },
   { 'PmenuMatchSel', '#ffffff', '#303030', _, 'bold', 231, 236, 'bold' },
   { 'PmenuSbar',     _,         '#000000', _, 'NONE', _,   16,  'NONE' },
-  { 'PmenuSel',      fg0,       '#303030', _, 'NONE', 253, 236, 'NONE' },
+  { 'PmenuSel',      fg0,       '#121212', _, 'NONE', 253, 233, 'NONE' },
   { 'PmenuThumb',    _,         '#444444', _, 'NONE', _,   238, 'NONE' },
   { 'WildMenu',      fg0,       '#303030', _, 'NONE', 253, 236, 'NONE' },
 }
 
 -- Modern groups
 local modern = {
-  -- Syntax hierarchy
-  { 'Comment',                      cmt,       _,         _,    'NONE',      241, _,   'NONE' },
-  { 'Statement',                    fg1,       _,         _,    'NONE',      251, _,   'NONE' },
-  { 'Type',                         fg1,       _,         _,    'NONE',      251, _,   'NONE' },
-  { 'Function',                     fg0,       _,         _,    'bold',      253, _,   'bold' },
-  { 'Delimiter',                    fg0,       _,         _,    'NONE',      253, _,   'NONE' },
-  { '@punctuation',                 fg0,       _,         _,    'NONE',      253, _,   'NONE' },
-  { 'Operator',                     fg0,       _,         _,    'NONE',      253, _,   'NONE' },
-  { '@operator',                    fg0,       _,         _,    'NONE',      253, _,   'NONE' },
-  { '@variable.parameter',          fg0,       _,         _,    'NONE',      253, _,   'NONE' },
-  { '@variable.builtin',            fg1,       _,         _,    'italic',    251, _,   'italic' },
-  { '@constant.builtin',            fg1,       _,         _,    'NONE',      251, _,   'NONE' },
-  { '@tag.attribute',               fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  -- Comments
+  { 'Comment',                           cmt,       _,         _,    'NONE',      241, _,   'NONE' },
+  { '@comment.documentation',            doc,       _,         _,    'NONE',      243, _,   'NONE' },
+
+  -- Structure
+  { 'Statement',                         fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  { 'Type',                              fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  { '@module',                           fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  { '@attribute',                        doc,       _,         _,    'italic',    243, _,   'italic' },
+
+  -- Functions bold only on declarations, never on calls
+  { 'Function',                          fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@function',                         fg0,       _,         _,    'bold',      253, _,   'bold' },
+  { '@function.method',                  fg0,       _,         _,    'bold',      253, _,   'bold' },
+  { '@function.call',                    fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@function.method.call',             fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@function.builtin',                 fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  -- LSP semantic tokens reset the generic type (it links to @function and
+  -- would make every call bold), then bold only the declarations
+  { '@lsp.type.function',                fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@lsp.type.method',                  fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@lsp.typemod.function.declaration', _,         _,         _,    'bold',      _,   _,   'bold' },
+  { '@lsp.typemod.method.declaration',   _,         _,         _,    'bold',      _,   _,   'bold' },
+
+  -- Variables
+  { '@variable.parameter',               fg0,       _,         _,    'italic',    253, _,   'italic' },
+  { '@variable.builtin',                 fg1,       _,         _,    'italic',    251, _,   'italic' },
+
+  -- Literal values (accent blue; Number/Float/Boolean come from `Number`)
+  { '@constant.builtin',                 accent,    _,         _,    'NONE',      62,  _,   'NONE' },
+  { '@string.escape',                    fg0,       _,         _,    'bold',      253, _,   'bold' },
+
+  -- Punctuation and operators: brackets and operators use the default text
+  -- color; only separators (, ; :) are dimmed
+  { 'Delimiter',                         punct,     _,         _,    'NONE',      244, _,   'NONE' },
+  { '@punctuation',                      punct,     _,         _,    'NONE',      244, _,   'NONE' },
+  { '@punctuation.bracket',              fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@punctuation.delimiter',            punct,     _,         _,    'NONE',      244, _,   'NONE' },
+  { 'Operator',                          fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+  { '@operator',                         fg0,       _,         _,    'NONE',      253, _,   'NONE' },
+
+  -- Tags
+  { '@tag',                              fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  { '@tag.delimiter',                    punct,     _,         _,    'NONE',      244, _,   'NONE' },
+  { '@tag.attribute',                    fg1,       _,         _,    'italic',    251, _,   'italic' },
 
   -- Diagnostics
-  { 'DiagnosticError',              err,       _,         _,    'NONE',      131, _,   'NONE' },
-  { 'DiagnosticWarn',               warn,      _,         _,    'NONE',      137, _,   'NONE' },
-  { 'DiagnosticInfo',               fg1,       _,         _,    'NONE',      251, _,   'NONE' },
-  { 'DiagnosticHint',               cmt,       _,         _,    'NONE',      241, _,   'NONE' },
-  { 'DiagnosticOk',                 ok,        _,         _,    'NONE',      65,  _,   'NONE' },
-  { 'DiagnosticUnderlineError',     _,         _,         err,  'undercurl', _,   _,   'underline' },
-  { 'DiagnosticUnderlineWarn',      _,         _,         warn, 'undercurl', _,   _,   'underline' },
-  { 'DiagnosticUnderlineInfo',      _,         _,         fg1,  'undercurl', _,   _,   'underline' },
-  { 'DiagnosticUnderlineHint',      _,         _,         cmt,  'undercurl', _,   _,   'underline' },
-  { 'DiagnosticUnnecessary',        cmt,       _,         _,    'NONE',      241, _,   'NONE' },
+  { 'DiagnosticError',                   err,       _,         _,    'NONE',      131, _,   'NONE' },
+  { 'DiagnosticWarn',                    warn,      _,         _,    'NONE',      137, _,   'NONE' },
+  { 'DiagnosticInfo',                    fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  { 'DiagnosticHint',                    cmt,       _,         _,    'NONE',      241, _,   'NONE' },
+  { 'DiagnosticOk',                      ok,        _,         _,    'NONE',      65,  _,   'NONE' },
+  { 'DiagnosticUnderlineError',          _,         _,         err,  'undercurl', _,   _,   'underline' },
+  { 'DiagnosticUnderlineWarn',           _,         _,         warn, 'undercurl', _,   _,   'underline' },
+  { 'DiagnosticUnderlineInfo',           _,         _,         fg1,  'undercurl', _,   _,   'underline' },
+  { 'DiagnosticUnderlineHint',           _,         _,         cmt,  'undercurl', _,   _,   'underline' },
+  { 'DiagnosticUnnecessary',             cmt,       _,         _,    'NONE',      241, _,   'NONE' },
 
   -- LSP
-  { 'LspInlayHint',                 cmt,       '#0a0a0a', _,    'italic',    241, 233, 'italic' },
-  { 'LspReferenceText',             _,         '#1c1c1c', _,    'NONE',      _,   234, 'NONE' },
-  { 'LspReferenceRead',             _,         '#1c1c1c', _,    'NONE',      _,   234, 'NONE' },
-  { 'LspReferenceWrite',            _,         '#1c1c1c', _,    'underline', _,   234, 'underline' },
+  { 'LspInlayHint',                      cmt,       '#0a0a0a', _,    'italic',    241, 233, 'italic' },
+  { 'LspReferenceText',                  _,         '#1c1c1c', _,    'NONE',      _,   234, 'NONE' },
+  { 'LspReferenceRead',                  _,         '#1c1c1c', _,    'NONE',      _,   234, 'NONE' },
+  { 'LspReferenceWrite',                 _,         '#1c1c1c', _,    'underline', _,   234, 'underline' },
 
-  -- Markup / markdown
-  { 'Title',                        fg0,       _,         _,    'bold',      253, _,   'bold' },
-  { '@markup.heading',              fg0,       _,         _,    'bold',      253, _,   'bold' },
-  { '@markup.strong',               _,         _,         _,    'bold',      _,   _,   'bold' },
-  { '@markup.italic',               _,         _,         _,    'italic',    _,   _,   'italic' },
-  { '@markup.link',                 fg1,       _,         _,    'underline', 251, _,   'underline' },
-  { '@markup.raw',                  fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  -- Markup, markdown (generic)
+  { 'Title',                             fg0,       _,         _,    'bold',      253, _,   'bold' },
+  { '@markup.heading',                   fg0,       _,         _,    'bold',      253, _,   'bold' },
+  { '@markup.strong',                    _,         _,         _,    'bold',      _,   _,   'bold' },
+  { '@markup.italic',                    _,         _,         _,    'italic',    _,   _,   'italic' },
+  { '@markup.link',                      fg1,       _,         _,    'underline', 251, _,   'underline' },
+  { '@markup.raw',                       fg1,       _,         _,    'NONE',      251, _,   'NONE' },
 
   -- Regex
-  { '@string.regexp',               '#8a94a0', _,         _,    'NONE',      245, _,   'NONE' },
-  { '@character.special',           fg0,       _,         _,    'bold',      253, _,   'bold' },
-  { '@constant.character.escape',   fg0,       _,         _,    'NONE',      253, _,   'NONE' },
-  { '@operator.regex',              warn,      _,         _,    'bold',      137, _,   'bold' },
-  { '@keyword.operator.regex',      warn,      _,         _,    'bold',      137, _,   'bold' },
-  { '@punctuation.bracket.regex',   dim,       _,         _,    'NONE',      242, _,   'NONE' },
-  { '@punctuation.delimiter.regex', '#946060', _,         _,    'NONE',      95,  _,   'NONE' },
-  { '@property.regex',              '#5f7f5f', _,         _,    'italic',    65,  _,   'italic' },
-  { '@variable.builtin.regex',      fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+  { '@string.regexp',                    '#8a94a0', _,         _,    'NONE',      245, _,   'NONE' },
+  { '@character.special',                fg0,       _,         _,    'bold',      253, _,   'bold' },
+  { '@operator.regex',                   warn,      _,         _,    'bold',      137, _,   'bold' },
+  { '@keyword.operator.regex',           warn,      _,         _,    'bold',      137, _,   'bold' },
+  { '@punctuation.bracket.regex',        dim,       _,         _,    'NONE',      242, _,   'NONE' },
+  { '@punctuation.delimiter.regex',      '#946060', _,         _,    'NONE',      95,  _,   'NONE' },
+  { '@property.regex',                   '#5f7f5f', _,         _,    'italic',    65,  _,   'italic' },
+  { '@variable.builtin.regex',           fg1,       _,         _,    'NONE',      251, _,   'NONE' },
+}
+
+-- JSX, TSX, React and Tailwind only
+--
+-- These groups are only produced by the treesitter queries in
+-- after/queries/{tsx,javascript}/highlights.scm, so every other filetype is
+-- unaffected. Without those query files they simply never match
+local jsx = {
+  { '@tag.component',      fg0, _, _, 'NONE', 253, _, 'NONE' },
+  { '@tag.intrinsic',      fg1, _, _, 'NONE', 251, _, 'NONE' },
+  { '@function.call.hook', fg1, _, _, 'NONE', 251, _, 'NONE' },
+  { '@string.tailwind',    tw,  _, _, 'NONE', 245, _, 'NONE' },
+}
+
+-- Oil (stevearc/oil.nvim)
+local oil = {
+  { 'OilDir',               fg0,       _, _, 'bold',   253, _, 'bold' },
+  { 'OilDirIcon',           fg0,       _, _, 'NONE',   253, _, 'NONE' },
+  { 'OilFile',              fg1,       _, _, 'NONE',   251, _, 'NONE' },
+  { 'OilLink',              fg1,       _, _, 'italic', 251, _, 'italic' },
+  { 'OilLinkTarget',        dim,       _, _, 'italic', 242, _, 'italic' },
+  { 'OilOrphanLink',        err,       _, _, 'italic', 131, _, 'italic' },
+  { 'OilOrphanLinkTarget',  err,       _, _, 'italic', 131, _, 'italic' },
+  { 'OilHidden',            cmt,       _, _, 'NONE',   241, _, 'NONE' },
+
+  { 'OilCreate',            '#ffffff', _, _, 'bold',   231, _, 'bold' },
+  { 'OilCopy',              '#ffffff', _, _, 'bold',   231, _, 'bold' },
+  { 'OilMove',              warn,      _, _, 'NONE',   137, _, 'NONE' },
+  { 'OilChange',            warn,      _, _, 'NONE',   137, _, 'NONE' },
+  { 'OilDelete',            err,       _, _, 'NONE',   131, _, 'NONE' },
+  { 'OilPurge',             err,       _, _, 'bold',   131, _, 'bold' },
+  { 'OilRestore',           '#ffffff', _, _, 'bold',   231, _, 'bold' },
+  { 'OilTrash',             dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilTrashSourcePath',   cmt,       _, _, 'NONE',   241, _, 'NONE' },
+
+  { 'OilTypeDir',           fg0,       _, _, 'bold',   253, _, 'bold' },
+  { 'OilTypeFile',          dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilTypeLink',          fg1,       _, _, 'NONE',   251, _, 'NONE' },
+  { 'OilTypeFifo',          dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilTypeSocket',        dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilTypeUnknown',       dim,       _, _, 'NONE',   242, _, 'NONE' },
+
+  { 'OilPermissionNone',    cmt,       _, _, 'NONE',   241, _, 'NONE' },
+  { 'OilPermissionRead',    warn,      _, _, 'NONE',   137, _, 'NONE' },
+  { 'OilPermissionWrite',   err,       _, _, 'NONE',   131, _, 'NONE' },
+  { 'OilPermissionExecute', '#5f9a5f', _, _, 'NONE',   71,  _, 'NONE' },
+
+  { 'OilSize',              dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilMtime',             dim,       _, _, 'NONE',   242, _, 'NONE' },
 }
 
 -- Markdown only
 
 -- Exact xterm-256 values, so cterm matches GUI
 local md = {
-  heading    = '#ffffff',
-  heading_bg = '#121212',
-  italic     = '#a8a8a8',
-  strike     = '#6c6c6c',
-  marker     = '#585858',
-  code       = '#87afd7',
-  block_bg   = '#121212',
-  link_url   = '#5f87af',
-  block      = '#b2b2b2',
-  green      = '#cecece',
-  accent     = '#af87af',
+  italic   = '#a8a8a8', -- 248
+  strike   = '#6c6c6c', -- 242
+  marker   = '#585858', -- 240
+  block    = '#b2b2b2', -- 249
+  string   = '#cecece', -- 252 (yaml string values)
+  code     = '#98a4f2', -- 111, light tint of the accent family
+  link_url = accent,    -- 62
+  accent   = '#af87af', -- 139, exclusive color for markup markers
+}
+
+-- Heading gradient
+local heading_levels = {
+  { '#ffffff', 231 },
+  { fg0,       253 },
+  { fg1,       251 },
+  { str,       249 },
+  { str,       249 },
+  { str,       249 },
 }
 
 local markdown = {
-  -- Headings
-  { '@markup.heading.markdown',              md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.1.markdown',            md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.2.markdown',            md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.3.markdown',            md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.4.markdown',            md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.5.markdown',            md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.6.markdown',            md.heading,  _, _, 'bold',          231, _, 'bold' },
-  { '@markup.heading.1.marker.markdown',     md.heading,  _, _, 'NONE',          231, _, 'NONE' },
-  { '@markup.heading.2.marker.markdown',     md.heading,  _, _, 'NONE',          231, _, 'NONE' },
-  { '@markup.heading.3.marker.markdown',     md.heading,  _, _, 'NONE',          231, _, 'NONE' },
-  { '@markup.heading.4.marker.markdown',     md.heading,  _, _, 'NONE',          231, _, 'NONE' },
-  { '@markup.heading.5.marker.markdown',     md.heading,  _, _, 'NONE',          231, _, 'NONE' },
-  { '@markup.heading.6.marker.markdown',     md.heading,  _, _, 'NONE',          231, _, 'NONE' },
-  { '@markup.heading.marker.markdown',       md.heading,  _, _, 'NONE',          231, _, 'NONE' },
+  -- Frontmatter fences (---)
+  { '@keyword.directive.markdown',           md.accent,   _, _, 'NONE',          139, _, 'NONE' },
 
   -- Structural punctuation
   { '@punctuation.special.markdown',         fg0,         _, _, 'NONE',          253, _, 'NONE' },
   { '@punctuation.delimiter.markdown',       fg0,         _, _, 'NONE',          253, _, 'NONE' },
-
-  -- Frontmatter fences (---)
-  { '@keyword.directive.markdown',           md.accent,   _, _, 'NONE',          139, _, 'NONE' },
 
   -- Lists and task items
   { '@markup.list.markdown',                 md.accent,   _, _, 'bold',          139, _, 'bold' },
@@ -330,26 +410,37 @@ local markdown = {
   { '@label.markdown',                       md.accent,   _, _, 'italic',        139, _, 'italic' },
 
   -- Inline emphasis
-  { '@markup.strong.markdown_inline',        md.heading,  _, _, 'bold',          231, _, 'bold' },
+  { '@markup.strong.markdown_inline',        '#ffffff',   _, _, 'bold',          231, _, 'bold' },
   { '@markup.italic.markdown_inline',        md.italic,   _, _, 'italic',        248, _, 'italic' },
   { '@markup.strikethrough.markdown_inline', md.strike,   _, _, 'strikethrough', 242, _, 'NONE' },
 
   -- Inline code and math
-  { '@markup.raw.markdown_inline',           md.code,     _, _, 'NONE',          110, _, 'NONE' },
-  { '@markup.math.markdown_inline',          md.code,     _, _, 'NONE',          110, _, 'NONE' },
-  { '@markup.math.markdown',                 md.code,     _, _, 'NONE',          110, _, 'NONE' },
-  { '@markup.math.latex',                    md.code,     _, _, 'NONE',          110, _, 'NONE' }, -- injected latex inside math (also affects .tex)
-  { '@punctuation.special.markdown_inline',  md.code,     _, _, 'NONE',          110, _, 'NONE' }, -- $ delimiters
+  { '@markup.raw.markdown_inline',           md.code,     _, _, 'NONE',          111, _, 'NONE' },
+  { '@markup.math.markdown_inline',          md.code,     _, _, 'NONE',          111, _, 'NONE' },
+  { '@markup.math.markdown',                 md.code,     _, _, 'NONE',          111, _, 'NONE' },
+  { '@markup.math.latex',                    md.code,     _, _, 'NONE',          111, _, 'NONE' }, -- injected latex inside math (also affects .tex)
+  { '@punctuation.special.markdown_inline',  md.code,     _, _, 'NONE',          111, _, 'NONE' }, -- $ delimiters
 
   -- Inline links
   { '@markup.link.markdown_inline',          md.marker,   _, _, 'NONE',          240, _, 'NONE' },
-  { '@markup.link.label.markdown_inline',    md.code,     _, _, 'underline',     110, _, 'underline' },
-  { '@markup.link.url.markdown_inline',      md.link_url, _, _, 'underline',     67,  _, 'underline' },
+  { '@markup.link.label.markdown_inline',    md.code,     _, _, 'underline',     111, _, 'underline' },
+  { '@markup.link.url.markdown_inline',      md.link_url, _, _, 'underline',     62,  _, 'underline' },
 
   -- Inline escapes and conceal
   { '@string.escape.markdown_inline',        md.accent,   _, _, 'NONE',          139, _, 'NONE' },
   { '@conceal.markdown_inline',              md.marker,   _, _, 'NONE',          240, _, 'NONE' },
 }
+
+-- Headings (generated from the gradient table)
+do
+  local first = heading_levels[1]
+  table.insert(markdown, { '@markup.heading.markdown', first[1], _, _, 'bold', first[2], _, 'bold' })
+  table.insert(markdown, { '@markup.heading.marker.markdown', first[1], _, _, 'NONE', first[2], _, 'NONE' })
+  for i, h in ipairs(heading_levels) do
+    table.insert(markdown, { ('@markup.heading.%d.markdown'):format(i), h[1], _, _, 'bold', h[2], _, 'bold' })
+    table.insert(markdown, { ('@markup.heading.%d.marker.markdown'):format(i), h[1], _, _, 'NONE', h[2], _, 'NONE' })
+  end
+end
 
 -- Markdown-specific links
 local markdown_links = {
@@ -385,8 +476,8 @@ local markdown_links = {
 local frontmatter_ns = vim.api.nvim_create_namespace('hollow_markdown')
 
 local frontmatter = {
-  ['@property.yaml']              = { fg = md.accent, ctermfg = 110 }, -- keys
-  ['@string.yaml']                = { fg = md.green, ctermfg = 175 },  -- string values
+  ['@property.yaml']              = { fg = md.accent, ctermfg = 139 }, -- keys
+  ['@string.yaml']                = { fg = md.string, ctermfg = 252 }, -- string values
   ['@number.yaml']                = { fg = md.accent, ctermfg = 139 },
   ['@number.float.yaml']          = { fg = md.accent, ctermfg = 139 },
   ['@boolean.yaml']               = { fg = md.accent, ctermfg = 139 },
@@ -415,9 +506,12 @@ terminal_colors({
   '#000000', '#913939', '#00af5f', '#221cd6', '#0087d7', '#d787d7', '#00afaf', '#dadada',
   '#707070', '#9c3b3b', '#00d75f', '#221cd6', '#5fafff', '#ff87ff', '#00d7d7', '#ffffff',
 })
+
 apply(dark)
+apply(oil)
 apply(popups)
 apply(modern)
+apply(jsx)
 apply(markdown)
 
 -- Attach the frontmatter namespace only to windows showing markdown buffers

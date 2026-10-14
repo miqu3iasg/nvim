@@ -6,6 +6,7 @@ return {
   { "jaredgorski/fogbell.vim", },
   { "jwbaldwin/oscura.nvim" },
   { "amedoeyes/eyes.nvim" },
+  { "cranberry-clockworks/coal.nvim" },
   {
     "blazkowolf/gruber-darker.nvim",
     opts = {
