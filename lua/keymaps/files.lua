@@ -2,34 +2,6 @@
 
 local km = vim.keymap.set
 
--- Move a file from src to dest and return true on success, or false plus an error message on failure.
--- It first tries vim.uv.fs_rename, which is atomic but fails with EXDEV when src and dest are on
--- different filesystems (e.g. /tmp -> ~/.local/share).
--- On EXDEV it copies src to dest and then unlinks src; if the unlink fails, the copy at dest is
--- removed so no duplicate is left behind.
--- Any other rename error is returned as-is without trying the fallback.
-local function move_file(src, dest)
-  local ok, err, errname = vim.uv.fs_rename(src, dest)
-  if ok then
-    return true
-  end
-  if errname ~= "EXDEV" then
-    return false, err
-  end
-
-  local copied, copy_err = vim.uv.fs_copyfile(src, dest)
-  if not copied then
-    return false, copy_err
-  end
-
-  local removed, rm_err = vim.uv.fs_unlink(src)
-  if not removed then
-    vim.uv.fs_unlink(dest) -- remove the copy if the original can't be unlinked
-    return false, rm_err
-  end
-  return true
-end
-
 -- Set the working directory to the current file's directory.
 km("n", "<leader>nw", "<cmd>Setwd<CR>", { desc = "Set working directory to current file" })
 
@@ -85,31 +57,6 @@ km("n", "<leader>.", function()
   vim.notify(vim.fn.getcwd(), vim.log.levels.INFO)
 end, { desc = "Show current working directory", silent = true })
 
--- Move the current file to a timestamped path in Neovim's data trash directory after confirmation.
-km("n", "<leader>nz", function()
-  local file = vim.fn.expand("%:p")
-  if file == "" then
-    print("No file in buffer")
-    return
-  end
-  local trash_dir = vim.fn.stdpath("data") .. "/trash"
-  if vim.fn.isdirectory(trash_dir) == 0 then
-    vim.fn.mkdir(trash_dir, "p")
-  end
-  local dest = trash_dir .. "/" .. os.date("%Y%m%d-%H%M%S") .. "-" .. vim.fn.fnamemodify(file, ":t")
-  local confirm = vim.fn.confirm("Move to trash: " .. file .. "?", "&Yes\n&No", 2)
-  if confirm ~= 1 then
-    return
-  end
-  local ok, err = move_file(file, dest)
-  if not ok then
-    vim.notify("Failed to trash file: " .. (err or "unknown error"), vim.log.levels.ERROR)
-    return
-  end
-  vim.cmd("bd!")
-  print("Trashed to: " .. dest)
-end, { desc = "Move current file to trash (soft delete)" })
-
 -- Add or remove the executable permission of the current file.
 km("n", "<leader>nx", function()
   local file = vim.fn.expand("%:p")
@@ -150,21 +97,6 @@ km("n", "<leader>yd", function()
   yank(vim.fn.expand("%:p:h"))
 end, { desc = "Yank containing directory path" })
 
--- Copy the cursor line's file:line reference, text, and diagnostics.
-km("n", "<leader>ye", function()
-  local lnum = vim.fn.line(".") - 1
-  local diags = vim.diagnostic.get(0, { lnum = lnum })
-  if #diags == 0 then
-    return vim.notify("No diagnostics on this line", vim.log.levels.WARN)
-  end
-  local out = { vim.fn.expand("%:.") .. ":" .. (lnum + 1), vim.api.nvim_get_current_line(), "" }
-  for _, d in ipairs(diags) do
-    out[#out + 1] = string.format("[%s] %s", vim.diagnostic.severity[d.severity], d.message)
-  end
-  vim.fn.setreg("+", table.concat(out, "\n"))
-  vim.notify("Copied line + diagnostics")
-end, { desc = "Yank file:line, text and diagnostics" })
-
 -- Copy the relative file path and cursor line number as file:line.
 km("n", "<leader>yl", function()
   local path = vim.fn.expand("%:.")
@@ -174,11 +106,7 @@ km("n", "<leader>yl", function()
   yank(path .. ":" .. vim.fn.line("."))
 end, { desc = "Yank file:line reference" })
 
--- Reveal the current file in the operating system's file explorer.
--- macOS: runs `open -R`, which opens Finder with the file selected.
--- Windows: runs `explorer.exe /select`, which opens Explorer with the file selected.
--- Linux: runs `xdg-open` on the containing directory, so the file itself is not selected.
--- Prints a message and does nothing if the buffer has no file.
+-- Reveal the current file in the operating system's file explorer
 km("n", "<leader>ne", function()
   local utils = require("utils.system")
   local os_name = utils.get_os()
@@ -191,11 +119,11 @@ km("n", "<leader>ne", function()
     vim.fn.system({ "open", "-R", file })
   elseif os_name == "windows" then
     -- explorer.exe parses the raw command line and needs backslashes,
-    -- so go through os.execute (cmd.exe) with a plain string instead of an argv list.
+    -- so go through os.execute (cmd.exe) with a plain string instead of an argv list
     local win_path = file:gsub("/", "\\")
     os.execute(string.format('start "" explorer.exe /select,"%s"', win_path))
   else
-    -- xdg-open can't select a file, so open the containing folder.
+    -- xdg-open can't select a file, so open the containing folder
     vim.fn.system({ "xdg-open", vim.fn.fnamemodify(file, ":h") })
   end
 end, { desc = "Reveal current file in file explorer" })
