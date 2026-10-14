@@ -17,6 +17,7 @@ vim.opt.wrap = false
 vim.opt.startofline = false
 vim.opt.list = false
 vim.opt.listchars = { tab = '¬·', trail = '•', nbsp = '·', space = '·' }
+vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:60" })
 
 -- Search and completion
 vim.opt.ignorecase = true

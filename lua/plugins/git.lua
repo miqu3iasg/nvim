@@ -1,9 +1,5 @@
 -- lua/plugins/git.lua
 
--- Histogram diffs read better than Myers on refactored code, and linematch
--- aligns changed lines within a hunk
-vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:60" })
-
 -- The default blame width is too narrow for author, timestamp and summary
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "fugitiveblame",
@@ -12,15 +8,13 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Registers the Fugitive close-view keymaps and autocmds
 -- See: lua/utils/close.lua
+-- Registers the Fugitive close-view keymaps and autocmds
 require("utils.close").setup()
 
 return {
   {
     "tpope/vim-fugitive",
-    -- Provides GitHub URL resolution for `GBrowse`. GitHub Enterprise also
-    -- needs `vim.g.github_enterprise_urls`
     dependencies = { "tpope/vim-rhubarb" },
 
     cmd = { "Git", "G", "GBrowse", "Gvdiffsplit", "Gdiffsplit", "Gwrite", "Gread", "Gclog", "Gedit", "GMove" },

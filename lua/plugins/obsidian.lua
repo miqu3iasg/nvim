@@ -89,7 +89,6 @@ return {
     -- Generates the file name from the entered title (slug) instead of a random code
     note_id_func = function(title)
       if title ~= nil and title ~= "" then
-        -- Keep inbox captures exactly as generated (uppercase CAP-YYYYMMDD-HHmmss)
         if title:match("^CAP%-%d+%-%d+$") then
           return title
         end

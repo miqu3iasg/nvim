@@ -1,5 +1,4 @@
 -- lua/plugins/netrw.lua
--- netrw configured to mimic oil/canola (disable oil.lua to avoid conflicts)
 
 -- Off by default (oil is the main explorer). To use netrw instead, set
 -- enabled = true here and add `enabled = false` to oil.lua
@@ -9,7 +8,7 @@ if not enabled then
 end
 
 -- Global options (must be set before netrw loads)
-vim.g.netrw_banner = 0
+vim.g.netrw_banner = 1
 vim.g.netrw_liststyle = 1               -- long listing: name, size, mtime
 vim.g.netrw_timefmt = "%d/%m %H:%M"
 vim.g.netrw_sizestyle = "H"             -- human-readable sizes
@@ -25,7 +24,7 @@ vim.g.netrw_list_hide = [[\(^\|\s\s\)\zs\.\S\+]]
 vim.g.netrw_preview = 1 -- vertical preview
 vim.g.netrw_alto = 1    -- horizontal split opens below
 vim.g.netrw_altv = 1    -- vertical split opens right
-vim.g.netrw_winsize = 50
+vim.g.netrw_winsize = 90
 
 -- Full path of the entry under the cursor
 local function cursor_path()
