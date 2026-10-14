@@ -8,30 +8,35 @@ return {
   opts = function()
     local actions = require("fzf-lua").actions
 
-    -- Open the selected file(s) using a custom vim command
-    local function open_with(vimcmd)
-      return function(selected, o)
-        return actions.vimcmd_file(vimcmd, selected, o)
-      end
-    end
-
     return {
       file_icons = false,
       git_icons  = false,
 
       winopts    = {
-        split   = "botright 10new",
-        border  = "none",
-        title   = false,
-        preview = {
-          default    = "builtin",
-          layout     = "horizontal",
-          horizontal = "left:99%",
-          hidden     = true,
-          wrap       = true,
-          border     = "none",
-          scrollbar  = false,
-          winopts    = {
+        on_create   = function(e)
+          if e.winid and vim.api.nvim_win_is_valid(e.winid) then
+            vim.api.nvim_win_set_config(e.winid, { title = "" })
+          end
+        end,
+
+        -- split       = "botright 10new",
+        -- border      = "none",
+        height      = 0.80,
+        width       = 0.70,
+        row         = 0.35,
+        col         = 0.50,
+        border      = "single",
+        title       = false,
+        title_flags = false,
+        title_pos   = "right",
+        backdrop    = 100,
+        scrollbar   = false,
+        preview     = {
+          hidden    = true,
+          wrap      = true,
+          border    = "single",
+          scrollbar = false,
+          winopts   = {
             number         = false,
             relativenumber = false,
             cursorline     = false,
@@ -42,9 +47,11 @@ return {
 
       fzf_opts   = {
         ["--ansi"]           = true,
-        ["--layout"]         = "reverse",
+        -- ["--layout"]         = "reverse",
+        ["--layout"]         = "default",
         ["--info"]           = false,
         ["--highlight-line"] = false,
+        ["--border"]         = "none",
       },
 
       previewers = {
@@ -58,10 +65,6 @@ return {
           ["enter"]  = actions.file_edit_or_qf,
           ["ctrl-t"] = actions.file_tabedit,
           ["ctrl-x"] = actions.file_split,
-          ["alt-v"]  = open_with("leftabove vsplit"),
-          ["ctrl-v"] = open_with("belowright vsplit"),
-          ["alt-q"]  = actions.file_sel_to_qf,
-          ["alt-Q"]  = actions.file_sel_to_ll,
         },
       },
 
@@ -71,7 +74,6 @@ return {
           ["<C-k>"] = "preview-page-up",
         },
         fzf = {
-          ["ctrl-/"] = "toggle-preview",
           ["ctrl-g"] = "execute(less -c -i --incsearch --search-options=W -g {})",
           ["ctrl-z"] = "abort",
           ["ctrl-u"] = "unix-line-discard",
@@ -90,6 +92,21 @@ return {
     }
   end,
 
+  config = function(_, opts)
+    require("fzf-lua").setup(opts)
+
+    local function set_fzf_hl()
+      vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
+      vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })
+    end
+
+    set_fzf_hl()
+
+    vim.api.nvim_create_autocmd("ColorScheme", {
+      callback = set_fzf_hl,
+    })
+  end,
+
   keys = {
     { "<leader>fm", "<cmd>FzfLua marks<cr>",                 desc = "Fzf: Marks" },
     { "<leader>fk", "<cmd>FzfLua keymaps<cr>",               desc = "Fzf: Keymaps" },
@@ -98,6 +115,7 @@ return {
     { "<leader>fl", "<cmd>FzfLua blines<cr>",                desc = "Fzf: Lines (current buffer)" },
     { "<leader>fb", "<cmd>FzfLua buffers<cr>",               desc = "Fzf: Buffers" },
     { "<leader>ff", "<cmd>FzfLua files<cr>",                 desc = "Fzf: Find files (hidden)" },
+    { "<leader>ft", "<cmd>FzfLua tabs<cr>",                  desc = "Fzf: Find tabs" },
     { "<leader>fu", "<cmd>FzfLua files cwd=%:p:h<cr>",       desc = "Fzf: Files (buffer dir)" },
     { "<leader>fg", "<cmd>FzfLua live_grep<cr>",             desc = "Fzf: Grep (cwd)" },
     { "<leader>fw", "<cmd>FzfLua grep_cword<cr>",            desc = "Fzf: Grep word under cursor" },
