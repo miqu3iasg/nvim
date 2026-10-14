@@ -113,10 +113,10 @@ return {
         border = "single",
       },
       win_options = {
-        -- signcolumn = "yes:2",
         signcolumn = "no",
         number = false,
         relativenumber = false,
+        cursorline = true,
       },
     })
     -- require("oil-git-status").setup()

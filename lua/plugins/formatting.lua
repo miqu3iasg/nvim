@@ -62,20 +62,15 @@ return {
     require("conform").setup({
       notify_on_error = true,
       formatters_by_ft = {
-        -- Systems / compiled languages
         lua = { "stylua" },
         go = { "goimports-reviser", "golines" },
         c = { "clang_format" },
         cpp = { "clang_format" },
         csharp = { "csharpier" },
         java = { "google-java-format" },
-
-        -- Scripting
         python = { "ruff_organize_imports", "ruff_format" },
         sh = { "shfmt" },
         bash = { "shfmt" },
-
-        -- Web / frontend
         javascript = { "prettierd", "prettier", stop_after_first = true },
         javascriptreact = { "prettierd", "prettier", stop_after_first = true },
         typescript = { "prettierd", "prettier", stop_after_first = true },
@@ -83,8 +78,6 @@ return {
         html = { "prettierd", "prettier", stop_after_first = true },
         css = { "prettierd", "prettier", stop_after_first = true },
         scss = { "prettierd", "prettier", stop_after_first = true },
-
-        -- Data / config formats
         json = { "prettierd", "prettier", stop_after_first = true },
         jsonc = { "prettierd", "prettier", stop_after_first = true },
         yaml = { "yamlfmt" },
@@ -93,18 +86,12 @@ return {
         sql = { "sql_formatter" },
         dockerfile = { "dockerfmt" },
         terraform = { "terraform_fmt" },
-
-        -- Docs
         markdown = { "prettierd", "prettier", stop_after_first = true },
         tex = { "latexindent" },
         typst = { "typstyle" },
-
-        -- Misc
         asm = { "asmfmt" },
 
-        -- Fallback for filetypes not explicitly configured above:
-        -- just trims trailing whitespace and extra blank lines,
-        -- so `format_on_save` never silently no-ops
+        -- fallback
         ["_"] = { "trim_whitespace", "trim_newlines" },
       },
       formatters = {
@@ -120,7 +107,6 @@ return {
           prepend_args = { "--base-formatter=gofumpt", "--max-len=100" },
         },
         shfmt = {
-          -- 2-space indentation, matching common shell style guides
           prepend_args = { "-i", "2", "-ci" },
         },
         sql_formatter = {

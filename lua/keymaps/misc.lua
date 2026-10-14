@@ -2,98 +2,55 @@
 
 local km = vim.keymap.set
 
+-- Toggles a boolean window option (vim.wo)
+local function toggle(lhs, opt, desc)
+  km("n", lhs, function()
+    vim.wo[opt] = not vim.wo[opt]
+  end, { desc = desc })
+end
+
 -- Appearance
 
--- Select and apply a colorscheme
-km("n", "<leader>vt", ":FzfLua colorschemes<CR>", { desc = "Choose colorscheme" })
+km("n", "<leader>vt", "<cmd>FzfLua colorschemes<cr>", { desc = "Choose colorscheme" })
 
--- Switch between dark and light background settings
-km("n", "<leader>vz", function()
-  vim.o.background = vim.o.background == "dark" and "light" or "dark"
-end, { desc = "Toggle background (dark/light)" })
+toggle("<leader>vw", "wrap", "Toggle line wrap")
+toggle("<leader>vl", "list", "Toggle whitespace characters")
+toggle("<leader>vs", "spell", "Toggle spell check")
 
--- Toggle highlighting of the current line
-km("n", "<leader>vc", function()
-  vim.wo.cursorline = not vim.wo.cursorline
-end, { desc = "Toggle cursorline" })
-
--- Toggle line wrapping
-km("n", "<leader>vw", function()
-  vim.wo.wrap = not vim.wo.wrap
-end, { desc = "Toggle line wrap" })
-
--- Toggle visible whitespace characters (tabs, trailing spaces, etc.)
-km("n", "<leader>vl", function()
-  vim.wo.list = not vim.wo.list
-end, { desc = "Toggle list (show whitespace)" })
-
--- Toggle the sign column (gutter); "no" by default in options.lua
 km("n", "<leader>vg", function()
   vim.wo.signcolumn = vim.wo.signcolumn == "no" and "yes" or "no"
 end, { desc = "Toggle sign column" })
 
 -- Line numbers
 
--- Toggle absolute and relative line numbers together
+-- Toggle absolute and relative numbers together
 km("n", "<leader>vn", function()
   vim.wo.number = not vim.wo.number
   vim.wo.relativenumber = vim.wo.number
 end, { desc = "Toggle line numbers" })
 
--- Keep absolute line numbers enabled while toggling relative numbers
+-- Keep absolute numbers on and toggle only relative numbers
 km("n", "<leader>vr", function()
   vim.wo.number = true
   vim.wo.relativenumber = not vim.wo.relativenumber
-end, { desc = "Toggle relative/absolute line numbers" })
+end, { desc = "Toggle relative numbers" })
 
--- Spell checking
+-- Config files
 
--- Toggle spell checking for the current buffer
-km("n", "<leader>vs", function()
-  vim.wo.spell = not vim.wo.spell
-end, { desc = "Toggle spell check" })
-
--- Diagnostics
-
--- Toggle the display of diagnostics
-km("n", "<leader>vd", function()
-  vim.diagnostic.enable(not vim.diagnostic.is_enabled())
-end, { desc = "Toggle diagnostics" })
-
--- Toggle inline diagnostics (virtual text); off by default in options.lua
-km("n", "<leader>vi", function()
-  local cfg = vim.diagnostic.config()
-  vim.diagnostic.config({ virtual_text = not cfg.virtual_text })
-end)
-
--- Info and health
-
--- Show the message history
-km("n", "<leader>vm", "<cmd>messages<cr>", { desc = "Show messages" })
-
--- Run the built-in health checks
-km("n", "<leader>vh", "<cmd>checkhealth<cr>", { desc = "Check health" })
-
--- Configuration files
-
--- Open common config files and directories in Neovim
 km("n", "<leader>zs", "<cmd>e ~/.zshrc<cr>", { desc = "Edit .zshrc" })
 km("n", "<leader>zt", "<cmd>e ~/.config/tmux/tmux.conf<cr>", { desc = "Edit tmux.conf" })
-km("n", "<leader>zn", function() require("oil").open("~/.config/nvim") end, { desc = "Edit nvim config directory (Oil)" })
-km("n", "<leader>zi", "<cmd>e ~/.config/i3/config<cr>", { desc = "Edit i3 configuration" })
-km("n", "<leader>zg", "<cmd>e ~/.gitconfig<cr>", { desc = "Edit Git configuration" })
+km("n", "<leader>zi", "<cmd>e ~/.config/i3/config<cr>", { desc = "Edit i3 config" })
+km("n", "<leader>zg", "<cmd>e ~/.gitconfig<cr>", { desc = "Edit .gitconfig" })
+km("n", "<leader>zn", function() require("oil").open("~/.config/nvim") end, { desc = "Open nvim config dir (Oil)" })
 
 -- Save and quit
 
--- Native Z* commands, mapped explicitly for discoverability
-km("n", "ZZ", "<cmd>x<cr>", { desc = "Save and quit (native)" })
-km("n", "ZQ", "<cmd>q!<cr>", { desc = "Quit without saving (native)" })
+-- Explicit mappings for Z* commands so they show up in which-key
+km("n", "ZZ", "<cmd>x<cr>", { desc = "Save and quit" })
+km("n", "ZQ", "<cmd>q!<cr>", { desc = "Quit without saving" })
 km("n", "ZX", "<cmd>w<cr>", { desc = "Save file" })
 
--- Reload and run
+-- Reload and restart
 
--- Reload the current Neovim configuration
-km("n", "<leader>rl", ":source $MYVIMRC<CR>", { desc = "Reload nvim config" })
-
--- Restart Neovim
+km("n", "<leader>rl", "<cmd>source $MYVIMRC<cr>", { desc = "Reload nvim config" })
 km("n", "<leader>re", "<cmd>restart<cr>", { desc = "Restart Neovim" })
