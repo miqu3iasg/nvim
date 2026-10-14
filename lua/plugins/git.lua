@@ -57,6 +57,7 @@ return {
 
       -- Inspection
       { "<leader>gb", "<cmd>silent Git blame<cr>",        desc = "Git blame" },
+      { "<leader>gB", "<cmd>.Git blame<cr>",              desc = "Git blame (line)" },
 
       -- Browser
       -- Visual mappings use `:` so the selected range reaches `GBrowse`. The
@@ -79,48 +80,65 @@ return {
   },
 
   {
-    "nvim-mini/mini.diff",
-    version = false,
+    "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
-
+    opts = {
+      signcolumn = false,
+      numhl = false,
+      word_diff = false,
+      current_line_blame = false,
+    },
     keys = {
+      -- Stage and reset
+      {
+        "<leader>hs",
+        function() require("gitsigns").stage_hunk() end,
+        desc = "Stage/unstage hunk",
+      },
+      {
+        "<leader>hs",
+        function() require("gitsigns").stage_hunk({ vim.fn.line("."), vim.fn.line("v") }) end,
+        mode = "x",
+        desc = "Stage/unstage selection",
+      },
+      {
+        "<leader>hr",
+        function() require("gitsigns").reset_hunk() end,
+        desc = "Reset hunk",
+      },
+      {
+        "<leader>hr",
+        function() require("gitsigns").reset_hunk({ vim.fn.line("."), vim.fn.line("v") }) end,
+        mode = "x",
+        desc = "Reset selection",
+      },
+
+      -- Preview
+      {
+        "<leader>hp",
+        function() require("gitsigns").preview_hunk_inline() end,
+        desc = "Preview hunk",
+      },
       {
         "<leader>hd",
-        function()
-          local md = require("mini.diff")
-          local buf = vim.api.nvim_get_current_buf()
-
-          if vim.bo[buf].buftype ~= "" then
-            return vim.notify("mini.diff: not a normal file buffer", vim.log.levels.WARN)
+        (function()
+          local on = false
+          return function()
+            on = not on
+            local gs = require("gitsigns")
+            gs.toggle_deleted(on)
+            gs.toggle_linehl(on)
+            gs.toggle_word_diff(on)
           end
-
-          if not md.get_buf_data(buf) then
-            pcall(md.enable, buf)
-          end
-
-          if not md.get_buf_data(buf) then
-            return vim.notify(
-              "mini.diff: could not attach (file untracked or outside a git repo?)",
-              vim.log.levels.WARN
-            )
-          end
-
-          md.toggle_overlay(buf)
-        end,
+        end)(),
         desc = "Toggle diff overlay",
       },
-    },
-    opts = {
-      mappings = {
-        apply = "<leader>hs",
-        reset = "<leader>hr",
-        textobject = "ih",
-        -- TODO: when there are no hunks to navigate, simply do nothing and do not issue a notification short description
-        goto_first = "[S",
-        goto_prev = "[s",
-        goto_next = "]s",
-        goto_last = "]S",
-      },
+
+      -- Navigation (silent when there are no hunks, centers the screen on jump)
+      { "]f", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end,  desc = "Next hunk" },
+      { "[f", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end,  desc = "Prev hunk" },
+      { "]F", function() require("gitsigns").nav_hunk("last", { navigation_message = false }) end,  desc = "Last hunk" },
+      { "[F", function() require("gitsigns").nav_hunk("first", { navigation_message = false }) end, desc = "First hunk" },
     },
   },
 
