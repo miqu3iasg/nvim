@@ -27,28 +27,29 @@ return {
 
     keys = {
       -- Repository
-      { "<leader>gs", "<cmd>silent vertical Git<cr>",      desc = "Git status" },
-      { "<leader>gl", "<cmd>silent vertical Git log<cr>",  desc = "Git log" },
-      { "<leader>gp", "<cmd>Git push<cr>",                 desc = "Git push" },
+      { "<leader>gs", "<cmd>silent leftabove vertical Git<cr>",           desc = "Git status" },
+      { "<leader>gl", "<cmd>silent vertical Git log<cr>",                 desc = "Git log" },
+      { "<leader>gp", "<cmd>Git push<cr>",                                desc = "Git push" },
 
       -- Staging
-      { "<leader>g.", "<cmd>silent Git add -A<cr>",        desc = "Git add -A (stage all)" },
-      { "<leader>ga", "<cmd>silent Gwrite<cr>",            desc = "Stage current file" },
+      { "<leader>g.", "<cmd>silent Git add -A<cr>",                       desc = "Git add -A (stage all)" },
+      { "<leader>ga", "<cmd>silent Gwrite<cr>",                           desc = "Stage current file" },
 
       -- Commits
-      { "<leader>gc", "<cmd>silent tab Git commit -v<cr>", desc = "Git commit -v (new tab)" },
+      { "<leader>gC", "<cmd>silent tab Git commit -v<cr>",                desc = "Git commit -v (new tab)" },
+      { "<leader>gc", "<cmd>silent leftabove vertical Git commit -v<cr>", desc = "Git commit -v (new tab)" },
 
       -- Diff
-      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",       desc = "Diff against index" },
-      { "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>",  desc = "Diff against HEAD" },
+      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",                      desc = "Diff against index" },
+      { "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>",                 desc = "Diff against HEAD" },
 
       -- Inspection
-      { "<leader>gb", "<cmd>silent Git blame<cr>",         desc = "Git blame" },
-      { "<leader>ge", "<cmd>.Git blame<cr>",               desc = "Git blame (line)" },
+      { "<leader>gb", "<cmd>silent Git blame<cr>",                        desc = "Git blame" },
+      { "<leader>ge", "<cmd>.Git blame<cr>",                              desc = "Git blame (line)" },
 
       -- Browser
-      { "<leader>go", "<cmd>silent .GBrowse<cr>",          desc = "Open in browser" },
-      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",         desc = "Copy browser link" },
+      { "<leader>go", "<cmd>silent .GBrowse<cr>",                         desc = "Open in browser" },
+      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",                        desc = "Copy browser link" },
       {
         "<leader>go",
         ":<C-u>silent '<,'>GBrowse<cr>",
