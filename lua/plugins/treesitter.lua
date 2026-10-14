@@ -13,7 +13,6 @@ return {
     local ts = require("nvim-treesitter")
     ts.install({
       "typst",
-      "purescript",
       "vimdoc",
       "go",
       "rust",
@@ -25,12 +24,6 @@ return {
       "java",
       "javascript",
       "typescript",
-      "haskell",
-      "zig",
-      "gleam",
-      "wgsl",
-      "php",
-      "nim",
       "sql",
       "markdown",
       "markdown_inline",
@@ -39,12 +32,11 @@ return {
       "yaml",
       "json",
       "toml",
-      "ruby",
       "c_sharp",
       "dockerfile",
       "terraform",
       "cmake",
-      "fortran",
+      "help",
     }, {
       max_jobs = 4,
     })
@@ -57,15 +49,15 @@ return {
     -- highlighting and its conceal rules (accents, greek letters, math
     -- bounds, etc). If Treesitter also attaches to the buffer, its
     -- captures win and vimtex's groups (and any colorscheme highlights
-    -- built on top of them) never get applied.
+    -- built on top of them) never get applied
     --
     -- The `latex` parser is still installed above, it's needed for
     -- markdown_inline to inject LaTeX math highlighting inside
     -- $...$/$$...$$ regions in markdown buffers (see render-markdown.nvim
     -- in lua/plugins/latex.lua). It just must never attach directly to
-    -- a `tex` buffer.
+    -- a `tex` buffer
     --
-    -- Refs:
+    -- References:
     --     - :h vimtex-faq-treesitter
     --     - https://github.com/lervag/vimtex/wiki/Syntax
     local ts_highlight_excluded = {
