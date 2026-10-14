@@ -27,43 +27,28 @@ return {
 
     keys = {
       -- Repository
-      { "<leader>gs", "<cmd>silent vertical Git<cr>",                 desc = "Git status" },
-      { "<leader>gl", "<cmd>silent vertical Git log<cr>",             desc = "Git log" },
-      { "<leader>gu", "<cmd>silent vertical Git pull --ff-only<cr>",  desc = "Git pull (fast-forward only)" },
-      { "<leader>gp", "<cmd>Git push<cr>",                            desc = "Git push" },
+      { "<leader>gs", "<cmd>silent vertical Git<cr>",      desc = "Git status" },
+      { "<leader>gl", "<cmd>silent vertical Git log<cr>",  desc = "Git log" },
+      { "<leader>gp", "<cmd>Git push<cr>",                 desc = "Git push" },
 
       -- Staging
-      { "<leader>g.", "<cmd>silent Git add -A<cr>",                   desc = "Git add -A (stage all)" },
-      { "<leader>ga", "<cmd>silent Gwrite<cr>",                       desc = "Stage current file" },
+      { "<leader>g.", "<cmd>silent Git add -A<cr>",        desc = "Git add -A (stage all)" },
+      { "<leader>ga", "<cmd>silent Gwrite<cr>",            desc = "Stage current file" },
 
       -- Commits
-      -- { "<leader>gc", "<cmd>silent vertical Git commit -v<cr>",       desc = "Git commit -v" },
-      -- { "<leader>gc", "<cmd>silent Git commit -v | only<cr>",         desc = "Git commit -v (full window)" },
-      { "<leader>gc", "<cmd>silent tab Git commit -v<cr>",            desc = "Git commit -v (new tab)" },
-      { "<leader>gA", "<cmd>silent Git commit --amend --no-edit<cr>", desc = "Amend (no edit)" },
-
-      -- History
-      { "<leader>gh", "<cmd>0Gclog<cr>",                              desc = "File history" },
-      {
-        "<leader>gh",
-        ":Gclog<cr>",
-        mode = "x",
-        desc = "Line history",
-      },
+      { "<leader>gc", "<cmd>silent tab Git commit -v<cr>", desc = "Git commit -v (new tab)" },
 
       -- Diff
-      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",      desc = "Diff against index" },
-      { "<leader>gD", "<cmd>silent Gvdiffsplit HEAD<cr>", desc = "Diff against HEAD" },
+      { "<leader>gd", "<cmd>silent Gvdiffsplit<cr>",       desc = "Diff against index" },
+      { "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>",  desc = "Diff against HEAD" },
 
       -- Inspection
-      { "<leader>gb", "<cmd>silent Git blame<cr>",        desc = "Git blame" },
-      { "<leader>gB", "<cmd>.Git blame<cr>",              desc = "Git blame (line)" },
+      { "<leader>gb", "<cmd>silent Git blame<cr>",         desc = "Git blame" },
+      { "<leader>ge", "<cmd>.Git blame<cr>",               desc = "Git blame (line)" },
 
       -- Browser
-      -- Visual mappings use `:` so the selected range reaches `GBrowse`. The
-      -- bang form copies the permalink instead of opening the browser
-      { "<leader>go", "<cmd>silent .GBrowse<cr>",         desc = "Open in browser" },
-      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",        desc = "Copy browser link" },
+      { "<leader>go", "<cmd>silent .GBrowse<cr>",          desc = "Open in browser" },
+      { "<leader>gy", "<cmd>silent .GBrowse!<cr>",         desc = "Copy browser link" },
       {
         "<leader>go",
         ":<C-u>silent '<,'>GBrowse<cr>",
@@ -128,13 +113,12 @@ return {
             local gs = require("gitsigns")
             gs.toggle_deleted(on)
             gs.toggle_linehl(on)
-            gs.toggle_word_diff(on)
           end
         end)(),
         desc = "Toggle diff overlay",
       },
 
-      -- Navigation (silent when there are no hunks, centers the screen on jump)
+      -- Navigation (silent when there are no hunks)
       { "]f", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end,  desc = "Next hunk" },
       { "[f", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end,  desc = "Prev hunk" },
       { "]F", function() require("gitsigns").nav_hunk("last", { navigation_message = false }) end,  desc = "Last hunk" },
