@@ -4,6 +4,7 @@
 -- See: https://github.com/bruhtus/dotfiles/tree/master/.vim
 return {
   "hat0uma/csvview.nvim",
+  enabled = false,
   ft = { "csv", "tsv" },
   cmd = { "CsvViewEnable", "CsvViewDisable", "CsvViewToggle", "CsvViewInfo" },
   opts = {
@@ -30,3 +31,18 @@ return {
     },
   },
 }
+
+-- Put the following code into afeter/ftplugin/csv.lua:
+-- local delimiter_arg = ""
+-- if vim.bo.filetype == "csv" then
+--   local first = vim.api.nvim_buf_get_lines(0, 0, 1, false)[1] or ""
+--   local _, semicolons = first:gsub(";", "")
+--   local _, commas = first:gsub(",", "")
+--   if semicolons > commas then
+--     delimiter_arg = " delimiter=;"
+--   end
+-- end
+-- pcall(vim.cmd, "CsvViewEnable" .. delimiter_arg)
+--
+-- map("<leader>cv", "<cmd>CsvViewToggle<cr>", "CSV: toggle view")
+-- map("<leader>ci", "<cmd>CsvViewInfo<cr>", "CSV: info")

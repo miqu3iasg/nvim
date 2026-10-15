@@ -16,5 +16,7 @@ require("commands")
 require("snippets")
 require("statusline").setup()
 
-vim.cmd.colorscheme("hollow")
+-- vim.cmd.colorscheme("hollow")
 -- vim.cmd.colorscheme("insanity")
+-- vim.cmd.colorscheme("darkthrone")
+vim.cmd.colorscheme("transilvanian")

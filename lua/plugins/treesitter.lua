@@ -36,7 +36,6 @@ return {
       "dockerfile",
       "terraform",
       "cmake",
-      "help",
     }, {
       max_jobs = 4,
     })

@@ -1,79 +1,57 @@
 -- lua/plugins/colorscheme.lua
 
 return {
-  { "slugbyte/lackluster.nvim", },
-  { "kdheepak/monochrome.nvim" },
   { "jaredgorski/fogbell.vim", },
-  { "jwbaldwin/oscura.nvim" },
   { "amedoeyes/eyes.nvim" },
-  { "cranberry-clockworks/coal.nvim" },
-  {
-    "blazkowolf/gruber-darker.nvim",
-    opts = {
-      bold = false,
-    },
-  },
   {
     "metalelf0/black-metal-theme-neovim",
     lazy = false,
     priority = 1000,
     config = function()
+      -- Overrides
+      local split_line = "#7a7a7a"
+      local accent     = "#5f8787"
+      local accent_dim = "#1c2828"
+      -- local str        = "#8da88c"
+
       require("black-metal").setup({
-        -- Can be one of: bathory | burzum | dark-funeral | darkthrone | emperor | gorgoroth | immortal | impaled-nazarene | khold | marduk | mayhem | nile | taake | thyrfing | venom | windir
-        theme = "gorgoroth",
-        -- Can be one of: 'light' | 'dark', or set via vim.o.background
-        variant = "dark",
-        -- Use an alternate, lighter bg
-        alt_bg = false,
-        -- If true, docstrings will be highlighted like strings, otherwise they will be
-        -- highlighted like comments. Note, behavior is dependent on the language server.
-        colored_docstrings = true,
-        -- If true, highlights the {sign,fold} column the same as cursorline
-        cursorline_gutter = true,
-        -- If true, highlights the gutter darker than the bg
-        dark_gutter = false,
-        -- if true favor treesitter highlights over semantic highlights
+        theme               = "darkthrone",
+        variant             = "dark",
+        alt_bg              = false,
+        colored_docstrings  = true,
+        cursorline_gutter   = false,
+        dark_gutter         = false,
         favor_treesitter_hl = false,
-        -- Don't set background of floating windows. Recommended for when using floating
-        -- windows with borders.
-        plain_float = false,
-        -- Show the end-of-buffer character
-        show_eob = true,
-        -- If true, enable the vim terminal colors
-        term_colors = true,
-        -- Keymap (in normal mode) to toggle between light and dark variants.
-        toggle_variant_key = nil,
-        -- Don't set background
-        transparent = false,
-        -- There is no light in trve black metal: if true, light variants are disabled
-        -- and loading one falls back to dark. Set to false to allow light variants.
-        trve = true,
+        plain_float         = false,
+        show_eob            = true,
+        term_colors         = true,
+        transparent         = false,
+        trve                = true,
 
         -- Diagnostics and code style
-        --
-        diagnostics = {
-          darker = true,     -- Darker colors for diagnostic
-          undercurl = true,  -- Use undercurl for diagnostics
-          background = true, -- Use background color for virtual text
+        diagnostics         = {
+          darker     = true,
+          undercurl  = false,
+          background = false,
         },
+
         -- The following table accepts values the same as the `gui` option for normal
         -- highlights. For example, `bold`, `italic`, `underline`, `none`.
-        code_style = {
-          comments = "italic",
-          conditionals = "none",
-          functions = "none",
-          keywords = "none",
-          headings = "bold", -- Markdown headings
-          operators = "none",
+        code_style          = {
+          comments       = "none",
+          conditionals   = "none",
+          functions      = "none",
+          keywords       = "none",
+          headings       = "bold", -- Markdown headings
+          operators      = "none",
           keyword_return = "none",
-          strings = "none",
-          variables = "none",
+          strings        = "none",
+          variables      = "none",
         },
 
         -- Plugins
-        --
         -- The following options allow for more control over some plugin appearances.
-        plugin = {
+        plugin              = {
           cmp = { -- works for nvim.cmp and blink.nvim
             -- Don't highlight lsp-kind items. Only the current selection will be highlighted.
             plain = false,
@@ -82,13 +60,45 @@ return {
           },
         },
 
-        -- CUSTOM HIGHLIGHTS --
-        --
-        -- Override default colors
-        colors = {},
+        -- Custom highlights, override default colors
+        colors              = {},
+
         -- Override highlight groups
-        highlights = {},
-        trve = true, -- switch this to false if you want light variants
+        highlights          = {
+          StatusLine                 = { fg = "#a8a8a8", bg = "#121212" },
+          StatusLineNC               = { fg = "#5f5f5f", bg = "#050505" },
+
+          Boolean                    = { fg = accent },
+          Number                     = { fg = accent },
+          Float                      = { fg = accent },
+          ["@boolean"]               = { fg = accent },
+          ["@number"]                = { fg = accent },
+          ["@number.float"]          = { fg = accent },
+          ["@float"]                 = { fg = accent },
+
+          WinSeparator               = { fg = split_line },
+          VertSplit                  = { fg = split_line },
+
+          Search                     = { fg = accent, bg = accent_dim },
+          CurSearch                  = { fg = "#000000", bg = accent },
+          IncSearch                  = { fg = "#000000", bg = accent },
+          Substitute                 = { fg = "#000000", bg = accent },
+
+          ["@markup.math"]           = { fg = accent },
+          ["@markup.list"]           = { fg = accent },
+          ["@markup.list.checked"]   = { fg = accent },
+          ["@markup.list.unchecked"] = { fg = accent },
+          ["@property.yaml"]         = { fg = accent },
+          MarkdownBody               = { fg = "#d0d0d0", bg = "#000000" },
+          ["@markup.italic"]         = { fg = "#d0d0d0", fmt = "italic" },
+
+          -- String                     = { fg = str },
+          -- ["@string"]                = { fg = str },
+          -- ["@string.documentation"]  = { fg = str },
+          -- ["@string.special.symbol"] = { fg = str },
+        },
+
+        trve                = true, -- switch this to false if you want light variants
       })
       require("black-metal").load()
     end,
