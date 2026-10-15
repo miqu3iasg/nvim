@@ -13,6 +13,22 @@ vim.api.nvim_create_autocmd("FileType", {
 require("utils.close").setup()
 
 return {
+
+  -- THIS IS A TEST!!!
+  {
+    "NeogitOrg/neogit",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "ibhagwan/fzf-lua",
+      "m00qek/baleia.nvim", -- optional
+    },
+    cmd = "Neogit",
+    keys = { { "<leader>gn", "<cmd>Neogit<cr>", desc = "Neogit" } },
+    opts = { integrations = { fzf_lua = true, diffview = true } },
+  },
+
+
+
   {
     "tpope/vim-fugitive",
     dependencies = { "tpope/vim-rhubarb" },
@@ -20,7 +36,7 @@ return {
     cmd = { "Git", "G", "GBrowse", "Gvdiffsplit", "Gdiffsplit", "Gwrite", "Gread", "Gclog", "Gedit", "GMove" },
 
     keys = {
-      { "<leader>gs", "<cmd>silent leftabove vertical Git<cr>",           desc = "Git status" },
+      { "<leader>gs", "<cmd>silent tab Git<cr>",                          desc = "Git status" },
       { "<leader>ga", "<cmd>silent Gwrite<cr>",                           desc = "Stage current file" },
 
       { "<leader>gC", "<cmd>silent tab Git commit -v<cr>",                desc = "Git commit -v (new tab)" },
