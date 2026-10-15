@@ -153,8 +153,8 @@ local function setup_blink()
           components = {
             kind_icon = { width = { max = 3 } },
             label = { width = { fill = true, min = 30 } },
-            label_description = { width = { min = 20, max = 20 } },
-            kind = { width = { min = 12, max = 12 } },
+            label_description = { width = { min = 20 } },
+            kind = { width = { min = 12 } },
           },
           treesitter = { "lsp" },
         },

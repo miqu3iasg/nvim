@@ -24,7 +24,9 @@ local root = vim.fs.root(0, { "mvnw", "gradlew", "pom.xml", "build.gradle", "bui
 local bundles = vim.fn.glob(
   mason .. "/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar", true, true)
 vim.list_extend(bundles, vim.fn.glob(mason .. "/packages/java-test/extension/server/*.jar", true, true))
-vim.list_extend(bundles, require("spring_boot").java_extensions())
+
+local ecc = vim.deepcopy(jdtls.extendedClientCapabilities)
+ecc.resolveAdditionalTextEditsSupport = true
 
 local function build(action)
   local function has(f) return vim.uv.fs_stat(root .. "/" .. f) ~= nil end
@@ -38,11 +40,12 @@ local function build(action)
   vim.cmd(("botright vnew | lcd %s | terminal %s %s"):format(vim.fn.fnameescape(root), tool, tasks[action]))
 end
 
-local function on_attach(_, bufnr)
+local function on_attach(client, bufnr)
   local dap = require("dap")
-  local widgets = require("dap.ui.widgets")
   require("jdtls.dap").setup_dap({ hotcodereplace = "auto" })
   require("jdtls.dap").setup_dap_main_class_configs()
+
+  client.server_capabilities.semanticTokensProvider = nil
 
   local function map(mode, lhs, rhs, desc)
     vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true, desc = desc })
@@ -55,14 +58,13 @@ local function on_attach(_, bufnr)
   map("n", "<F12>", dap.step_out, "DAP: step out")
   map("n", "<leader>db", dap.toggle_breakpoint, "DAP: toggle breakpoint")
   map("n", "<leader>dB", function() dap.set_breakpoint(vim.fn.input("Condition: ")) end, "DAP: conditional breakpoint")
-  map("n", "<leader>ds", function() widgets.centered_float(widgets.scopes) end, "DAP: scopes")
-  map("n", "<leader>df", function() widgets.centered_float(widgets.frames) end, "DAP: call stack")
-  map({ "n", "v" }, "<leader>dh", widgets.hover, "DAP: hover")
 
   -- Refactor
   map("n", "<leader>jv", jdtls.extract_variable, "Java: extract variable")
-  map("v", "<leader>jv", function() jdtls.extract_variable(true) end, "Java: extract variable")
-  map("v", "<leader>jm", function() jdtls.extract_method(true) end, "Java: extract method")
+  map("v", "<leader>jv", "<Esc><Cmd>lua require('jdtls').extract_variable(true)<CR>", "Java: extract variable")
+  map("n", "<leader>jc", jdtls.extract_constant, "Java: extract constant")
+  map("v", "<leader>jc", "<Esc><Cmd>lua require('jdtls').extract_constant(true)<CR>", "Java: extract constant")
+  map("v", "<leader>jm", "<Esc><Cmd>lua require('jdtls').extract_method(true)<CR>", "Java: extract method")
 
   -- Tests
   map("n", "<leader>jtc", jdtls.test_class, "Java: test class")
@@ -78,22 +80,59 @@ jdtls.start_or_attach({
   cmd = {
     mason .. "/bin/jdtls",
     "--jvm-arg=-javaagent:" .. mason .. "/packages/jdtls/lombok.jar",
+    "--jvm-arg=-Xmx2g",
+    "--jvm-arg=-XX:+UseParallelGC",
+    "--jvm-arg=-XX:GCTimeRatio=4",
+    "--jvm-arg=-XX:AdaptiveSizePolicyWeight=90",
     "-data", vim.fn.stdpath("cache") .. "/jdtls-workspace/" .. vim.fs.basename(root),
   },
   cmd_env = { JAVA_HOME = server_jdk },
   root_dir = root,
-  capabilities = require("blink.cmp").default_capabilities(),
+  capabilities = require("blink.cmp").get_lsp_capabilities(),
   on_attach = on_attach,
   settings = {
     java = {
-      configuration = { runtimes = runtimes },
-      sources = { organizeImports = { starThreshold = 9999, staticStarThreshold = 9999 } },
+      autobuild = { enabled = false },
+      format = { enabled = false },
+      configuration = {
+        runtimes = runtimes,
+        updateBuildConfiguration = "automatic",
+      },
+      eclipse = { downloadSources = true },
+      maven = { downloadSources = true },
+      signatureHelp = { enabled = true },
+      sources = {
+        organizeImports = { starThreshold = 9999, staticStarThreshold = 9999 },
+      },
+      completion = {
+        favoriteStaticMembers = {
+          "org.hamcrest.MatcherAssert.assertThat",
+          "org.hamcrest.Matchers.*",
+          "org.hamcrest.CoreMatchers.*",
+          "org.junit.jupiter.api.Assertions.*",
+          "java.util.Objects.requireNonNull",
+          "java.util.Objects.requireNonNullElse",
+          "org.mockito.Mockito.*",
+        },
+        filteredTypes = {
+          "com.sun.*",
+          "io.micrometer.shaded.*",
+          "java.awt.*",
+          "jdk.*",
+          "sun.*",
+        },
+      },
+      codeGeneration = {
+        toString = {
+          template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}",
+        },
+        hashCodeEquals = { useJava7Objects = true },
+        useBlocks = true,
+      },
     },
   },
   init_options = {
     bundles = bundles,
-    extendedClientCapabilities = jdtls.extendedClientCapabilities,
+    extendedClientCapabilities = ecc,
   },
 })
-
-vim.api.nvim_create_autocmd("BufWritePre", { buffer = 0, callback = jdtls.organize_imports })
