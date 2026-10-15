@@ -21,19 +21,20 @@ local _           = false
 local fg0         = '#dadada'
 local fg1         = '#c6c6c6'
 local str         = '#b5b5b5'
+-- local str         = '#83a683'
 local dim         = '#707070'
 local cmt         = '#6a6a6a'
 local doc         = '#7a7a7a'
 
-local accent      = '#4e73ed'
+local accent      = '#6382eb'
 local accent_dim  = '#1b2152'
 
 local punct       = '#808080'
 local tw          = '#8c8c8c'
 
 local err         = '#b86a6a'
-local warn        = '#a8884a'
-local ok          = '#3f7a3f'
+local warn        = '#b09b72'
+local ok          = '#678a67'
 
 local function attrs(s)
   local t = {}
@@ -329,8 +330,8 @@ local jsx = {
 
 -- Oil (stevearc/oil.nvim)
 local oil = {
-  { 'OilDir',               fg0,       _, _, 'bold',   253, _, 'bold' },
-  { 'OilDirIcon',           fg0,       _, _, 'NONE',   253, _, 'NONE' },
+  { 'OilDir',               '#5f87ff', _, _, 'bold',   69,  _, 'bold' },
+  { 'OilDirIcon',           '#5f87ff', _, _, 'NONE',   69,  _, 'NONE' },
   { 'OilFile',              fg1,       _, _, 'NONE',   251, _, 'NONE' },
   { 'OilLink',              fg1,       _, _, 'italic', 251, _, 'italic' },
   { 'OilLinkTarget',        dim,       _, _, 'italic', 242, _, 'italic' },
@@ -348,7 +349,7 @@ local oil = {
   { 'OilTrash',             dim,       _, _, 'NONE',   242, _, 'NONE' },
   { 'OilTrashSourcePath',   cmt,       _, _, 'NONE',   241, _, 'NONE' },
 
-  { 'OilTypeDir',           fg0,       _, _, 'bold',   253, _, 'bold' },
+  { 'OilTypeDir',           '#5f87ff', _, _, 'bold',   69,  _, 'bold' },
   { 'OilTypeFile',          dim,       _, _, 'NONE',   242, _, 'NONE' },
   { 'OilTypeLink',          fg1,       _, _, 'NONE',   251, _, 'NONE' },
   { 'OilTypeFifo',          dim,       _, _, 'NONE',   242, _, 'NONE' },
@@ -360,8 +361,12 @@ local oil = {
   { 'OilPermissionWrite',   err,       _, _, 'NONE',   131, _, 'NONE' },
   { 'OilPermissionExecute', '#5f9a5f', _, _, 'NONE',   71,  _, 'NONE' },
 
-  { 'OilSize',              dim,       _, _, 'NONE',   242, _, 'NONE' },
-  { 'OilMtime',             dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilExecutable',        '#9e9e9e', _, _, 'bold',   247, _, 'bold' },
+  { 'OilSocket',            dim,       _, _, 'NONE',   242, _, 'NONE' },
+  { 'OilDirHidden',         cmt,       _, _, 'bold',   241, _, 'bold' },
+  { 'OilFileHidden',        cmt,       _, _, 'NONE',   241, _, 'NONE' },
+  { 'OilLinkHidden',        cmt,       _, _, 'italic', 241, _, 'italic' },
+  { 'OilOrphanLinkHidden',  err,       _, _, 'italic', 131, _, 'italic' },
 }
 
 -- Markdown only
@@ -535,3 +540,17 @@ vim.api.nvim_create_autocmd({ 'FileType', 'BufWinEnter', 'BufEnter', 'WinEnter' 
 sync_frontmatter_ns()
 
 set_hl(0, 'Cursor', { fg = '#000000', bg = fg0, ctermfg = 16, ctermbg = 253 })
+
+vim.api.nvim_create_autocmd({ 'FileType', 'ColorScheme' }, {
+  group = vim.api.nvim_create_augroup('HollowOil', { clear = true }),
+  pattern = { 'oil', '*' },
+  callback = function(ev)
+    if ev.event == 'ColorScheme' and vim.g.colors_name ~= 'hollow' then
+      return
+    end
+    if ev.event == 'FileType' and ev.match ~= 'oil' then
+      return
+    end
+    apply(oil)
+  end,
+})
