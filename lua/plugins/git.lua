@@ -14,20 +14,28 @@ require("utils.close").setup()
 
 return {
 
-  -- THIS IS A TEST!!!
+  -- Testign Neogit for now
   {
     "NeogitOrg/neogit",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "ibhagwan/fzf-lua",
-      "m00qek/baleia.nvim", -- optional
-    },
+    dependencies = { "nvim-lua/plenary.nvim", "ibhagwan/fzf-lua" },
     cmd = "Neogit",
-    keys = { { "<leader>gn", "<cmd>Neogit<cr>", desc = "Neogit" } },
-    opts = { integrations = { fzf_lua = true, diffview = true } },
+    keys = { { "<leader>gn", "<cmd>Neogit<cr>", desc = "Git status" } },
+    opts = {
+      disable_hint = true,
+      disable_signs = true,
+      disable_context_highlighting = true,
+      process_spinner = false,
+      graph_style = "ascii",
+      integrations = { fzf_lua = true },
+      status = {
+        show_head_commit_hash = false,
+      },
+      sections = {
+        recent  = { folded = true },
+        stashes = { folded = true },
+      },
+    },
   },
-
-
 
   {
     "tpope/vim-fugitive",
