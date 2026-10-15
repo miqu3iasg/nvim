@@ -19,8 +19,11 @@ local function map(lhs, rhs, desc)
   vim.keymap.set("n", lhs, rhs, { buffer = true, silent = true, desc = desc })
 end
 
-map("<leader>w", "<cmd>wq<CR>", "Save and confirm commit")
-map("<leader>q", function()
+vim.keymap.set("i", "<C-c><C-c>", "<cmd>wq<CR>", { buffer = true, silent = true, desc = "Save and confirm commit" })
+
+map("<C-c><C-c>", "<cmd>wq<CR>", "Save and confirm commit")
+
+map("q", function()
   local standalone = #vim.api.nvim_list_tabpages() == 1
       and #vim.api.nvim_list_wins() == 1
       and #vim.fn.getbufinfo({ buflisted = 1 }) == 1
