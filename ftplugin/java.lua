@@ -59,21 +59,9 @@ local function on_attach(client, bufnr)
   map("n", "<leader>db", dap.toggle_breakpoint, "DAP: toggle breakpoint")
   map("n", "<leader>dB", function() dap.set_breakpoint(vim.fn.input("Condition: ")) end, "DAP: conditional breakpoint")
 
-  -- Refactor
-  map("n", "<leader>jv", jdtls.extract_variable, "Java: extract variable")
-  map("v", "<leader>jv", "<Esc><Cmd>lua require('jdtls').extract_variable(true)<CR>", "Java: extract variable")
-  map("n", "<leader>jc", jdtls.extract_constant, "Java: extract constant")
-  map("v", "<leader>jc", "<Esc><Cmd>lua require('jdtls').extract_constant(true)<CR>", "Java: extract constant")
-  map("v", "<leader>jm", "<Esc><Cmd>lua require('jdtls').extract_method(true)<CR>", "Java: extract method")
-
   -- Tests
   map("n", "<leader>jtc", jdtls.test_class, "Java: test class")
   map("n", "<leader>jtn", jdtls.test_nearest_method, "Java: nearest test")
-
-  -- Build
-  map("n", "<leader>br", function() build("run") end, "Build: run app")
-  map("n", "<leader>bt", function() build("test") end, "Build: run tests")
-  map("n", "<leader>bb", function() build("build") end, "Build: skip tests")
 end
 
 jdtls.start_or_attach({
