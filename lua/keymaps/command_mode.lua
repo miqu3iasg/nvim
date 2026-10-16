@@ -5,9 +5,9 @@ local km = vim.keymap.set
 -- Command mode
 km({ "n", "v" }, ";", ":", { desc = "Enter command mode" })
 
--- give back the repeat-last-f/t/F/T-motion functionality that ";" used to have
--- (rhs is noremap by default, so this "\" still resolves to the original ";" behavior)
-km({ "n", "v" }, "\\", ";", { desc = "Repeat last f/t/F/T motion" })
+-- give back the repeat-last-motion functionality that ";" used to have
+km({ "n", "x", "o" }, ":", ";", { desc = "Repeat last f/t/F/T motion (swap)" })
+km({ "n", "x", "o" }, "\\", ";", { desc = "Repeat last f/t/F/T motion (alt)" })
 
 -- Command-line editing mirrors insert mode (editing.lua) for muscle memory.
 -- Different modes, so no conflict between them.
@@ -20,7 +20,7 @@ km("c", "<C-l>", "<S-Right>", { desc = "Move word forward" })
 km("c", "<C-BS>", "<C-w>", { desc = "Delete previous word" })
 
 -- Native <C-f> (open command-line window) was overridden above by "move char
--- forward". Reassigning it here so the feature isn't lost.
+-- forward". Reassigning it here so the feature isn't lost
 km("c", "<C-o>", function()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-f>", true, false, true), "n", true)
 end, { desc = "Open command-line window" })
