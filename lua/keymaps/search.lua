@@ -48,6 +48,3 @@ km("x", "<leader>sw", function()
   vim.fn.setreg("/", [[\V]] .. text)
   vim.o.hlsearch = true
 end, { desc = "Search visual selection" })
-
--- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)
-km("n", "<leader>cn", "*``cgn", { desc = "Change next occurrence of word under cursor (repeat with .)" })

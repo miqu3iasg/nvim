@@ -35,9 +35,6 @@ km("n", "<leader>mj", "<C-w>J", { desc = "Move window to bottom" })
 km("n", "<leader>mk", "<C-w>K", { desc = "Move window to top" })
 km("n", "<leader>ml", "<C-w>L", { desc = "Move window to far right" })
 
--- Move window to new tab
-km("n", "<leader>mt", "<C-w>T", { desc = "Move window to new tab" })
-
 -- Swap current window with the next one
 km("n", "<leader>mx", "<C-w>x", { desc = "Swap window with next" })
 

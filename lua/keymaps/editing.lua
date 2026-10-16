@@ -86,3 +86,6 @@ km(
   "<leader>cw", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
   { desc = "Substitute word under cursor at once" }
 )
+
+-- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)
+km("n", "<leader>cn", "*``cgn", { desc = "Change next occurrence of word under cursor (repeat with .)" })
