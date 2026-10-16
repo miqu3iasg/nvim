@@ -3,6 +3,19 @@
 -- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fzf.vim
 -- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/plugin/fzf.vim
 
+local function search_pending_comments()
+  require("fzf-lua").grep({
+    search = [[\b(TODO|FIXME|HACK|BUG|XXX)\b]],
+    no_esc = true,
+    prompt = "TODO/FIXME> ",
+    rg_opts = "--column --line-number --no-heading --color=always --smart-case "
+        .. "--max-columns=4096 --max-filesize=1M "
+        .. "--glob '!**/{.git,node_modules,build,dist,target,vendor,.venv,__pycache__}/**' "
+        .. "--glob '!*.{min.js,min.css,map,lock}' "
+        .. "-e",
+  })
+end
+
 return {
   "ibhagwan/fzf-lua",
   opts = function()
@@ -105,24 +118,33 @@ return {
     vim.api.nvim_create_autocmd("ColorScheme", {
       callback = set_fzf_hl,
     })
+
+    vim.api.nvim_create_user_command("Todo", search_pending_comments, {
+      desc = "Fzf: search TODO/FIXME/HACK/BUG/XXX in the current directory",
+    })
   end,
 
   keys = {
-    { "<leader>fm", "<cmd>FzfLua marks<cr>",                 desc = "Fzf: Marks" },
-    { "<leader>fk", "<cmd>FzfLua keymaps<cr>",               desc = "Fzf: Keymaps" },
-    { "<leader>fp", "<cmd>FzfLua zoxide<cr>",                desc = "Fzf: Zoxide list" },
-    { "<leader>fo", "<cmd>FzfLua oldfiles<cr>",              desc = "Fzf: Recent files" },
-    { "<leader>fl", "<cmd>FzfLua blines<cr>",                desc = "Fzf: Lines (current buffer)" },
-    { "<leader>fb", "<cmd>FzfLua buffers<cr>",               desc = "Fzf: Buffers" },
-    { "<leader>ff", "<cmd>FzfLua files<cr>",                 desc = "Fzf: Find files (hidden)" },
-    { "<leader>ft", "<cmd>FzfLua tabs<cr>",                  desc = "Fzf: Find tabs" },
-    { "<leader>fu", "<cmd>FzfLua files cwd=%:p:h<cr>",       desc = "Fzf: Files (buffer dir)" },
-    { "<leader>fg", "<cmd>FzfLua live_grep<cr>",             desc = "Fzf: Grep (cwd)" },
-    { "<leader>fw", "<cmd>FzfLua grep_cword<cr>",            desc = "Fzf: Grep word under cursor" },
-    { "<leader>fd", "<cmd>FzfLua diagnostics_workspace<cr>", desc = "Fzf: Diagnostics" },
-    { "<leader>fa", "<cmd>FzfLua commands<cr>",              desc = "Fzf: Commands" },
-    { "<leader>fc", "<cmd>FzfLua resume<cr>",                desc = "Fzf: Resume last picker" },
-    { "<leader>fn", "<cmd>FzfLua man_pages<cr>",             desc = "Fzf: Man pages" },
-    { "<leader>fz", "<cmd>FzfLua<cr>",                       desc = "Fzf" },
+    { "<leader>ff", "<cmd>FzfLua files<cr>",                 desc = "Fzf: find files in cwd (respects .gitignore)" },
+    { "<leader>fu", "<cmd>FzfLua files cwd=%:p:h<cr>",       desc = "Fzf: find files in the current buffer's directory" },
+    { "<leader>fb", "<cmd>FzfLua buffers<cr>",               desc = "Fzf: switch between open buffers" },
+    { "<leader>ft", "<cmd>FzfLua tabs<cr>",                  desc = "Fzf: switch between open tabs" },
+    { "<leader>fo", "<cmd>FzfLua oldfiles<cr>",              desc = "Fzf: reopen recently edited files" },
+    { "<leader>fp", "<cmd>FzfLua zoxide<cr>",                desc = "Fzf: jump to a frequent directory (zoxide)" },
+    { "<leader>fm", "<cmd>FzfLua marks<cr>",                 desc = "Fzf: jump to a mark" },
+
+    { "<leader>fg", "<cmd>FzfLua live_grep<cr>",             desc = "Fzf: live grep across all files in cwd" },
+    { "<leader>fw", "<cmd>FzfLua grep_cword<cr>",            desc = "Fzf: grep the word under the cursor in cwd" },
+    { "<leader>fl", "<cmd>FzfLua blines<cr>",                desc = "Fzf: search lines in the current buffer" },
+
+    { "<leader>fd", "<cmd>FzfLua diagnostics_workspace<cr>", desc = "Fzf: list LSP diagnostics for the whole workspace" },
+    { "<leader>fa", "<cmd>FzfLua commands<cr>",              desc = "Fzf: run an Ex command" },
+    { "<leader>fk", "<cmd>FzfLua keymaps<cr>",               desc = "Fzf: search all keymaps" },
+    { "<leader>fn", "<cmd>FzfLua man_pages<cr>",             desc = "Fzf: open a man page" },
+
+    { "<leader>fc", "<cmd>FzfLua resume<cr>",                desc = "Fzf: resume the last picker with its previous query" },
+    { "<leader>fz", "<cmd>FzfLua<cr>",                       desc = "Fzf: open the full picker menu" },
+
+    { "<leader>fe", search_pending_comments,                 desc = "Fzf: list TODO/FIXME/HACK/BUG/XXX in current directory" },
   },
 }
