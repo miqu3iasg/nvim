@@ -99,7 +99,7 @@ local function blink_keymap()
           return defer(function() luasnip.change_choice(1) end)
         end
       end,
-      "show",
+      "fallback",
     },
 
     ["<C-p>"] = {
@@ -109,7 +109,7 @@ local function blink_keymap()
           return defer(function() luasnip.change_choice(-1) end)
         end
       end,
-      "show",
+      "fallback",
     },
 
     ["<Tab>"] = {
