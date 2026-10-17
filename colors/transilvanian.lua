@@ -70,12 +70,14 @@ local P = {
   visual = "#262626",
 
   bright = "#ffffff",
-  fg = "#c8c8c8",
-  mid = "#b0b0b0",
-  dim = "#505050",
+  fg = "#e2e2e2",  -- default code color: light gray, almost white
+  mid = "#b0b0b0", -- UI only, no longer used for code
+  dim = "#636262",
 
   teal = "#5f8787",
   blood = "#8a4a4a",
+
+  bone = "#b4a487", -- strings: muted sand/bone, warm contrast to teal
 }
 
 local c = {
@@ -84,15 +86,16 @@ local c = {
   line = P.surface,
   visual = P.visual,
   comment = P.dim,
-  string = P.bright,
-  type = P.bright,
-  keyword = P.mid,
-  func = P.mid,
-  constant = P.mid,
+  str = P.bone,      -- code strings only
+  string = P.bright, -- kept for UI (bufferline, etc.)
+  type = P.bright,   -- kept for UI (Title, Directory, Oil...)
+  keyword = P.fg,
+  func = P.fg,
+  constant = P.fg,
   number = P.teal,
-  operator = P.mid,
+  operator = P.teal,
   property = P.fg,
-  punct = P.mid,
+  punct = P.teal,
   alt = P.teal,
   red = P.blood,
   warn = P.teal,
@@ -100,11 +103,24 @@ local c = {
 
 local NONE = "NONE"
 local bg_main = transparent and NONE or c.bg
-local bg_float = transparent and NONE or c.line
+local popup_bg = "#060606" -- almost pure black, just off the main bg
+local bg_float = transparent and NONE or popup_bg
 
-local diff_add = blend(P.bright, 0.12, P.bg)
-local diff_change = blend(P.teal, 0.22, P.bg)
-local diff_delete = blend(P.blood, 0.35, P.bg)
+-- Git/diff colors, copied literally from the "artifact" theme so both themes
+-- show diffs identically (they are hex values, not tied to this palette).
+local git = {
+  text = "#e4e4e4",
+  green = "#6aa86a",
+  yellow = "#c9b458",
+  red = "#b85050",
+  cyan = "#5f9f9f",
+  -- Same brightness as the blue DiffAdd (#1f2f4f), but in dark red.
+  delete_bg = "#331414",
+  delete_fg = "#925a5a", -- muted red text, same 0.65 scale as delete_bg
+}
+local diff_add = blend(git.text, 0.12, P.bg)
+local diff_change = blend(git.cyan, 0.22, P.bg)
+local diff_delete = git.delete_bg
 local code_bg = P.surface
 local faint = blend(P.dim, 0.5, P.bg)
 
@@ -203,7 +219,7 @@ local editor = {
   SignColumn = { fg = c.fg, bg = bg_main },
   FoldColumn = { fg = c.comment, bg = bg_main },
   Folded = { fg = c.comment, bg = c.line },
-  EndOfBuffer = { fg = c.comment },
+  EndOfBuffer = { fg = c.alt },
   NonText = { fg = c.comment },
   SpecialKey = { fg = c.comment, fmt = "bold" },
   Whitespace = { fg = faint },
@@ -214,9 +230,11 @@ local editor = {
 
   Visual = { bg = c.visual },
   VisualNOS = { bg = c.visual, fmt = "underline" },
-  Search = { fg = "#5f8787", bg = "#1c2828" },
-  CurSearch = { fg = "#1c2828", bg = "#5f8787", fmt = "bold" },
-  IncSearch = { fg = "#1c2828", bg = "#5f8787", fmt = "bold" },
+
+  Search = { fg = "#b065f0", bg = "#321d4d" },
+  CurSearch = { fg = "#321d4d", bg = "#b065f0", fmt = "bold" },
+  IncSearch = { fg = "#321d4d", bg = "#b065f0", fmt = "bold" },
+
   Substitute = { fg = P.bg, bg = P.mid },
   MatchParen = { fg = c.type, bg = c.visual, fmt = "bold" },
   QuickFixLine = { bg = c.line, fmt = "bold" },
@@ -251,15 +269,15 @@ local editor = {
   SpellLocal = { sp = c.comment, fmt = "undercurl" },
   SpellRare = { sp = c.comment, fmt = "undercurl" },
 
-  DiffAdd = { fg = c.fg, bg = diff_add },
-  DiffChange = { fg = c.fg, bg = diff_change },
-  DiffDelete = { fg = c.red, bg = diff_delete },
-  DiffText = { fg = c.type, bg = blend(P.teal, 0.4, P.bg) },
-  Added = { fg = P.fg },
-  Changed = { fg = P.teal },
-  Removed = { fg = P.blood },
-  diffFile = { fg = c.type, fmt = "bold" },
-  diffLine = { fg = c.alt },
+  DiffAdd = { fg = git.text, bg = "#1f2f4f" },
+  DiffChange = { fg = git.text, bg = "#3f2f4f" },
+  DiffDelete = { fg = git.delete_fg, bg = git.delete_bg },
+  DiffText = { fg = git.text, bg = "#6f2f2f", fmt = "bold" },
+  Added = { fg = git.green },
+  Changed = { fg = git.yellow },
+  Removed = { fg = git.red },
+  diffFile = { fg = git.text, fmt = "bold" },
+  diffLine = { fg = git.cyan },
 
   NormalFloat = { fg = c.fg, bg = bg_float },
   FloatBorder = { fg = c.comment, bg = bg_float },
@@ -285,33 +303,33 @@ local editor = {
 
 local syntax = {
   Comment = { fg = c.comment },
-  Constant = { fg = c.constant },
-  String = { fg = c.string },
-  Character = { fg = c.string },
+  Constant = { fg = c.fg },
+  String = { fg = c.str },
+  Character = { fg = c.str },
   Number = { fg = c.number },
   Boolean = { fg = c.number },
   Float = { fg = c.number },
-  Identifier = { fg = c.property },
-  Function = { fg = c.func },
-  Statement = { fg = c.keyword },
-  Conditional = { fg = c.keyword },
-  Repeat = { fg = c.keyword },
-  Label = { fg = c.keyword },
+  Identifier = { fg = c.fg },
+  Function = { fg = c.fg },
+  Statement = { fg = c.fg },
+  Conditional = { fg = c.fg },
+  Repeat = { fg = c.fg },
+  Label = { fg = c.fg },
   Operator = { fg = c.operator },
-  Keyword = { fg = c.keyword },
-  Exception = { fg = c.red },
-  PreProc = { fg = c.string },
-  Include = { fg = c.constant },
-  Define = { fg = c.string },
-  Macro = { fg = P.mid, fmt = "italic" },
-  PreCondit = { fg = c.string },
-  Type = { fg = c.type },
-  StorageClass = { fg = c.type },
-  Structure = { fg = c.type },
-  Typedef = { fg = c.type },
-  Special = { fg = c.type },
-  SpecialChar = { fg = c.keyword },
-  Tag = { fg = c.type },
+  Keyword = { fg = c.fg },
+  Exception = { fg = c.fg },
+  PreProc = { fg = c.fg },
+  Include = { fg = c.fg },
+  Define = { fg = c.fg },
+  Macro = { fg = c.fg, fmt = "italic" },
+  PreCondit = { fg = c.fg },
+  Type = { fg = c.fg },
+  StorageClass = { fg = c.fg },
+  Structure = { fg = c.fg },
+  Typedef = { fg = c.fg },
+  Special = { fg = c.fg },
+  SpecialChar = { fg = c.alt },
+  Tag = { fg = c.fg },
   Delimiter = { fg = c.punct },
   SpecialComment = { fg = c.comment, fmt = "bold" },
   Debug = { fg = c.operator },
@@ -321,66 +339,65 @@ local syntax = {
 
 local ts = {
   ["@variable"] = { fg = c.fg },
-  ["@variable.builtin"] = { fg = c.type, fmt = "italic" },
-  ["@variable.member"] = { fg = c.property },
-  ["@variable.parameter"] = { fg = c.alt, fmt = "italic" },
-  ["@property"] = { fg = c.property },
+  ["@variable.builtin"] = { fg = c.fg, fmt = "italic" },
+  ["@variable.member"] = { fg = c.fg },
+  ["@variable.parameter"] = { fg = c.fg, fmt = "italic" },
+  ["@property"] = { fg = c.fg },
 
-  ["@constant"] = { fg = c.constant },
-  ["@constant.builtin"] = { fg = c.type },
-  ["@constant.macro"] = { fg = P.mid, fmt = "italic" },
-  ["@module"] = { fg = c.type },
-  ["@label"] = { fg = c.keyword },
+  ["@constant"] = { fg = c.fg },
+  ["@constant.builtin"] = { fg = c.alt },
+  ["@constant.macro"] = { fg = c.fg, fmt = "italic" },
+  ["@module"] = { fg = c.fg },
+  ["@label"] = { fg = c.fg },
 
-  ["@string"] = { fg = c.string },
-  ["@string.documentation"] = { fg = c.string, fmt = "italic" },
-  ["@string.regexp"] = { fg = c.keyword },
-  ["@string.escape"] = { fg = c.type, fmt = "bold" },
-  ["@string.special"] = { fg = c.keyword },
-  ["@string.special.symbol"] = { fg = c.string },
+  ["@string"] = { fg = c.str },
+  ["@string.documentation"] = { fg = c.str, fmt = "italic" },
+  ["@string.regexp"] = { fg = c.str },
+  ["@string.escape"] = { fg = c.alt },
+  ["@string.special"] = { fg = c.str },
+  ["@string.special.symbol"] = { fg = c.str },
   ["@string.special.url"] = { fg = c.alt, fmt = "underline" },
-  ["@character"] = { fg = c.string },
-  ["@character.special"] = { fg = c.type, fmt = "bold" },
+  ["@character"] = { fg = c.str },
+  ["@character.special"] = { fg = c.alt },
   ["@number"] = { fg = c.number },
   ["@number.float"] = { fg = c.number },
   ["@boolean"] = { fg = c.number },
 
-  ["@type"] = { fg = c.type },
-  ["@type.builtin"] = { fg = c.type },
-  ["@type.definition"] = { fg = c.type },
-  ["@type.qualifier"] = { fg = c.keyword },
+  ["@type"] = { fg = c.fg },
+  ["@type.builtin"] = { fg = c.fg },
+  ["@type.definition"] = { fg = c.fg },
+  ["@type.qualifier"] = { fg = c.fg },
   ["@attribute"] = { fg = c.comment, fmt = "italic" },
   ["@attribute.builtin"] = { fg = c.comment, fmt = "italic" },
 
-  -- Bold only on declarations, never on calls.
-  ["@function"] = { fg = c.func, fmt = "bold" },
-  ["@function.method"] = { fg = c.func, fmt = "bold" },
-  ["@function.call"] = { fg = c.func },
-  ["@function.method.call"] = { fg = c.func },
-  ["@function.builtin"] = { fg = c.func },
-  ["@function.macro"] = { fg = P.mid, fmt = "italic" },
-  ["@constructor"] = { fg = c.type },
-  ["@constructor.lua"] = { fg = c.alt },
+  ["@function"] = { fg = c.fg },
+  ["@function.method"] = { fg = c.fg },
+  ["@function.call"] = { fg = c.fg },
+  ["@function.method.call"] = { fg = c.fg },
+  ["@function.builtin"] = { fg = c.fg },
+  ["@function.macro"] = { fg = c.fg, fmt = "italic" },
+  ["@constructor"] = { fg = c.fg },
+  ["@constructor.lua"] = { fg = c.fg },
   ["@operator"] = { fg = c.operator },
 
-  ["@keyword"] = { fg = c.keyword },
-  ["@keyword.function"] = { fg = c.keyword },
-  ["@keyword.return"] = { fg = c.keyword },
-  ["@keyword.operator"] = { fg = c.keyword },
-  ["@keyword.conditional"] = { fg = c.keyword },
-  ["@keyword.repeat"] = { fg = c.keyword },
-  ["@keyword.import"] = { fg = c.constant },
-  ["@keyword.storage"] = { fg = c.keyword },
-  ["@keyword.directive"] = { fg = c.string },
-  ["@keyword.exception"] = { fg = c.red },
+  ["@keyword"] = { fg = c.fg },
+  ["@keyword.function"] = { fg = c.fg },
+  ["@keyword.return"] = { fg = c.fg },
+  ["@keyword.operator"] = { fg = c.fg },
+  ["@keyword.conditional"] = { fg = c.fg },
+  ["@keyword.repeat"] = { fg = c.fg },
+  ["@keyword.import"] = { fg = c.fg },
+  ["@keyword.storage"] = { fg = c.fg },
+  ["@keyword.directive"] = { fg = c.fg },
+  ["@keyword.exception"] = { fg = c.fg },
 
   ["@punctuation"] = { fg = c.punct },
   ["@punctuation.delimiter"] = { fg = c.punct },
-  ["@punctuation.bracket"] = { fg = c.alt },
-  ["@punctuation.special"] = { fg = c.keyword },
+  ["@punctuation.bracket"] = { fg = c.punct },
+  ["@punctuation.special"] = { fg = c.punct },
 
   ["@comment"] = { fg = c.comment },
-  ["@comment.documentation"] = { fg = P.mid },
+  ["@comment.documentation"] = { fg = c.comment },
   ["@comment.error"] = { fg = c.red, fmt = "bold" },
   ["@comment.warning"] = { fg = c.warn, fmt = "bold" },
   ["@comment.note"] = { fg = c.fg, fmt = "bold" },
@@ -409,45 +426,44 @@ local ts = {
   ["@diff.minus"] = { link = "Removed" },
   ["@diff.delta"] = { link = "Changed" },
 
-  ["@tag"] = { fg = c.type },
-  ["@tag.attribute"] = { fg = c.property, fmt = "italic" },
+  ["@tag"] = { fg = c.fg },
+  ["@tag.attribute"] = { fg = c.fg, fmt = "italic" },
   ["@tag.delimiter"] = { fg = c.punct },
 }
 
 local regex = {
-  ["@string.regexp"] = { fg = P.mid },
-  ["@operator.regex"] = { fg = c.warn, fmt = "bold" },
-  ["@keyword.operator.regex"] = { fg = c.warn, fmt = "bold" },
-  ["@punctuation.bracket.regex"] = { fg = c.comment },
-  ["@punctuation.delimiter.regex"] = { fg = c.red },
-  ["@property.regex"] = { fg = c.alt, fmt = "italic" },
+  ["@string.regexp"] = { fg = c.str },
+  ["@operator.regex"] = { fg = c.alt },
+  ["@keyword.operator.regex"] = { fg = c.alt },
+  ["@punctuation.bracket.regex"] = { fg = c.alt },
+  ["@punctuation.delimiter.regex"] = { fg = c.alt },
+  ["@property.regex"] = { fg = c.fg, fmt = "italic" },
   ["@variable.builtin.regex"] = { fg = c.fg },
 }
 
 -- These groups only apply if after/queries/{tsx,javascript}/highlights.scm
 -- defines the matching captures.
 local jsx = {
-  ["@tag.component"] = { fg = c.type },
+  ["@tag.component"] = { fg = c.fg },
   ["@tag.intrinsic"] = { fg = c.fg },
   ["@function.call.hook"] = { fg = c.fg, fmt = "italic" },
-  ["@string.tailwind"] = { fg = P.mid },
+  ["@string.tailwind"] = { fg = c.str },
 }
 
+-- LSP semantic tokens override treesitter, so they follow the same rules.
 local lsp = {
-  ["@lsp.type.function"] = { fg = c.func },
-  ["@lsp.type.method"] = { fg = c.func },
-  ["@lsp.typemod.function.declaration"] = { fmt = "bold" },
-  ["@lsp.typemod.method.declaration"] = { fmt = "bold" },
-  ["@lsp.type.parameter"] = { fg = c.alt, fmt = "italic" },
-  ["@lsp.type.namespace"] = { fg = c.type },
-  ["@lsp.type.macro"] = { fg = P.mid, fmt = "italic" },
-  ["@lsp.type.lifetime"] = { fg = c.type, fmt = "italic" },
+  ["@lsp.type.function"] = { fg = c.fg },
+  ["@lsp.type.method"] = { fg = c.fg },
+  ["@lsp.type.parameter"] = { fg = c.fg },
+  ["@lsp.type.namespace"] = { fg = c.fg },
+  ["@lsp.type.macro"] = { fg = c.fg, fmt = "italic" },
+  ["@lsp.type.lifetime"] = { fg = c.fg, fmt = "italic" },
   ["@lsp.type.decorator"] = { fg = c.comment, fmt = "italic" },
-  ["@lsp.type.readonly"] = { fg = c.constant, fmt = "italic" },
-  ["@lsp.mod.readonly"] = { fg = c.constant, fmt = "italic" },
-  ["@lsp.mod.typeHint"] = { fg = c.type },
-  ["@lsp.typemod.variable.global"] = { fg = c.constant },
-  ["@lsp.typemod.keyword.documentation"] = { fg = P.mid },
+  ["@lsp.type.readonly"] = { fg = c.fg, fmt = "italic" },
+  ["@lsp.mod.readonly"] = { fg = c.fg, fmt = "italic" },
+  ["@lsp.mod.typeHint"] = { fg = c.fg },
+  ["@lsp.typemod.variable.global"] = { fg = c.fg },
+  ["@lsp.typemod.keyword.documentation"] = { fg = c.comment },
 
   LspInlayHint = { fg = c.comment, bg = c.line, fmt = "italic" },
   LspReferenceText = { bg = c.visual },
@@ -690,8 +706,8 @@ plugins.oil = {
 }
 
 plugins.special = {
-  LazyNormal = { bg = c.line },
-  MasonNormal = { bg = c.line },
+  LazyNormal = { bg = bg_float },
+  MasonNormal = { bg = bg_float },
 }
 
 plugins.bufferline = {
@@ -784,9 +800,9 @@ plugins.gitsigns = {
   GitSignsAddLn = { bg = diff_add },
   GitSignsChangeLn = { bg = diff_change },
   GitSignsDeleteLn = { bg = diff_delete },
-  GitSignsAddCul = { fg = P.fg, bg = c.line },
-  GitSignsChangeCul = { fg = P.teal, bg = c.line },
-  GitSignsDeleteCul = { fg = P.blood, bg = c.line },
+  GitSignsAddCul = { fg = git.green, bg = c.line },
+  GitSignsChangeCul = { fg = git.yellow, bg = c.line },
+  GitSignsDeleteCul = { fg = git.red, bg = c.line },
   GitSignsAddInline = { link = "DiffAdd" },
   GitSignsChangeInline = { link = "DiffChange" },
   GitSignsDeleteInline = { link = "DiffDelete" },
@@ -808,8 +824,8 @@ plugins.diffview = {
   DiffviewEndOfBuffer = { link = "EndOfBuffer" },
   DiffviewFilePanelRootPath = { fg = c.comment },
   DiffviewFilePanelPath = { fg = c.comment },
-  DiffviewFilePanelInsertions = { fg = c.fg },
-  DiffviewFilePanelDeletions = { fg = c.red },
+  DiffviewFilePanelInsertions = { fg = git.green },
+  DiffviewFilePanelDeletions = { fg = git.red },
   DiffviewStatusAdded = { link = "Added" },
   DiffviewStatusUntracked = { link = "Changed" },
   DiffviewStatusModified = { link = "Changed" },
@@ -820,66 +836,6 @@ plugins.diffview = {
   DiffviewStatusUnknown = { link = "Removed" },
   DiffviewStatusDeleted = { link = "Removed" },
   DiffviewStatusBroken = { link = "Removed" },
-}
-
-plugins.neogit = {
-  NeogitBranch = { fg = c.alt },
-  NeogitUntrackedfiles = { fg = c.warn, fmt = "italic" },
-  NeogitUnpulledchanges = { fg = c.warn, fmt = "italic" },
-  NeogitUnmergedchanges = { fg = c.keyword, fmt = "bold,italic" },
-  NeogitDiffAdd = { link = "DiffAdd" },
-  NeogitDiffAddHighlight = { link = "DiffAdd" },
-  NeogitDiffAddCursor = { bg = diff_add },
-  NeogitDiffDelete = { link = "DiffDelete" },
-  NeogitDiffDeleteHighlight = { link = "DiffDelete" },
-  NeogitDiffDeleteCursor = { bg = diff_delete },
-  NeogitDiffContext = { bg = c.line },
-  NeogitDiffContextHighlight = { bg = c.line },
-  NeogitDiffContextCursor = { bg = c.line },
-  NeogitSectionHeader = { fg = c.type, fmt = "bold" },
-  NeogitHunkHeader = { fg = c.comment },
-  NeogitHunkHeaderHighlight = { fg = c.comment, fmt = "italic" },
-  NeogitHunkHeaderCursor = { fg = c.comment, fmt = "bold,italic" },
-  NeogitHunkMergeHeader = { fg = c.warn, bg = c.line, fmt = "bold" },
-  NeogitHunkMergeHeaderHighlight = { fg = c.warn, bg = c.line, fmt = "italic" },
-  NeogitHunkMergeHeaderCursor = { fg = c.warn, bg = c.line, fmt = "bold,italic" },
-}
-
-plugins.neo_tree = {
-  NeoTreeNormal = { fg = c.fg, bg = bg_main },
-  NeoTreeNormalNC = { fg = c.fg, bg = bg_main },
-  NeoTreeVertSplit = { fg = c.comment, bg = bg_main },
-  NeoTreeWinSeparator = { fg = c.comment, bg = bg_main },
-  NeoTreeEndOfBuffer = { fg = c.comment, bg = bg_main },
-  NeoTreeRootName = { fg = c.type, fmt = "bold" },
-  NeoTreeDirectoryName = { fg = c.fg },
-  NeoTreeDirectoryIcon = { fg = c.type },
-  NeoTreeGitAdded = { link = "Added" },
-  NeoTreeGitDeleted = { link = "Removed" },
-  NeoTreeGitModified = { link = "Changed" },
-  NeoTreeGitConflict = { fg = c.red, fmt = "bold,italic" },
-  NeoTreeGitUntracked = { fg = c.red, fmt = "italic" },
-  NeoTreeIndentMarker = { fg = c.comment },
-  NeoTreeSymbolicLinkTarget = { fg = c.warn },
-}
-
-plugins.dashboard = {
-  DashboardShortCut = { fg = c.func },
-  DashboardHeader = { fg = c.keyword },
-  DashboardCenter = { fg = c.fg },
-  DashboardFooter = { fg = c.func, fmt = "italic" },
-  MiniStarterHeader = { fg = c.keyword },
-  MiniStarterFooter = { fg = c.keyword },
-}
-
-plugins.indent_blankline = {
-  IblIndent = { fg = faint, fmt = "nocombine" },
-  IblWhitespace = { fg = faint, fmt = "nocombine" },
-  IblScope = { fg = c.comment, fmt = "nocombine" },
-  IndentBlanklineChar = { fg = faint, fmt = "nocombine" },
-  IndentBlanklineContextChar = { fg = c.comment, fmt = "nocombine" },
-  IndentBlanklineContextStart = { sp = c.comment, fmt = "underline" },
-  IndentBlanklineContextSpaceChar = { fmt = "nocombine" },
 }
 
 local links = {

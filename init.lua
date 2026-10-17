@@ -17,6 +17,6 @@ require("snippets")
 require("statusline").setup()
 
 -- vim.cmd.colorscheme("insanity")
--- vim.cmd.colorscheme("transilvanian")
+vim.cmd.colorscheme("transilvanian")
 -- vim.cmd.colorscheme("transilvanian-alt")
-vim.cmd.colorscheme("artifact")
+-- vim.cmd.colorscheme("artifact")

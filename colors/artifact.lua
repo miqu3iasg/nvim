@@ -271,8 +271,8 @@ local editor = {
 
   -- Statusline: subtle background; active vs inactive by bg and text color.
   -- Tabline stays text-only (bg_main, not NONE, so it matches Normal).
-  StatusLine = { fg = P.bright, bg = P.visual },
-  StatusLineNC = { fg = P.dim, bg = c.line },
+  StatusLine = { fg = P.bright, bg = bg_main },
+  StatusLineNC = { fg = P.dim, bg = bg_main },
   TabLine = { fg = P.dim, bg = bg_main },
   TabLineFill = { fg = P.dim, bg = bg_main },
   TabLineSel = { fg = P.mid, bg = bg_main },
