@@ -68,7 +68,7 @@ vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
 vim.opt.title = false
 vim.opt.titlestring = "%t"
-vim.opt.fillchars = { eob = " " }
+-- vim.opt.fillchars = { eob = " " }
 vim.opt.display:append("lastline")
 vim.opt.more = true
 

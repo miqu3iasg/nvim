@@ -16,9 +16,9 @@ vim.o.background = "dark"
 vim.g.colors_name = "artifact"
 
 local set_hl = vim.api.nvim_set_hl
-local transparent = vim.g.darkthrone_transparent == true
-local underline_on = vim.g.darkthrone_underline ~= false
-local italic_on = vim.g.transilvanian_italic == true
+local transparent = vim.g.artifact_transparent == true
+local underline_on = vim.g.artifact_underline ~= false
+local italic_on = vim.g.artifact_italic == true
 
 local function hex2rgb(h)
   h = h:gsub("#", "")
@@ -65,17 +65,22 @@ end
 
 local P = {
   bg = "#000000",
-  surface = "#1c1c1c",
-  visual = "#303030",
+  surface = "#111111",
+  visual = "#1f1f1f",
 
   bright = "#e4e4e4",
-  fg = "#b8b8b8",
+  fg = "#e4e4e4",
+  md = "#b8b8b8",
   mid = "#9a9a9a",
+  note = "#9e9e9e",  -- comments: readable, but always quieter than code
+  rule = "#7a7a7a",  -- window separators
   dim = "#6c6c6c",
+  white = "#ffffff", -- matching brackets only
+  match = "#444444", -- background of matching brackets
 
   blue = "#7a88c8",
   cyan = "#5f9f9f",
-  green = "#6aa86a",
+  green = "#6aa86a", -- messages and ok/added only, never syntax
   yellow = "#c9b458",
   magenta = "#b080b0",
   pink = "#c88a8a",
@@ -86,15 +91,31 @@ local P = {
   blood = "#b85050",
 }
 
+-- The single accent color (keywords, current line number, TODO badge).
+-- Change only this line to try another one.
+P.accent = P.yellow
+
+-- Attention colors. These exist ONLY to be loud when you are hunting for
+-- something. They must never be used for syntax, UI chrome or plugins, so
+-- that they always stand out from everything else in the theme.
+local alert = {
+  search = "#a020f0", -- every search match
+  current = P.bright, -- the match under the cursor (with black text)
+  yank = "#d787af",   -- yank flash
+}
+
 local c = {
   bg = P.bg,
   fg = P.fg,
+  md = P.md,
   line = P.surface,
   visual = P.visual,
-  comment = P.blue,
+  comment = P.note, -- real comments and comment-like text
+  ui = P.dim,       -- quiet chrome: borders, separators, tildes, line numbers
+  dim = P.dim,
   string = P.pink,
-  type = P.green,
-  keyword = P.yellow,
+  type = P.bright, -- types: weight and brightness, not hue
+  keyword = P.accent,
   func = P.fg,
   constant = P.pink,
   number = P.pink,
@@ -108,7 +129,7 @@ local c = {
 
 local NONE = "NONE"
 local bg_main = transparent and NONE or c.bg
-local bg_float = transparent and NONE or "#121212"
+local bg_float = transparent and NONE or "#0e0e0e"
 
 local diff_add = blend(P.bright, 0.12, P.bg)
 local diff_change = blend(P.teal, 0.22, P.bg)
@@ -193,6 +214,8 @@ local function link_all(tbl)
   end
 end
 
+-- Single editor table. (It used to be split in "editor" + "classic", where
+-- the second silently overrode the first.)
 local editor = {
   Normal = { fg = c.fg, bg = bg_main },
   NormalNC = { fg = c.fg, bg = bg_main },
@@ -202,68 +225,72 @@ local editor = {
   Cursor = { fg = P.bg, bg = P.fg },
   CursorIM = { fg = P.bg, bg = P.bright },
   CursorColumn = { bg = c.line },
-  CursorLine = { bg = c.line },
-  CursorLineNr = { fg = c.type, bg = c.line, fmt = "bold" },
-  CursorLineSign = { bg = c.line },
-  CursorLineFold = { fg = c.fg, bg = c.line },
-  LineNr = { fg = c.comment, bg = bg_main },
-  LineNrAbove = { fg = c.comment, bg = bg_main },
-  LineNrBelow = { fg = c.comment, bg = bg_main },
+  CursorLine = { bg = NONE },
+  CursorLineNr = { fg = P.accent, fmt = "bold" },
+  CursorLineSign = { bg = bg_main },
+  CursorLineFold = { fg = c.fg, bg = bg_main },
+  LineNr = { fg = c.ui, bg = bg_main },
+  LineNrAbove = { fg = c.ui, bg = bg_main },
+  LineNrBelow = { fg = c.ui, bg = bg_main },
   SignColumn = { fg = c.fg, bg = bg_main },
-  FoldColumn = { fg = c.comment, bg = bg_main },
-  Folded = { fg = c.comment, bg = c.line },
-  EndOfBuffer = { fg = c.comment },
-  NonText = { fg = c.comment },
-  SpecialKey = { fg = c.comment, fmt = "bold" },
-  Whitespace = { fg = faint },
-  Directory = { fg = c.type },
-  Title = { fg = c.type, fmt = "bold" },
+  FoldColumn = { fg = P.cyan, bg = P.visual },
+  Folded = { fg = P.cyan, bg = P.visual },
+  EndOfBuffer = { fg = c.ui },
+  NonText = { fg = c.ui },
+  SpecialKey = { fg = P.cyan },
+  Whitespace = { fg = "#282828" },
+  Directory = { fg = c.type, fmt = "bold" },
+  Title = { fg = P.bright, fmt = "bold" },
   Underlined = { fg = c.fg, fmt = "underline" },
-  Ignore = { fg = c.comment },
+  Ignore = { fg = c.ui },
 
   Visual = { bg = c.visual },
   VisualNOS = { bg = c.visual, fmt = "underline" },
-  Search = { fg = P.bg, bg = P.yellow },
-  CurSearch = { fg = P.bg, bg = P.orange },
-  IncSearch = { fg = P.bg, bg = P.orange },
+  Search = { fg = P.bright, bg = alert.search },
+  CurSearch = { fg = P.bg, bg = alert.current, fmt = "bold" },
+  IncSearch = { fg = P.bg, bg = alert.current, fmt = "bold" },
   Substitute = { fg = P.bg, bg = P.mid },
-  MatchParen = { fg = c.type, bg = c.visual, fmt = "bold" },
+  MatchParen = { fg = P.white, bg = P.match, fmt = "bold" },
   QuickFixLine = { bg = c.line, fmt = "bold" },
 
   -- Dedicated group for yank flash. Use it in your TextYankPost autocmd:
   --   vim.hl.on_yank({ higroup = "YankHighlight" })
-  YankHighlight = { fg = P.bg, bg = "#d787af" },
+  YankHighlight = { fg = P.bg, bg = alert.yank },
 
-  ErrorMsg = { fg = c.red, fmt = "bold" },
-  WarningMsg = { fg = c.warn, fmt = "bold" },
-  ModeMsg = { fg = c.fg, fmt = "bold" },
-  MoreMsg = { fg = c.func, fmt = "bold" },
-  Question = { fg = c.fg },
-  MsgSeparator = { fg = c.comment, bg = c.line },
+  ErrorMsg = { fg = P.bright, bg = P.red },
+  WarningMsg = { fg = P.red },
+  ModeMsg = { fg = P.fg, fmt = "bold" },
+  MoreMsg = { fg = P.green, fmt = "bold" },
+  Question = { fg = P.green, fmt = "bold" },
+  MsgSeparator = { fg = c.ui, bg = c.line },
 
-  VertSplit = { fg = c.comment },
-  WinSeparator = { fg = c.comment },
+  VertSplit = { fg = P.rule, bg = bg_main },
+  WinSeparator = { fg = P.rule, bg = bg_main },
   WinBar = { fg = c.fg, bg = bg_main },
-  WinBarNC = { fg = c.comment, bg = bg_main },
-  StatusLine = { fg = c.fg, bg = c.line },
-  StatusLineNC = { fg = c.comment, bg = c.line },
-  TabLine = { fg = c.comment, bg = c.line },
-  TabLineFill = { fg = c.comment, bg = c.line },
-  TabLineSel = { fg = c.type, bg = c.visual, fmt = "bold" },
+  WinBarNC = { fg = c.ui, bg = bg_main },
+
+  -- Statusline: subtle background; active vs inactive by bg and text color.
+  -- Tabline stays text-only (bg_main, not NONE, so it matches Normal).
+  StatusLine = { fg = P.bright, bg = P.visual },
+  StatusLineNC = { fg = P.dim, bg = c.line },
+  TabLine = { fg = P.dim, bg = bg_main },
+  TabLineFill = { fg = P.dim, bg = bg_main },
+  TabLineSel = { fg = P.mid, bg = bg_main },
+
   TitleBar = { fg = c.fg, bg = bg_main },
-  TitleBarNC = { fg = c.comment, bg = bg_main },
+  TitleBarNC = { fg = c.ui, bg = bg_main },
   ToolbarButton = { fg = c.type, bg = c.line, fmt = "bold" },
   ToolbarLine = { bg = bg_main },
 
-  SpellBad = { sp = c.red, fmt = "undercurl" },
-  SpellCap = { sp = c.warn, fmt = "undercurl" },
-  SpellLocal = { sp = c.comment, fmt = "undercurl" },
-  SpellRare = { sp = c.comment, fmt = "undercurl" },
+  SpellBad = { sp = P.red, fmt = "underline" },
+  SpellCap = { sp = P.mid, fmt = "underline" },
+  SpellLocal = { sp = P.cyan, fmt = "underline" },
+  SpellRare = { sp = P.mid, fmt = "underline" },
 
-  DiffAdd = { fg = c.fg, bg = diff_add },
-  DiffChange = { fg = c.fg, bg = diff_change },
-  DiffDelete = { fg = c.red, bg = diff_delete },
-  DiffText = { fg = c.type, bg = blend(P.teal, 0.4, P.bg) },
+  DiffAdd = { fg = P.fg, bg = "#1f2f4f" },
+  DiffChange = { fg = P.fg, bg = "#3f2f4f" },
+  DiffDelete = { fg = P.cyan, bg = "#1f3f3f" },
+  DiffText = { fg = P.bright, bg = "#6f2f2f", fmt = "bold" },
   Added = { fg = P.green },
   Changed = { fg = P.yellow },
   Removed = { fg = P.red },
@@ -271,20 +298,20 @@ local editor = {
   diffLine = { fg = c.alt },
 
   NormalFloat = { fg = c.fg, bg = bg_float },
-  FloatBorder = { fg = c.comment, bg = bg_float },
+  FloatBorder = { fg = c.ui, bg = bg_float },
   FloatTitle = { fg = c.type, bg = bg_float, fmt = "bold" },
-  FloatFooter = { fg = c.comment, bg = bg_float },
-  Pmenu = { fg = c.fg, bg = bg_float },
-  PmenuSel = { fg = c.type, bg = c.visual },
-  PmenuKind = { fg = c.comment, bg = bg_float },
-  PmenuKindSel = { fg = c.fg, bg = c.visual },
-  PmenuExtra = { fg = c.comment, bg = bg_float },
-  PmenuExtraSel = { fg = c.fg, bg = c.visual },
-  PmenuMatch = { fg = c.type, bg = bg_float, fmt = "bold" },
-  PmenuMatchSel = { fg = c.type, bg = c.visual, fmt = "bold" },
-  PmenuSbar = { bg = bg_float },
-  PmenuThumb = { bg = c.comment },
-  WildMenu = { fg = c.type, bg = c.visual },
+  FloatFooter = { fg = c.ui, bg = bg_float },
+  Pmenu = { fg = P.fg, bg = bg_float },
+  PmenuSel = { fg = P.bright, bg = P.visual },
+  PmenuKind = { fg = c.ui, bg = bg_float },
+  PmenuKindSel = { fg = P.bright, bg = P.visual },
+  PmenuExtra = { fg = c.ui, bg = bg_float },
+  PmenuExtraSel = { fg = P.bright, bg = P.visual },
+  PmenuMatch = { fg = P.accent, bg = bg_float, fmt = "bold" },
+  PmenuMatchSel = { fg = P.accent, bg = P.visual, fmt = "bold" },
+  PmenuSbar = { bg = P.surface },
+  PmenuThumb = { bg = P.dim },
+  WildMenu = { fg = P.bright, bg = P.visual, fmt = "bold" },
 
   Terminal = { fg = c.fg, bg = bg_main },
   TermCursor = { fg = P.bg, bg = P.fg },
@@ -293,7 +320,7 @@ local editor = {
 }
 
 local syntax = {
-  Comment = { fg = P.blue },
+  Comment = { fg = P.note },
   Constant = { fg = P.pink },
   String = { fg = P.pink },
   Character = { fg = P.pink },
@@ -302,39 +329,47 @@ local syntax = {
   Float = { fg = P.pink },
   Identifier = { fg = P.fg },
   Function = { fg = P.fg },
-  Statement = { fg = P.yellow },
-  Conditional = { fg = P.yellow },
-  Repeat = { fg = P.yellow },
-  Label = { fg = P.yellow },
+  Statement = { fg = c.keyword, fmt = "bold" },
+  Conditional = { fg = c.keyword, fmt = "bold" },
+  Repeat = { fg = c.keyword, fmt = "bold" },
+  Label = { fg = c.keyword, fmt = "bold" },
   Operator = { fg = P.fg },
-  Keyword = { fg = P.yellow },
-  Exception = { fg = P.yellow },
-  PreProc = { fg = P.magenta },
-  Include = { fg = P.magenta },
-  Define = { fg = P.magenta },
-  Macro = { fg = P.magenta },
-  PreCondit = { fg = P.magenta },
-  Type = { fg = P.green },
-  StorageClass = { fg = P.green },
-  Structure = { fg = P.green },
-  Typedef = { fg = P.green },
+  Keyword = { fg = c.keyword, fmt = "bold" },
+  Exception = { fg = c.keyword, fmt = "bold" },
+  PreProc = { fg = P.orange },
+  Include = { fg = P.orange },
+  Define = { fg = P.orange },
+  Macro = { fg = P.orange },
+  PreCondit = { fg = P.orange },
+  Type = { fg = c.type, fmt = "bold" },
+  StorageClass = { fg = c.type, fmt = "bold" },
+  Structure = { fg = c.type, fmt = "bold" },
+  Typedef = { fg = c.type, fmt = "bold" },
   Special = { fg = P.orange },
   SpecialChar = { fg = P.orange },
   Tag = { fg = P.orange },
   Delimiter = { fg = P.fg },
-  SpecialComment = { fg = P.blue },
+  SpecialComment = { fg = P.note },
   Debug = { fg = P.orange },
   Error = { fg = P.bright, bg = P.red },
-  Todo = { fg = P.bg, bg = P.yellow },
+  Todo = { fg = P.bg, bg = P.accent, fmt = "bold" },
+
+  -- Tags inside comments (TODO, NOTE, WARN...): brighter and bold, but no
+  -- new color. Handy for study notes.
+  ["@comment.todo"] = { fg = P.bright, fmt = "bold" },
+  ["@comment.note"] = { fg = P.bright, fmt = "bold" },
+  ["@comment.warning"] = { fg = P.bright, fmt = "bold" },
+  ["@comment.error"] = { fg = P.red, fmt = "bold" },
 }
 
 local lsp = {
-  LspInlayHint = { fg = c.comment, bg = c.line },
+  -- Hints are not your text: keep them dimmer than comments.
+  LspInlayHint = { fg = P.dim, bg = c.line },
   LspReferenceText = { bg = c.visual },
   LspReferenceRead = { bg = c.visual },
   LspReferenceWrite = { bg = c.visual, fmt = "underline" },
-  LspCodeLens = { fg = c.comment },
-  LspCodeLensSeparator = { fg = c.comment },
+  LspCodeLens = { fg = P.dim },
+  LspCodeLensSeparator = { fg = P.dim },
   LspSignatureActiveParameter = { fg = c.type, fmt = "bold,underline" },
 }
 
@@ -342,31 +377,31 @@ local diag = {
   DiagnosticError = { fg = c.red },
   DiagnosticWarn = { fg = c.warn },
   DiagnosticInfo = { fg = P.cyan },
-  DiagnosticHint = { fg = P.blue },
+  DiagnosticHint = { fg = P.mid },
   DiagnosticOk = { fg = P.green },
-  DiagnosticUnnecessary = { fg = c.comment },
-  DiagnosticDeprecated = { fg = c.comment, fmt = "strikethrough" },
+  DiagnosticUnnecessary = { fg = c.ui },
+  DiagnosticDeprecated = { fg = c.ui, fmt = "strikethrough" },
 
   DiagnosticVirtualTextError = { fg = P.red },
   DiagnosticVirtualTextWarn = { fg = P.orange },
   DiagnosticVirtualTextInfo = { fg = P.cyan },
-  DiagnosticVirtualTextHint = { fg = P.blue },
+  DiagnosticVirtualTextHint = { fg = P.mid },
   DiagnosticVirtualTextOk = { fg = P.green },
 
   DiagnosticUnderlineError = { sp = P.red, fmt = "underline" },
   DiagnosticUnderlineWarn = { sp = P.orange, fmt = "underline" },
   DiagnosticUnderlineInfo = { sp = P.cyan, fmt = "underline" },
-  DiagnosticUnderlineHint = { sp = P.blue, fmt = "underline" },
+  DiagnosticUnderlineHint = { sp = P.mid, fmt = "underline" },
   DiagnosticUnderlineOk = { sp = P.green, fmt = "underline" },
 
   DiagnosticFloatingError = { fg = c.red },
   DiagnosticFloatingWarn = { fg = c.warn },
   DiagnosticFloatingInfo = { fg = P.cyan },
-  DiagnosticFloatingHint = { fg = P.blue },
+  DiagnosticFloatingHint = { fg = P.mid },
   DiagnosticSignError = { fg = c.red },
   DiagnosticSignWarn = { fg = c.warn },
   DiagnosticSignInfo = { fg = P.cyan },
-  DiagnosticSignHint = { fg = P.blue },
+  DiagnosticSignHint = { fg = P.mid },
 }
 
 -- Heading levels fade in brightness, not in hue.
@@ -389,21 +424,21 @@ local markdown = {
 
   ["@markup.strong.markdown_inline"] = { fg = P.bright, fmt = "bold" },
   ["@markup.italic.markdown_inline"] = { fg = P.mid, fmt = "italic" },
-  ["@markup.strikethrough.markdown_inline"] = { fg = c.comment, fmt = "strikethrough" },
+  ["@markup.strikethrough.markdown_inline"] = { fg = c.ui, fmt = "strikethrough" },
 
-  ["@markup.raw.markdown_inline"] = { fg = P.teal, bg = code_bg },
+  ["@markup.raw.markdown_inline"] = { fg = P.bright, bg = code_bg },
   -- Math (inline and block) uses the theme's cyan.
   ["@markup.math.markdown_inline"] = { fg = c.alt },
   ["@markup.math.markdown"] = { fg = c.alt },
   ["@markup.math.latex"] = { fg = c.alt },
   ["@punctuation.special.markdown_inline"] = { fg = c.type },
 
-  ["@markup.link.markdown_inline"] = { fg = c.comment },
+  ["@markup.link.markdown_inline"] = { fg = c.ui },
   ["@markup.link.label.markdown_inline"] = { fg = c.type, bg = c.line, fmt = "underline" },
   ["@markup.link.url.markdown_inline"] = { fg = c.alt, fmt = "underline" },
 
   ["@string.escape.markdown_inline"] = { fg = c.alt },
-  ["@conceal.markdown_inline"] = { fg = c.comment },
+  ["@conceal.markdown_inline"] = { fg = c.ui },
 
   ["@markup.heading.markdown"] = { fg = P.bright, fmt = "bold" },
   ["@markup.heading.marker.markdown"] = { fg = P.bright },
@@ -446,8 +481,13 @@ local markdown_links = {
 
 -- Frontmatter YAML gets its own namespace, enabled only in markdown
 -- windows. Regular YAML files are left untouched.
-local frontmatter_ns = vim.api.nvim_create_namespace("transilvanian_alt_markdown")
+local frontmatter_ns = vim.api.nvim_create_namespace("artifact_markdown")
 local frontmatter = {
+  -- Plain markdown text (no treesitter capture) uses the md color.
+  -- Headings, code, inline math and bold set their own fg, so they win.
+  Normal = { fg = c.md, bg = bg_main },
+  NormalNC = { fg = c.md, bg = bg_main },
+
   ["@property.yaml"] = { fg = c.alt },
   ["@string.yaml"] = { fg = c.fg },
   ["@number.yaml"] = { fg = c.number },
@@ -456,8 +496,8 @@ local frontmatter = {
   ["@constant.builtin.yaml"] = { fg = P.mid },
   ["@label.yaml"] = { fg = c.alt },
   ["@type.yaml"] = { fg = c.alt },
-  ["@punctuation.delimiter.yaml"] = { fg = c.comment },
-  ["@punctuation.bracket.yaml"] = { fg = c.comment },
+  ["@punctuation.delimiter.yaml"] = { fg = c.ui },
+  ["@punctuation.bracket.yaml"] = { fg = c.ui },
 }
 for name, spec in pairs(frontmatter) do
   set_hl(frontmatter_ns, name, build(spec))
@@ -511,7 +551,7 @@ local tex = {
   texLength = { fg = c.number },
   texFileArg = { fg = c.string },
   texFileOpt = { fg = P.mid },
-  texTodo = { fg = P.bg, bg = P.yellow, fmt = "bold" },
+  texTodo = { fg = P.bg, bg = P.accent, fmt = "bold" },
   texError = { fg = c.red, fmt = "bold" },
   texTheoremEnvOpt = { fg = P.mid },
   texLigature = { fg = c.type },
@@ -532,20 +572,20 @@ local tex = {
 local plugins = {}
 
 plugins.oil = {
-  OilDir = { fg = P.blue, fmt = "bold" },
-  OilDirIcon = { fg = P.blue },
+  OilDir = { fg = P.bright, fmt = "bold" },
+  OilDirIcon = { fg = P.bright },
   OilFile = { fg = c.fg },
-  OilLink = { fg = P.cyan },
-  OilLinkTarget = { fg = c.comment },
+  OilLink = { fg = P.mid },
+  OilLinkTarget = { fg = c.ui },
   OilOrphanLink = { fg = c.red },
   OilOrphanLinkTarget = { fg = c.red },
-  OilHidden = { fg = c.dim or P.dim },
+  OilHidden = { fg = c.dim },
   OilDirHidden = { fg = P.dim, fmt = "bold" },
   OilFileHidden = { fg = P.dim },
   OilLinkHidden = { fg = P.dim },
   OilOrphanLinkHidden = { fg = c.red },
-  OilExecutable = { fg = P.green, fmt = "bold" },
-  OilSocket = { fg = P.magenta },
+  OilExecutable = { fg = P.fg, fmt = "bold" },
+  OilSocket = { fg = P.mid },
 
   OilCreate = { fg = c.type, fmt = "bold" },
   OilCopy = { fg = c.type, fmt = "bold" },
@@ -554,28 +594,24 @@ plugins.oil = {
   OilDelete = { fg = c.red },
   OilPurge = { fg = c.red, fmt = "bold" },
   OilRestore = { fg = c.type, fmt = "bold" },
-  OilTrash = { fg = c.comment },
-  OilTrashSourcePath = { fg = c.comment },
+  OilTrash = { fg = c.ui },
+  OilTrashSourcePath = { fg = c.ui },
 
-  OilTypeDir = { fg = P.blue, fmt = "bold" },
-  OilTypeFile = { fg = c.comment },
-  OilTypeLink = { fg = P.cyan },
-  OilTypeFifo = { fg = c.comment },
-  OilTypeSocket = { fg = c.comment },
-  OilTypeUnknown = { fg = c.comment },
-  OilPermissionNone = { fg = c.comment },
+  OilTypeDir = { fg = P.bright, fmt = "bold" },
+  OilTypeFile = { fg = c.ui },
+  OilTypeLink = { fg = P.mid },
+  OilTypeFifo = { fg = c.ui },
+  OilTypeSocket = { fg = c.ui },
+  OilTypeUnknown = { fg = c.ui },
+  OilPermissionNone = { fg = c.ui },
   OilPermissionRead = { fg = c.warn },
   OilPermissionWrite = { fg = c.red },
   OilPermissionExecute = { fg = c.type },
 }
 
 plugins.special = {
-  LazyNormal = { bg = c.bg_float },
-  MasonNormal = { bg = c.bg_float },
-}
-
-plugins.bufferline = {
-  BufferLineBufferSelected = { fg = P.bright, fmt = "bold" },
+  LazyNormal = { bg = bg_float },
+  MasonNormal = { bg = bg_float },
 }
 
 plugins.blink = {
@@ -586,9 +622,9 @@ plugins.blink = {
   BlinkCmpScrollBarGutter = { link = "PmenuSbar" },
   BlinkCmpLabel = { link = "Pmenu" },
   BlinkCmpLabelMatch = { link = "PmenuMatch" },
-  BlinkCmpLabelDeprecated = { fg = c.comment, fmt = "strikethrough" },
-  BlinkCmpLabelDetail = { fg = c.comment },
-  BlinkCmpLabelDescription = { fg = c.comment },
+  BlinkCmpLabelDeprecated = { fg = c.ui, fmt = "strikethrough" },
+  BlinkCmpLabelDetail = { fg = c.ui },
+  BlinkCmpLabelDescription = { fg = c.ui },
   BlinkCmpKind = { link = "PmenuKind" },
   BlinkCmpSource = { link = "PmenuExtra" },
   BlinkCmpGhostText = { fg = P.dim },
@@ -599,15 +635,6 @@ plugins.blink = {
   BlinkCmpSignatureHelp = { link = "NormalFloat" },
   BlinkCmpSignatureHelpBorder = { link = "FloatBorder" },
   BlinkCmpSignatureHelpActiveParameter = { fg = c.type, fmt = "bold,underline" },
-}
-
-plugins.cmp = {
-  CmpItemAbbr = { fg = c.fg },
-  CmpItemAbbrDeprecated = { fg = c.comment, fmt = "strikethrough" },
-  CmpItemAbbrMatch = { link = "PmenuMatch" },
-  CmpItemAbbrMatchFuzzy = { link = "PmenuMatch" },
-  CmpItemMenu = { link = "PmenuExtra" },
-  CmpItemKind = { link = "PmenuKind" },
 }
 
 do
@@ -624,19 +651,19 @@ do
     Event = P.orange,
     Field = c.property,
     File = c.fg,
-    Folder = P.blue,
+    Folder = P.mid,
     Function = c.func,
     Interface = c.type,
     Key = c.keyword,
     Keyword = c.keyword,
     Method = c.func,
-    Module = P.magenta,
-    Namespace = P.magenta,
+    Module = P.mid,
+    Namespace = P.mid,
     Null = c.type,
     Number = c.number,
     Object = c.type,
     Operator = c.operator,
-    Package = P.magenta,
+    Package = P.mid,
     Property = c.property,
     Reference = c.type,
     Snippet = P.orange,
@@ -649,7 +676,6 @@ do
     Variable = c.fg,
   }
   for kind, color in pairs(kind_color) do
-    plugins.cmp["CmpItemKind" .. kind] = { fg = color }
     plugins.blink["BlinkCmpKind" .. kind] = { fg = color }
   end
 end
@@ -672,75 +698,7 @@ plugins.gitsigns = {
   GitSignsDeleteInline = { link = "DiffDelete" },
   GitSignsAddPreview = { link = "DiffAdd" },
   GitSignsDeletePreview = { link = "DiffDelete" },
-  GitSignsCurrentLineBlame = { fg = c.comment },
-}
-
-plugins.diffview = {
-  DiffviewFilePanelTitle = { fg = c.type, fmt = "bold" },
-  DiffviewFilePanelCounter = { fg = c.alt, fmt = "bold" },
-  DiffviewFilePanelFileName = { fg = c.fg },
-  DiffviewNormal = { link = "Normal" },
-  DiffviewCursorLine = { link = "CursorLine" },
-  DiffviewVertSplit = { link = "VertSplit" },
-  DiffviewSignColumn = { link = "SignColumn" },
-  DiffviewStatusLine = { link = "StatusLine" },
-  DiffviewStatusLineNC = { link = "StatusLineNC" },
-  DiffviewEndOfBuffer = { link = "EndOfBuffer" },
-  DiffviewFilePanelRootPath = { fg = c.comment },
-  DiffviewFilePanelPath = { fg = c.comment },
-  DiffviewFilePanelInsertions = { fg = P.green },
-  DiffviewFilePanelDeletions = { fg = c.red },
-  DiffviewStatusAdded = { link = "Added" },
-  DiffviewStatusUntracked = { link = "Changed" },
-  DiffviewStatusModified = { link = "Changed" },
-  DiffviewStatusRenamed = { link = "Changed" },
-  DiffviewStatusCopied = { link = "Changed" },
-  DiffviewStatusTypeChange = { link = "Changed" },
-  DiffviewStatusUnmerged = { link = "Changed" },
-  DiffviewStatusUnknown = { link = "Removed" },
-  DiffviewStatusDeleted = { link = "Removed" },
-  DiffviewStatusBroken = { link = "Removed" },
-}
-
-plugins.neogit = {
-  NeogitBranch = { fg = c.alt },
-  NeogitUntrackedfiles = { fg = c.warn },
-  NeogitUnpulledchanges = { fg = c.warn },
-  NeogitUnmergedchanges = { fg = c.keyword, fmt = "bold" },
-  NeogitDiffAdd = { link = "DiffAdd" },
-  NeogitDiffAddHighlight = { link = "DiffAdd" },
-  NeogitDiffAddCursor = { bg = diff_add },
-  NeogitDiffDelete = { link = "DiffDelete" },
-  NeogitDiffDeleteHighlight = { link = "DiffDelete" },
-  NeogitDiffDeleteCursor = { bg = diff_delete },
-  NeogitDiffContext = { bg = c.line },
-  NeogitDiffContextHighlight = { bg = c.line },
-  NeogitDiffContextCursor = { bg = c.line },
-  NeogitSectionHeader = { fg = c.type, fmt = "bold" },
-  NeogitHunkHeader = { fg = c.comment },
-  NeogitHunkHeaderHighlight = { fg = c.comment },
-  NeogitHunkHeaderCursor = { fg = c.comment, fmt = "bold" },
-  NeogitHunkMergeHeader = { fg = c.warn, bg = c.line, fmt = "bold" },
-  NeogitHunkMergeHeaderHighlight = { fg = c.warn, bg = c.line },
-  NeogitHunkMergeHeaderCursor = { fg = c.warn, bg = c.line, fmt = "bold" },
-}
-
-plugins.neo_tree = {
-  NeoTreeNormal = { fg = c.fg, bg = bg_main },
-  NeoTreeNormalNC = { fg = c.fg, bg = bg_main },
-  NeoTreeVertSplit = { fg = c.comment, bg = bg_main },
-  NeoTreeWinSeparator = { fg = c.comment, bg = bg_main },
-  NeoTreeEndOfBuffer = { fg = c.comment, bg = bg_main },
-  NeoTreeRootName = { fg = c.type, fmt = "bold" },
-  NeoTreeDirectoryName = { fg = P.blue },
-  NeoTreeDirectoryIcon = { fg = P.blue },
-  NeoTreeGitAdded = { link = "Added" },
-  NeoTreeGitDeleted = { link = "Removed" },
-  NeoTreeGitModified = { link = "Changed" },
-  NeoTreeGitConflict = { fg = c.red, fmt = "bold" },
-  NeoTreeGitUntracked = { fg = c.red },
-  NeoTreeIndentMarker = { fg = c.comment },
-  NeoTreeSymbolicLinkTarget = { fg = c.warn },
+  GitSignsCurrentLineBlame = { fg = c.ui },
 }
 
 plugins.dashboard = {
@@ -750,16 +708,6 @@ plugins.dashboard = {
   DashboardFooter = { fg = c.func },
   MiniStarterHeader = { fg = c.keyword },
   MiniStarterFooter = { fg = c.keyword },
-}
-
-plugins.indent_blankline = {
-  IblIndent = { fg = faint, fmt = "nocombine" },
-  IblWhitespace = { fg = faint, fmt = "nocombine" },
-  IblScope = { fg = c.comment, fmt = "nocombine" },
-  IndentBlanklineChar = { fg = faint, fmt = "nocombine" },
-  IndentBlanklineContextChar = { fg = c.comment, fmt = "nocombine" },
-  IndentBlanklineContextStart = { sp = c.comment, fmt = "underline" },
-  IndentBlanklineContextSpaceChar = { fmt = "nocombine" },
 }
 
 local links = {
@@ -794,58 +742,6 @@ local links = {
   LspDiagnosticsVirtualTextHint = "DiagnosticVirtualTextHint",
 }
 
-local classic = {
-  CursorLine = { bg = NONE },
-  CursorLineNr = { fg = P.yellow, fmt = "bold" },
-  LineNr = { fg = "#8a7f45", bg = bg_main },
-  FoldColumn = { fg = P.cyan, bg = "#303030" },
-  Folded = { fg = P.cyan, bg = "#303030" },
-  Directory = { fg = P.blue },
-  Title = { fg = P.magenta, fmt = "bold" },
-
-  Whitespace = { fg = "#282828" },
-
-  NonText = { fg = P.blue, fmt = "bold" },
-  EndOfBuffer = { fg = P.blue, fmt = "bold" },
-  SpecialKey = { fg = P.cyan },
-
-  StatusLine = { fg = P.bg, bg = P.fg, fmt = "bold" },
-  StatusLineNC = { fg = P.bg, bg = P.dim },
-  TabLine = { fg = P.dim, bg = "#121212" },
-  TabLineFill = { fg = P.dim, bg = "#121212" },
-  TabLineSel = { fg = P.bright, bg = P.surface, fmt = "bold" },
-
-  VertSplit = { fg = "#696868", bg = bg_main },
-  WinSeparator = { fg = "#696868", bg = bg_main },
-
-  Search = { fg = P.bright, bg = "#221be3" },
-  IncSearch = { fg = P.bg, bg = P.bright, fmt = "bold" },
-  CurSearch = { fg = P.bg, bg = P.bright, fmt = "bold" },
-  MatchParen = { fg = P.bg, bg = P.cyan },
-  Visual = { bg = P.visual },
-
-  Pmenu = { fg = P.fg, bg = bg_float },
-  PmenuSel = { fg = P.bg, bg = P.mid },
-  PmenuSbar = { bg = P.surface },
-  PmenuThumb = { bg = P.dim },
-
-  ErrorMsg = { fg = P.bright, bg = P.red },
-  WarningMsg = { fg = P.red },
-  MoreMsg = { fg = P.green, fmt = "bold" },
-  Question = { fg = P.green, fmt = "bold" },
-  ModeMsg = { fg = P.fg, fmt = "bold" },
-
-  DiffAdd = { fg = P.fg, bg = "#1f2f4f" },
-  DiffChange = { fg = P.fg, bg = "#3f2f4f" },
-  DiffDelete = { fg = P.cyan, bg = "#1f3f3f" },
-  DiffText = { fg = P.bright, bg = "#6f2f2f", fmt = "bold" },
-
-  SpellBad = { sp = P.red, fmt = "underline" },
-  SpellCap = { sp = P.blue, fmt = "underline" },
-  SpellLocal = { sp = P.cyan, fmt = "underline" },
-  SpellRare = { sp = P.magenta, fmt = "underline" },
-}
-
 apply(editor)
 apply(syntax)
 apply(lsp)
@@ -855,7 +751,6 @@ apply(tex)
 for _, group in pairs(plugins) do
   apply(group)
 end
-apply(classic)
 link_all(links)
 link_all(markdown_links)
 
@@ -864,15 +759,15 @@ local function sync_frontmatter_ns()
     local buf = vim.api.nvim_win_get_buf(win)
     if vim.bo[buf].filetype == "markdown" then
       vim.api.nvim_win_set_hl_ns(win, frontmatter_ns)
-      vim.w[win].transilvanian_alt_markdown_ns = true
-    elseif vim.w[win].transilvanian_alt_markdown_ns then
+      vim.w[win].artifact_markdown_ns = true
+    elseif vim.w[win].artifact_markdown_ns then
       vim.api.nvim_win_set_hl_ns(win, 0)
-      vim.w[win].transilvanian_alt_markdown_ns = nil
+      vim.w[win].artifact_markdown_ns = nil
     end
   end
 end
 
-local aug = vim.api.nvim_create_augroup("TransilvanianAlt", { clear = true })
+local aug = vim.api.nvim_create_augroup("ArtifactTheme", { clear = true })
 vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "BufEnter", "WinEnter" }, {
   group = aug,
   callback = sync_frontmatter_ns,
