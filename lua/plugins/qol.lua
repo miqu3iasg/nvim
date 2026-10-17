@@ -27,7 +27,7 @@ return {
         },
       })
 
-      require("mini.pairs").setup()
+      -- require("mini.pairs").setup()
     end,
   },
 
@@ -46,30 +46,6 @@ return {
         enable_rename = true,         -- rename the closing tag when the opening one changes
         enable_close_on_slash = true, -- auto-close when typing </
       },
-    },
-  },
-
-  -- Split/join code blocks (arrays, objects, args, etc.) using treesitter
-  {
-    "Wansmer/treesj",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    cmd = { "TSJToggle", "TSJSplit", "TSJJoin" },
-    keys = {
-      { "<leader>cj", function() require("treesj").toggle() end, desc = "Toggle split/join" },
-      { "<leader>cb", function() require("treesj").join() end,   desc = "Join code block" },
-      { "<leader>cs", function() require("treesj").split() end,  desc = "Split code block" },
-      {
-        "<leader>cm",
-        function() require("treesj").toggle({ split = { recursive = true } }) end,
-        desc = "Toggle split/join (recursive)",
-      },
-    },
-    opts = {
-      use_default_keymaps = false, -- we define our own keymaps above
-      max_join_length = 120,       -- don't join blocks that would exceed this length
-      cursor_behavior = "hold",    -- keep the cursor where it was
-      notify = false,              -- stay quiet on unsupported language/node
-      dot_repeat = true,           -- make the operation repeatable with `.`
     },
   },
 
