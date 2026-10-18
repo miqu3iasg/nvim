@@ -2,6 +2,24 @@
 
 local km = vim.keymap.set
 
+-- Remove newbie crutches in Insert Mode
+km("i", "<Down>", "<Nop>")
+km("i", "<Left>", "<Nop>")
+km("i", "<Right>", "<Nop>")
+km("i", "<Up>", "<Nop>")
+
+-- Remove newbie crutches in Normal Mode
+km("n", "<Down>", "<Nop>")
+km("n", "<Left>", "<Nop>")
+km("n", "<Right>", "<Nop>")
+km("n", "<Up>", "<Nop>")
+
+-- Remove newbie crutches in Visual Mode
+km("v", "<Down>", "<Nop>")
+km("v", "<Left>", "<Nop>")
+km("v", "<Right>", "<Nop>")
+km("v", "<Up>", "<Nop>")
+
 -- Move line/selection up/down
 km("x", "ZK", ":move '<-2<CR>gv=gv", { desc = "Move selection up" })
 km("x", "ZJ", ":move '>+1<CR>gv=gv", { desc = "Move selection down" })

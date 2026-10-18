@@ -71,10 +71,8 @@ return {
         desc = "Toggle diff overlay",
       },
 
-      { "]f", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end,  desc = "Next hunk" },
-      { "[f", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end,  desc = "Prev hunk" },
-      { "]F", function() require("gitsigns").nav_hunk("last", { navigation_message = false }) end,  desc = "Last hunk" },
-      { "[F", function() require("gitsigns").nav_hunk("first", { navigation_message = false }) end, desc = "First hunk" },
+      { "gh", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end, desc = "Next hunk" },
+      { "gH", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end, desc = "Prev hunk" },
     },
   },
 

@@ -109,6 +109,8 @@ return {
         show_hidden = true,
       },
       skip_confirm_for_simple_edits = true,
+      skip_confirm_for_delete = true, -- don't ask before deleting
+      skip_confirm_for_move = true,   -- don't ask before moving/renaming
       preview_win = {
         border = "single",
       },
