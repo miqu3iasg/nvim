@@ -71,8 +71,8 @@ return {
         desc = "Toggle diff overlay",
       },
 
-      { "gh", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end, desc = "Next hunk" },
-      { "gH", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end, desc = "Prev hunk" },
+      { "]c", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end, desc = "Next hunk" },
+      { "[c", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end, desc = "Prev hunk" },
     },
   },
 
@@ -83,6 +83,10 @@ return {
     keys = {
       { "<leader>gw", "<cmd>FzfLua git_branches<cr>", desc = "Git branches (checkout)" },
       { "<leader>gi", "<cmd>FzfLua git_commits<cr>",  desc = "Git commits" },
+      { "<leader>gl", "<cmd>FzfLua git_blame<cr>",    desc = "Git blame" },
+      { "<leader>gm", "<cmd>FzfLua git_status<cr>",   desc = "Git status (modified files)" },
+      { "<leader>gu", "<cmd>FzfLua git_hunks<cr>",    desc = "Git hunks" },
+      { "<leader>gk", "<cmd>FzfLua git_diff<cr>",     desc = "Git diff" },
       {
         "<leader>gf",
         function()
