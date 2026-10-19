@@ -83,7 +83,7 @@ return {
     keys = {
       { "<leader>gw", "<cmd>FzfLua git_branches<cr>", desc = "Git branches (checkout)" },
       { "<leader>gi", "<cmd>FzfLua git_commits<cr>",  desc = "Git commits" },
-      { "<leader>gl", "<cmd>FzfLua git_blame<cr>",    desc = "Git blame" },
+      { "<leader>gl", "<cmd>FzfLua git_blame<cr>",    desc = "Git log" },
       { "<leader>gm", "<cmd>FzfLua git_status<cr>",   desc = "Git status (modified files)" },
       { "<leader>gu", "<cmd>FzfLua git_hunks<cr>",    desc = "Git hunks" },
       { "<leader>gk", "<cmd>FzfLua git_diff<cr>",     desc = "Git diff" },

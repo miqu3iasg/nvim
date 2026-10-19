@@ -203,7 +203,7 @@ return {
         settings = {
           Lua = {
             diagnostics = {
-              enable = false,
+              enable = true,
             },
             workspace = {
               checkThirdParty = false,

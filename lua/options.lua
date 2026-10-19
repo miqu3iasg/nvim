@@ -53,15 +53,13 @@ vim.opt.softtabstop = 2
 -- Window layout
 vim.opt.splitright = true
 vim.opt.splitbelow = true
-vim.opt.winminwidth = 0
-vim.opt.winminheight = 0
 vim.opt.laststatus = 2
 vim.opt.winborder = "single"
 
 -- Display
 vim.opt.number = false
 vim.opt.relativenumber = false
-vim.opt.scrolloff = 8
+vim.opt.scrolloff = 4
 vim.opt.sidescrolloff = 5
 vim.opt.cmdheight = 1
 vim.opt.signcolumn = "no"
@@ -93,12 +91,15 @@ vim.opt.guicursor = "a:block"
 
 -- Diagnostics
 vim.diagnostic.config({
-  virtual_text = false,
-  underline = false,
+  virtual_text = true,
+  underline = true,
   severity_sort = true,
   update_in_insert = false,
   float = {
-    border = "single",
+    border = "none",
     source = true,
   },
 })
+
+-- Start with diagnostics hidden
+vim.diagnostic.enable(false)

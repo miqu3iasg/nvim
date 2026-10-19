@@ -22,6 +22,12 @@ km("n", "<leader>vg", function()
   vim.wo.signcolumn = vim.wo.signcolumn == "no" and "yes" or "no"
 end, { desc = "Toggle sign column" })
 
+km("n", "<leader>vd", function()
+  local enabled = not vim.diagnostic.is_enabled()
+  vim.diagnostic.enable(enabled)
+  vim.notify("Diagnostics " .. (enabled and "enabled" or "disabled"))
+end, { desc = "Toggle diagnostics" })
+
 -- Line numbers
 
 -- Toggle absolute and relative numbers together

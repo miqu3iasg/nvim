@@ -379,9 +379,6 @@ local groups = {
   ["@module.builtin"] = { fg = colors.fg_3 },
   ["@label"] = { link = "Link" },
 
-  ["@string.documentation"] = { fg = colors.green },
-  ["@tag.attribute"] = { fg = colors.fg_3 },
-
   -- Treesitter: literals
   ["@constant"] = { link = "Constant" },
   ["@constant.builtin"] = { fg = colors.fg_3, bold = true },

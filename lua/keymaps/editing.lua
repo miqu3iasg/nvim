@@ -105,5 +105,12 @@ km(
   { desc = "Substitute word under cursor at once" }
 )
 
+vim.keymap.set(
+  "v",
+  "<leader>cw",
+  [["zy:%s/\V<C-r>=substitute(escape(@z, '/\'), '\n', '\\n', 'g')<CR>//g<Left><Left>]],
+  { desc = "Substitute selection at once" }
+)
+
 -- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)
 km("n", "<leader>cn", "*``cgn", { desc = "Change next occurrence of word under cursor (repeat with .)" })

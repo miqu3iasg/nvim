@@ -84,6 +84,14 @@ local function diff_buf()
   return ""
 end
 
+local function fullpath()
+  local win = tonumber(vim.g.statusline_winid) or 0
+  local buf = vim.api.nvim_win_get_buf(win)
+  local name = vim.api.nvim_buf_get_name(buf)
+  if name == "" then return "[No Name]" end
+  return esc(vim.fn.fnamemodify(name, ":~"))
+end
+
 local function indent()
   local sw, ts = vim.bo.shiftwidth, vim.bo.tabstop
   if vim.bo.expandtab then return "sw=" .. sw end
@@ -137,24 +145,22 @@ function M.render()
   local active = is_active()
 
   if not active then
-    return " %<%f %m%=%l:%c "
+    return " %<" .. fullpath() .. " %m%=%l:%c "
   end
 
   local left = join({
     "-- " .. mode() .. " --",
     diff_buf(),
     branch(),
-    "%<%f%r%m",
+    "%<" .. fullpath() .. "%r%m",
   })
 
   local right = join({
     -- diagnostics(),
-    -- vim.t.zoom and "[Z]" or "",
-    -- lsp(),
+    vim.t.zoom and "[Z]" or "",
     esc(vim.bo.filetype),
     encoding(),
-    indent(),
-    "%-8.(%l:%c%)",
+    "%-8.(%l,%c%)",
     "%P",
   })
 

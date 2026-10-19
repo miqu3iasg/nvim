@@ -45,11 +45,13 @@ return {
         backdrop    = 100,
         scrollbar   = false,
         preview     = {
-          hidden    = true,
-          wrap      = true,
-          border    = "single",
-          scrollbar = false,
-          winopts   = {
+          default    = "bat",
+          hidden     = true,
+          layout     = "horizontal",
+          horizontal = "right:50%",
+          wrap       = true,
+          scrollbar  = false,
+          winopts    = {
             number         = false,
             relativenumber = false,
             cursorline     = false,
@@ -83,8 +85,8 @@ return {
 
       keymap     = {
         builtin = {
-          ["<C-j>"] = "preview-page-down",
-          ["<C-k>"] = "preview-page-up",
+          ["<C-f>"] = "preview-page-down",
+          ["<C-b>"] = "preview-page-up",
         },
         fzf = {
           ["ctrl-g"] = "execute(less -c -i --incsearch --search-options=W -g {})",
@@ -128,23 +130,17 @@ return {
     { "<leader>ff", "<cmd>FzfLua files<cr>",                 desc = "Fzf: find files in cwd (respects .gitignore)" },
     { "<leader>fu", "<cmd>FzfLua files cwd=%:p:h<cr>",       desc = "Fzf: find files in the current buffer's directory" },
     { "<leader>fb", "<cmd>FzfLua buffers<cr>",               desc = "Fzf: switch between open buffers" },
-    { "<leader>ft", "<cmd>FzfLua tabs<cr>",                  desc = "Fzf: switch between open tabs" },
     { "<leader>fo", "<cmd>FzfLua oldfiles<cr>",              desc = "Fzf: reopen recently edited files" },
     { "<leader>fp", "<cmd>FzfLua zoxide<cr>",                desc = "Fzf: jump to a frequent directory (zoxide)" },
-    { "<leader>fm", "<cmd>FzfLua marks<cr>",                 desc = "Fzf: jump to a mark" },
-
     { "<leader>fg", "<cmd>FzfLua live_grep<cr>",             desc = "Fzf: live grep across all files in cwd" },
     { "<leader>fw", "<cmd>FzfLua grep_cword<cr>",            desc = "Fzf: grep the word under the cursor in cwd" },
     { "<leader>fl", "<cmd>FzfLua blines<cr>",                desc = "Fzf: search lines in the current buffer" },
-
     { "<leader>fd", "<cmd>FzfLua diagnostics_workspace<cr>", desc = "Fzf: list LSP diagnostics for the whole workspace" },
     { "<leader>fa", "<cmd>FzfLua commands<cr>",              desc = "Fzf: run an Ex command" },
     { "<leader>fk", "<cmd>FzfLua keymaps<cr>",               desc = "Fzf: search all keymaps" },
     { "<leader>fn", "<cmd>FzfLua man_pages<cr>",             desc = "Fzf: open a man page" },
-
     { "<leader>fc", "<cmd>FzfLua resume<cr>",                desc = "Fzf: resume the last picker with its previous query" },
     { "<leader>fz", "<cmd>FzfLua<cr>",                       desc = "Fzf: open the full picker menu" },
-
     { "<leader>fe", search_pending_comments,                 desc = "Fzf: list TODO/FIXME/HACK/BUG/XXX in current directory" },
   },
 }

@@ -70,8 +70,10 @@ local P = {
   visual = "#262626",
 
   bright = "#ffffff",
-  fg = "#e2e2e2",  -- default code color: light gray, almost white
-  mid = "#b0b0b0", -- UI only, no longer used for code
+  fg = "#e2e2e2",    -- default code color: light gray, almost white
+  mid = "#9e9e9e",   -- UI only, no longer used for code
+  mauve = "#e2e2e2", -- keywords only
+  -- mauve = "#8e8399", -- keywords only
   dim = "#636262",
 
   teal = "#5f8787",
@@ -86,6 +88,7 @@ local c = {
   line = P.surface,
   visual = P.visual,
   comment = P.dim,
+  mauve = P.mauve,   -- keywords only
   str = P.bone,      -- code strings only
   string = P.bright, -- kept for UI (bufferline, etc.)
   type = P.bright,   -- kept for UI (Title, Directory, Oil...)
@@ -219,7 +222,7 @@ local editor = {
   SignColumn = { fg = c.fg, bg = bg_main },
   FoldColumn = { fg = c.comment, bg = bg_main },
   Folded = { fg = c.comment, bg = c.line },
-  EndOfBuffer = { fg = c.alt },
+  EndOfBuffer = { fg = c.comment },
   NonText = { fg = c.comment },
   SpecialKey = { fg = c.comment, fmt = "bold" },
   Whitespace = { fg = faint },
@@ -254,8 +257,8 @@ local editor = {
   WinSeparator = { fg = c.comment },
   WinBar = { fg = c.fg, bg = bg_main },
   WinBarNC = { fg = c.comment, bg = bg_main },
-  StatusLine = { fg = c.fg, bg = c.line },
-  StatusLineNC = { fg = c.comment, bg = c.line },
+  StatusLine = { fg = P.mid, bg = bg_main },
+  StatusLineNC = { fg = c.comment, bg = bg_main },
   TabLine = { fg = c.comment, bg = c.line },
   TabLineFill = { fg = c.comment, bg = c.line },
   TabLineSel = { fg = c.type, bg = c.visual, fmt = "bold" },
@@ -311,15 +314,15 @@ local syntax = {
   Float = { fg = c.number },
   Identifier = { fg = c.fg },
   Function = { fg = c.fg },
-  Statement = { fg = c.fg },
-  Conditional = { fg = c.fg },
-  Repeat = { fg = c.fg },
+  Statement = { fg = c.mauve },
+  Conditional = { fg = c.mauve },
+  Repeat = { fg = c.mauve },
   Label = { fg = c.fg },
   Operator = { fg = c.operator },
-  Keyword = { fg = c.fg },
-  Exception = { fg = c.fg },
+  Keyword = { fg = c.mauve },
+  Exception = { fg = c.mauve },
   PreProc = { fg = c.fg },
-  Include = { fg = c.fg },
+  Include = { fg = c.mauve },
   Define = { fg = c.fg },
   Macro = { fg = c.fg, fmt = "italic" },
   PreCondit = { fg = c.fg },
@@ -380,16 +383,16 @@ local ts = {
   ["@constructor.lua"] = { fg = c.fg },
   ["@operator"] = { fg = c.operator },
 
-  ["@keyword"] = { fg = c.fg },
-  ["@keyword.function"] = { fg = c.fg },
-  ["@keyword.return"] = { fg = c.fg },
-  ["@keyword.operator"] = { fg = c.fg },
-  ["@keyword.conditional"] = { fg = c.fg },
-  ["@keyword.repeat"] = { fg = c.fg },
-  ["@keyword.import"] = { fg = c.fg },
-  ["@keyword.storage"] = { fg = c.fg },
-  ["@keyword.directive"] = { fg = c.fg },
-  ["@keyword.exception"] = { fg = c.fg },
+  ["@keyword"] = { fg = c.mauve },
+  ["@keyword.function"] = { fg = c.mauve }, -- `function`/`def`/`fn`
+  ["@keyword.return"] = { fg = c.mauve },
+  ["@keyword.operator"] = { fg = c.mauve },
+  ["@keyword.conditional"] = { fg = c.mauve },
+  ["@keyword.repeat"] = { fg = c.mauve },
+  ["@keyword.import"] = { fg = c.mauve },
+  ["@keyword.storage"] = { fg = c.mauve },
+  ["@keyword.directive"] = { fg = c.mauve },
+  ["@keyword.exception"] = { fg = c.mauve },
 
   ["@punctuation"] = { fg = c.punct },
   ["@punctuation.delimiter"] = { fg = c.punct },
@@ -717,11 +720,11 @@ plugins.bufferline = {
 plugins.blink = {
   BlinkCmpMenu = { link = "Pmenu" },
   BlinkCmpMenuBorder = { link = "FloatBorder" },
-  BlinkCmpMenuSelection = { link = "PmenuSel" },
+  BlinkCmpMenuSelection = { fg = c.type, bg = "#181818" },
   BlinkCmpScrollBarThumb = { link = "PmenuThumb" },
   BlinkCmpScrollBarGutter = { link = "PmenuSbar" },
   BlinkCmpLabel = { link = "Pmenu" },
-  BlinkCmpLabelMatch = { link = "PmenuMatch" },
+  BlinkCmpLabelMatch = { fg = c.type, fmt = "bold" },
   BlinkCmpLabelDeprecated = { fg = c.comment, fmt = "strikethrough" },
   BlinkCmpLabelDetail = { fg = c.comment },
   BlinkCmpLabelDescription = { fg = c.comment },

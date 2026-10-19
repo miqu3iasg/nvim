@@ -65,8 +65,8 @@ return {
 
         -- Override highlight groups
         highlights          = {
-          StatusLine                 = { fg = "#a8a8a8", bg = "#121212" },
-          StatusLineNC               = { fg = "#5f5f5f", bg = "#050505" },
+          -- StatusLine                 = { fg = "#a8a8a8", bg = "#121212" },
+          -- StatusLineNC               = { fg = "#5f5f5f", bg = "#050505" },
 
           Boolean                    = { fg = accent },
           Number                     = { fg = accent },
