@@ -56,7 +56,7 @@ end
 
 return {
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     config = function()
       require("mason").setup({
         PATH = "prepend",
@@ -65,7 +65,7 @@ return {
   },
 
   {
-    "williamboman/mason-lspconfig.nvim",
+    "mason-org/mason-lspconfig.nvim",
     config = function()
       require("mason-lspconfig").setup({
         -- Servers are enabled explicitly in the nvim-lspconfig block below
@@ -75,12 +75,15 @@ return {
           "omnisharp",
           "lua_ls",
           "gopls",
+          "nim_langserver",
+          "templ",
           "jdtls",
           "html",
           "cssls",
-          "emmet_ls",
+          "emmet_language_server",
           "tailwindcss",
-          "ts_ls",
+          "vtsls",
+          "eslint",
           "tinymist",
           "pyright",
           "ruff",
@@ -286,18 +289,99 @@ return {
         filetypes = { "templ", "html", "php" },
       })
 
-      vim.lsp.config("emmet_ls", {
+      -- TypeScript / JavaScript. vtsls replaces ts_ls: it handles large
+      -- monorepos better and exposes extra commands (go to source definition,
+      -- move to file, etc). Never enable ts_ls together with it, or every
+      -- diagnostic and completion shows up twice
+      local function ts_settings()
+        return {
+          updateImportsOnFileMove = { enabled = "always" },
+          suggest = { completeFunctionCalls = true },
+
+
+          preferences = {
+            -- Use "non-relative" if the project relies on path aliases (@/...)
+            importModuleSpecifier = "shortest",
+
+            preferTypeOnlyAutoImports = true,
+          },
+          inlayHints = {
+            parameterNames = { enabled = "literals" },
+            parameterTypes = { enabled = false },
+            variableTypes = { enabled = false },
+            propertyDeclarationTypes = { enabled = true },
+            functionLikeReturnTypes = { enabled = true },
+            enumMemberValues = { enabled = true },
+          },
+        }
+      end
+
+      vim.lsp.config("vtsls", {
+        commands = {
+          ["_typescript.didOrganizeImports"] = function() end,
+        },
+        settings = {
+          typescript = vim.tbl_deep_extend("force", ts_settings(), {
+            tsserver = { maxTsServerMemory = 8192 },
+          }),
+          javascript = ts_settings(),
+          vtsls = {
+            autoUseWorkspaceTsdk = true,
+            experimental = {
+              maxInlayHintLength = 30,
+              completion = { enableServerSideFuzzyMatch = false },
+            },
+          },
+        },
+      })
+
+      -- ESLint diagnostics and fixes. Formatting stays with conform/prettier,
+      -- so the server's own formatter is off. Fixes on save are wired in the
+      -- LspAttach autocmd below
+      vim.lsp.config("eslint", {
+        settings = {
+          format = false,
+        },
+      })
+
+      -- Runs `LspEslintFixAll` before conform formats the buffer (the autocmd
+      -- is created on attach, so it is registered before conform's). Respects
+      -- the same toggles as autoformat (<leader>uf)
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("EslintFixOnSave", { clear = true }),
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if not client or client.name ~= "eslint" then
+            return
+          end
+          vim.api.nvim_create_autocmd("BufWritePre", {
+            buffer = args.buf,
+            callback = function()
+              if vim.g.disable_autoformat or vim.b[args.buf].disable_autoformat then
+                return
+              end
+              if vim.fn.exists(":LspEslintFixAll") == 2 then
+                vim.cmd("silent! LspEslintFixAll")
+              end
+            end,
+          })
+        end,
+      })
+
+      -- Emmet only where markup lives. Plain .js/.ts files get no emmet noise
+      vim.lsp.config("emmet_language_server", {
         filetypes = {
           "templ",
           "html",
           "css",
+          "scss",
           "php",
-          "javascript",
           "javascriptreact",
           "typescriptreact",
-          "typescript",
-          "jsx",
-          "tsx",
+        },
+        init_options = {
+          showExpandedAbbreviation = "always",
+          showAbbreviationSuggestions = true,
         },
       })
 
@@ -308,10 +392,13 @@ return {
           "css",
           "javascriptreact",
           "typescriptreact",
-          "javascript",
-          "typescript",
-          "jsx",
-          "tsx",
+        },
+        settings = {
+          tailwindCSS = {
+            includeLanguages = { templ = "html" },
+            -- Class detection inside helper calls: cn("..."), cva("..."), etc.
+            classFunctions = { "cn", "clsx", "cx", "cva", "tv", "twMerge" },
+          },
         },
         root_dir = root({
           "tailwind.config.js",
@@ -371,7 +458,8 @@ return {
         "clangd",
         "cmake",
         "cssls",
-        "emmet_ls",
+        "emmet_language_server",
+        "eslint",
         "gopls",
         "html",
         "jsonls",
@@ -389,7 +477,7 @@ return {
         "templ",
         "texlab",
         "tinymist",
-        "ts_ls",
+        "vtsls",
         "yamlls",
       })
     end,

@@ -127,14 +127,34 @@ local function blink_keymap()
   }
 end
 
+-- file types for which I want autocompletion to appear automatically
+local auto_show_filetypes = {
+  javascript = true,
+  javascriptreact = true,
+  typescript = true,
+  typescriptreact = true,
+  htmlangular = true,
+  tex = true,
+  css = true,
+  scss = true,
+  html = true,
+  json = true,
+  jsonc = true,
+  yaml = true,
+  toml = true,
+}
+
 local function setup_blink()
   require("blink.cmp").setup({
     keymap = blink_keymap(),
 
     completion = {
-      -- Never open the menu automatically
       menu = {
-        auto_show = false,
+        -- autocompletion only for specific file types
+        auto_show = function()
+          return auto_show_filetypes[vim.bo.filetype] == true
+        end,
+
         border = "none",
         min_width = 70,
         max_height = 18,
@@ -146,7 +166,6 @@ local function setup_blink()
           padding = { 1, 1 },
           gap = 1,
           columns = {
-            -- { "kind_icon" },
             { "label", "label_description", gap = 1 },
             { "kind" },
           },
@@ -156,7 +175,7 @@ local function setup_blink()
             label_description = { width = { min = 20 } },
             kind = { width = { min = 12 } },
           },
-          treesitter = { "lsp" },
+          -- treesitter = { "lsp" },
         },
       },
 
@@ -215,12 +234,14 @@ local function setup_blink()
           name = "vimtex",
           module = "blink.compat.source",
           score_offset = -1,
+          async = true,
         },
 
         latex_symbols = {
           name = "latex_symbols",
           module = "blink.compat.source",
           score_offset = -2,
+          async = true,
         },
       },
     },

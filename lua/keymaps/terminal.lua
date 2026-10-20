@@ -24,33 +24,6 @@ km("n", "<leader>tt", function()
   open_term("tabnew")
 end, { desc = "Open terminal in a new tab" })
 
--- Toggle terminal reopens the same buffer/process if hidden,
--- hides the window (without killing the process) if visible.
-local term_buf = nil
-local term_win = nil
-
-local function toggle_terminal()
-  if term_win and vim.api.nvim_win_is_valid(term_win) then
-    vim.api.nvim_win_hide(term_win)
-    term_win = nil
-    return
-  end
-
-  if term_buf and vim.api.nvim_buf_is_valid(term_buf) then
-    vim.cmd(VSPLIT)
-    vim.api.nvim_win_set_buf(0, term_buf)
-    term_win = vim.api.nvim_get_current_win()
-    vim.cmd("startinsert")
-    return
-  end
-
-  open_term(VSPLIT)
-  term_buf = vim.api.nvim_get_current_buf()
-  term_win = vim.api.nvim_get_current_win()
-end
-
-km("n", "<leader>tg", toggle_terminal, { desc = "Toggle terminal" })
-
 -- Auto-enter insert mode on terminal open, and clean up its UI
 vim.api.nvim_create_autocmd("TermOpen", {
   callback = function()
@@ -59,21 +32,6 @@ vim.api.nvim_create_autocmd("TermOpen", {
     vim.opt_local.signcolumn = "no"
     vim.opt_local.spell = false
     vim.cmd("startinsert")
-  end,
-})
-
--- When the shell exits (e.g. `exit`), forget the toggle state and wipe the
--- dead buffer so the toggle never reopens a stopped terminal
-vim.api.nvim_create_autocmd("TermClose", {
-  callback = function(args)
-    if args.buf == term_buf then
-      term_buf, term_win = nil, nil
-    end
-    vim.schedule(function()
-      if vim.api.nvim_buf_is_valid(args.buf) then
-        vim.api.nvim_buf_delete(args.buf, { force = true })
-      end
-    end)
   end,
 })
 

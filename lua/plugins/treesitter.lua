@@ -21,9 +21,13 @@ return {
       "python",
       "html",
       "css",
+      "scss",
       "java",
       "javascript",
       "typescript",
+      "tsx",
+      "jsdoc",
+      "regex",
       "sql",
       "markdown",
       "markdown_inline",
@@ -31,6 +35,7 @@ return {
       "bash",
       "yaml",
       "json",
+      "jsonc",
       "toml",
       "c_sharp",
       "dockerfile",
@@ -56,9 +61,8 @@ return {
     -- in lua/plugins/latex.lua). It just must never attach directly to
     -- a `tex` buffer
     --
-    -- References:
-    --     - :h vimtex-faq-treesitter
-    --     - https://github.com/lervag/vimtex/wiki/Syntax
+    -- See: :h vimtex-faq-treesitter
+    -- See: https://github.com/lervag/vimtex/wiki/Syntax
     local ts_highlight_excluded = {
       tex = true,
       latex = true,
