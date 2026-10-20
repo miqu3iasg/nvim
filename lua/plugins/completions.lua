@@ -2,275 +2,276 @@
 
 -- Modules under lua/snippets/ registered with LuaSnip, as { filetype, module }
 local snippet_modules = {
-  { "tex",      "snippets.latex" },
-  { "typst",    "snippets.typst" },
-  { "c",        "snippets.c" },
-  { "python",   "snippets.python" },
-  { "java",     "snippets.java" },
-  { "scheme",   "snippets.lisp" },
-  { "lisp",     "snippets.lisp" },
-  { "sql",      "snippets.sql" },
-  { "mysql",    "snippets.sql" },
-  { "plsql",    "snippets.sql" },
-  { "markdown", "snippets.markdown" },
-  { "common",   "snippets.common" },
+	{ "tex", "snippets.latex" },
+	{ "typst", "snippets.typst" },
+	{ "c", "snippets.c" },
+	{ "python", "snippets.python" },
+	{ "java", "snippets.java" },
+	{ "scheme", "snippets.lisp" },
+	{ "lisp", "snippets.lisp" },
+	{ "sql", "snippets.sql" },
+	{ "mysql", "snippets.sql" },
+	{ "plsql", "snippets.sql" },
+	{ "markdown", "snippets.markdown" },
+	{ "common", "snippets.common" },
 }
 
 -- Filetypes that inherit the "common" snippets
 local common_filetypes = {
-  "python",
-  "c",
-  "scheme",
-  "lua",
-  "java",
-  "javascript",
-  "typescript",
-  "go",
-  "sh",
-  "markdown",
-  "tex",
-  "typst",
-  "sql",
-  "mysql",
-  "plsql",
+	"python",
+	"c",
+	"scheme",
+	"lua",
+	"java",
+	"javascript",
+	"typescript",
+	"go",
+	"sh",
+	"markdown",
+	"tex",
+	"typst",
+	"sql",
+	"mysql",
+	"plsql",
 }
 
 local function setup_luasnip()
-  local luasnip = require("luasnip")
+	local luasnip = require("luasnip")
 
-  luasnip.setup({
-    enable_autosnippets = true,
-    store_selection_keys = "<Tab>",
-    update_events = "TextChanged,TextChangedI",
-    region_check_events = "InsertEnter",
-    delete_check_events = "TextChanged",
-  })
+	luasnip.setup({
+		enable_autosnippets = true,
+		store_selection_keys = "<Tab>",
+		update_events = "TextChanged,TextChangedI",
+		region_check_events = "InsertEnter",
+		delete_check_events = "TextChanged",
+	})
 
-  for _, entry in ipairs(snippet_modules) do
-    local ok, snippets = pcall(require, entry[2])
-    if ok then
-      luasnip.add_snippets(entry[1], snippets)
-    else
-      vim.notify(
-        string.format("Failed to load snippets '%s': %s", entry[2], snippets),
-        vim.log.levels.ERROR
-      )
-    end
-  end
+	for _, entry in ipairs(snippet_modules) do
+		local ok, snippets = pcall(require, entry[2])
+		if ok then
+			luasnip.add_snippets(entry[1], snippets)
+		else
+			vim.notify(string.format("Failed to load snippets '%s': %s", entry[2], snippets), vim.log.levels.ERROR)
+		end
+	end
 
-  for _, ft in ipairs(common_filetypes) do
-    luasnip.filetype_extend(ft, { "common" })
-  end
+	for _, ft in ipairs(common_filetypes) do
+		luasnip.filetype_extend(ft, { "common" })
+	end
 end
 
 -- Keymaps. The preset is "none", so only the mappings below exist.
 -- Each entry is a list of commands tried in order; the first one that returns
 -- true stops the chain. A function returning nil/false lets the next entry run
 local function blink_keymap()
-  local luasnip = require("luasnip")
+	local luasnip = require("luasnip")
 
-  local function defer(fn)
-    vim.schedule(fn)
-    return true
-  end
+	local function defer(fn)
+		vim.schedule(fn)
+		return true
+	end
 
-  return {
-    preset = "none",
+	return {
+		preset = "none",
 
-    ["<C-y>"] = { "show" },
+		["<C-y>"] = { "show" },
 
-    ["<C-q>"] = {
-      "hide",
-      function()
-        if luasnip.in_snippet() then
-          luasnip.unlink_current()
-          return true
-        end
-      end,
-      "fallback",
-    },
+		["<C-q>"] = {
+			"hide",
+			function()
+				if luasnip.in_snippet() then
+					luasnip.unlink_current()
+					return true
+				end
+			end,
+			"fallback",
+		},
 
-    ["<CR>"] = { "accept", "fallback" },
+		["<CR>"] = { "accept", "fallback" },
 
-    ["<C-n>"] = {
-      "select_next",
-      function()
-        if luasnip.choice_active() then
-          return defer(function() luasnip.change_choice(1) end)
-        end
-      end,
-      "fallback",
-    },
+		["<C-n>"] = {
+			"select_next",
+			function()
+				if luasnip.choice_active() then
+					return defer(function()
+						luasnip.change_choice(1)
+					end)
+				end
+			end,
+			"fallback",
+		},
 
-    ["<C-p>"] = {
-      "select_prev",
-      function()
-        if luasnip.choice_active() then
-          return defer(function() luasnip.change_choice(-1) end)
-        end
-      end,
-      "fallback",
-    },
+		["<C-p>"] = {
+			"select_prev",
+			function()
+				if luasnip.choice_active() then
+					return defer(function()
+						luasnip.change_choice(-1)
+					end)
+				end
+			end,
+			"fallback",
+		},
 
-    ["<Tab>"] = {
-      "accept",
-      function()
-        if luasnip.expandable() then
-          return defer(luasnip.expand)
-        end
-      end,
-      "snippet_forward",
-      "fallback",
-    },
+		["<Tab>"] = {
+			"accept",
+			function()
+				if luasnip.expandable() then
+					return defer(luasnip.expand)
+				end
+			end,
+			"snippet_forward",
+			"fallback",
+		},
 
-    ["<S-Tab>"] = { "snippet_backward", "fallback" },
-  }
+		["<S-Tab>"] = { "snippet_backward", "fallback" },
+	}
 end
 
 -- file types for which I want autocompletion to appear automatically
 local auto_show_filetypes = {
-  javascript = true,
-  javascriptreact = true,
-  typescript = true,
-  typescriptreact = true,
-  htmlangular = true,
-  tex = true,
-  css = true,
-  scss = true,
-  html = true,
-  json = true,
-  jsonc = true,
-  yaml = true,
-  toml = true,
+	javascript = true,
+	javascriptreact = true,
+	typescript = true,
+	typescriptreact = true,
+	htmlangular = true,
+	tex = true,
+	css = true,
+	scss = true,
+	html = true,
+	json = true,
+	jsonc = true,
+	yaml = true,
+	toml = true,
 }
 
 local function setup_blink()
-  require("blink.cmp").setup({
-    keymap = blink_keymap(),
+	require("blink.cmp").setup({
+		keymap = blink_keymap(),
 
-    completion = {
-      menu = {
-        -- autocompletion only for specific file types
-        auto_show = function()
-          return auto_show_filetypes[vim.bo.filetype] == true
-        end,
+		completion = {
+			menu = {
+				-- autocompletion only for specific file types
+				auto_show = function()
+					return auto_show_filetypes[vim.bo.filetype] == true
+				end,
 
-        border = "none",
-        min_width = 70,
-        max_height = 18,
-        scrollbar = false,
-        scrolloff = 2,
-        winblend = 0,
-        winhighlight = "Normal:BlinkCmpMenu,FloatBorder:BlinkCmpMenuBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
-        draw = {
-          padding = { 1, 1 },
-          gap = 1,
-          columns = {
-            { "label", "label_description", gap = 1 },
-            { "kind" },
-          },
-          components = {
-            kind_icon = { width = { max = 3 } },
-            label = { width = { fill = true, min = 30 } },
-            label_description = { width = { min = 20 } },
-            kind = { width = { min = 12 } },
-          },
-          -- treesitter = { "lsp" },
-        },
-      },
+				border = "none",
+				min_width = 70,
+				max_height = 18,
+				scrollbar = false,
+				scrolloff = 2,
+				winblend = 0,
+				winhighlight = "Normal:BlinkCmpMenu,FloatBorder:BlinkCmpMenuBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
+				draw = {
+					padding = { 1, 1 },
+					gap = 1,
+					columns = {
+						{ "label", "label_description", gap = 1 },
+						{ "kind" },
+					},
+					components = {
+						kind_icon = { width = { max = 3 } },
+						label = { width = { fill = true, min = 30 } },
+						label_description = { width = { min = 20 } },
+						kind = { width = { min = 12 } },
+					},
+					-- treesitter = { "lsp" },
+				},
+			},
 
-      documentation = {
-        auto_show = false,
-        auto_show_delay_ms = 250,
-        window = {
-          border = "none",
-        },
-      },
+			documentation = {
+				auto_show = false,
+				auto_show_delay_ms = 250,
+				window = {
+					border = "none",
+				},
+			},
 
-      ghost_text = { enabled = false },
-      -- First item is preselected when opened, but not inserted into the
-      -- buffer (equivalent to completeopt "noinsert")
-      list = {
-        selection = { preselect = true, auto_insert = false },
-      },
+			ghost_text = { enabled = false },
+			-- First item is preselected when opened, but not inserted into the
+			-- buffer (equivalent to completeopt "noinsert")
+			list = {
+				selection = { preselect = true, auto_insert = false },
+			},
 
-      accept = { auto_brackets = { enabled = false } },
-    },
+			accept = { auto_brackets = { enabled = false } },
+		},
 
-    -- Snippets are handled by LuaSnip
-    snippets = { preset = "luasnip" },
+		-- Snippets are handled by LuaSnip
+		snippets = { preset = "luasnip" },
 
-    cmdline = { enabled = false },
+		cmdline = { enabled = false },
 
-    sources = {
-      -- Shared by every filetype
-      default = { "lsp", "snippets", "path", "buffer" },
+		sources = {
+			-- Shared by every filetype
+			default = { "lsp", "snippets", "path", "buffer" },
 
-      -- Lua gets lazydev, LaTeX gets vimtex and LaTeX symbols, Markdown gets
-      -- LaTeX symbols for math blocks
-      per_filetype = {
-        lua = { inherit_defaults = true, "lazydev" },
-        tex = { inherit_defaults = true, "vimtex", "latex_symbols" },
-        markdown = { inherit_defaults = true, "latex_symbols" },
-      },
+			-- Lua gets lazydev, LaTeX gets vimtex and LaTeX symbols, Markdown gets
+			-- LaTeX symbols for math blocks
+			per_filetype = {
+				lua = { inherit_defaults = true, "lazydev" },
+				tex = { inherit_defaults = true, "vimtex", "latex_symbols" },
+				markdown = { inherit_defaults = true, "latex_symbols" },
+			},
 
-      providers = {
-        lsp = { score_offset = 0 },
-        snippets = {
-          score_offset = -3,
-          opts = { show_autosnippets = false },
-        },
-        path = { score_offset = -4 },
-        buffer = { score_offset = -5 },
+			providers = {
+				lsp = { score_offset = 0 },
+				snippets = {
+					score_offset = -3,
+					opts = { show_autosnippets = false },
+				},
+				path = { score_offset = -4 },
+				buffer = { score_offset = -5 },
 
-        -- Takes precedence over every other source (group_index = 0 before)
-        lazydev = {
-          name = "LazyDev",
-          module = "lazydev.integrations.blink",
-          score_offset = 100,
-        },
+				-- Takes precedence over every other source (group_index = 0 before)
+				lazydev = {
+					name = "LazyDev",
+					module = "lazydev.integrations.blink",
+					score_offset = 100,
+				},
 
-        vimtex = {
-          name = "vimtex",
-          module = "blink.compat.source",
-          score_offset = -1,
-          async = true,
-        },
+				vimtex = {
+					name = "vimtex",
+					module = "blink.compat.source",
+					score_offset = -1,
+					async = true,
+				},
 
-        latex_symbols = {
-          name = "latex_symbols",
-          module = "blink.compat.source",
-          score_offset = -2,
-          async = true,
-        },
-      },
-    },
-  })
+				latex_symbols = {
+					name = "latex_symbols",
+					module = "blink.compat.source",
+					score_offset = -2,
+					async = true,
+				},
+			},
+		},
+	})
 end
 
 return {
-  {
-    "L3MON4D3/LuaSnip",
-    version = "v2.*",
-    build = "make install_jsregexp",
-    config = setup_luasnip,
-  },
+	{
+		"L3MON4D3/LuaSnip",
+		version = "v2.*",
+		build = "make install_jsregexp",
+		config = setup_luasnip,
+	},
 
-  {
-    "saghen/blink.cmp",
-    version = "1.*", -- prebuilt fuzzy matcher binaries
-    event = "InsertEnter",
-    dependencies = {
-      "L3MON4D3/LuaSnip",
-      "micangl/cmp-vimtex",
-      "kdheepak/cmp-latex-symbols",
-      {
-        "saghen/blink.compat",
-        version = "*",
-        lazy = true,
-        opts = { impersonate_nvim_cmp = true },
-      },
-    },
-    config = setup_blink,
-  },
+	{
+		"saghen/blink.cmp",
+		version = "1.*", -- prebuilt fuzzy matcher binaries
+		event = "InsertEnter",
+		dependencies = {
+			"L3MON4D3/LuaSnip",
+			"micangl/cmp-vimtex",
+			"kdheepak/cmp-latex-symbols",
+			{
+				"saghen/blink.compat",
+				version = "*",
+				lazy = true,
+				opts = { impersonate_nvim_cmp = true },
+			},
+		},
+		config = setup_blink,
+	},
 }

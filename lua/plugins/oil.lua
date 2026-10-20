@@ -100,6 +100,7 @@ return {
         },
         ["gy"]    = "actions.copy_entry_path", -- copy entry path to clipboard
         ["gh"]    = "actions.toggle_hidden",   -- toggle hidden files visibility
+        ["cd"]    = "actions.cd",              -- Change CWD
         ["q"]     = "actions.close",           -- close oil buffer
         ["~"]     = goto_dir(function() return vim.fn.expand("~") end, "Open home directory"),
         ["_"]     = goto_dir(function() return vim.fn.getcwd() end, "Open cwd"),
