@@ -2,7 +2,7 @@
 
 -- Conform.nvim runs external formatter executables, so they must be on PATH.
 -- Mason can install many of them (stylua, ruff, rustfmt, google-java-format,
--- fourmolu, yamlfmt, ktlint, swiftformat, csharpier, zigfmt, etc.), but the
+-- fourmolu, yamlfmt, ktlint, swiftformat, zigfmt, etc.), but the
 -- ones below may need to be installed manually
 --
 -- On Arch Linux, most system-level formatters come from pacman: Node.js for
@@ -39,93 +39,77 @@
 --
 -- See: https://github.com/stevearc/conform.nvim
 
-return {
-	"stevearc/conform.nvim",
-	event = { "BufWritePre" },
-	cmd = { "ConformInfo" },
-	keys = {
-		{
-			"<leader>k",
-			function()
-				require("conform").format({ async = true, lsp_format = "fallback" })
-			end,
-			desc = "Format buffer",
+vim.keymap.set("n", "<leader>k", function()
+	require("conform").format({ async = true, lsp_format = "fallback" })
+end, { desc = "Format buffer" })
+
+vim.keymap.set("n", "<leader>uf", function()
+	vim.g.disable_autoformat = not vim.g.disable_autoformat
+	vim.notify("Autoformat: " .. (vim.g.disable_autoformat and "OFF" or "ON"))
+end, { desc = "Toggle autoformat" })
+
+require("conform").setup({
+	notify_on_error = true,
+	formatters_by_ft = {
+		lua = { "stylua" },
+		go = { "goimports-reviser", "golines" },
+		c = { "clang_format" },
+		cpp = { "clang_format" },
+		java = { "google-java-format" },
+		python = { "ruff_organize_imports", "ruff_format" },
+		sh = { "shfmt" },
+		bash = { "shfmt" },
+		javascript = { "prettierd", "prettier", stop_after_first = true },
+		javascriptreact = { "prettierd", "prettier", stop_after_first = true },
+		typescript = { "prettierd", "prettier", stop_after_first = true },
+		typescriptreact = { "prettierd", "prettier", stop_after_first = true },
+		html = { "prettierd", "prettier", stop_after_first = true },
+		css = { "prettierd", "prettier", stop_after_first = true },
+		scss = { "prettierd", "prettier", stop_after_first = true },
+		json = { "prettierd", "prettier", stop_after_first = true },
+		jsonc = { "prettierd", "prettier", stop_after_first = true },
+		yaml = { "yamlfmt" },
+		toml = { "taplo" },
+		xml = { "xmlformatter" },
+		sql = { "sql_formatter" },
+		dockerfile = { "dockerfmt" },
+		terraform = { "terraform_fmt" },
+		markdown = { "prettierd", "prettier", stop_after_first = true },
+		tex = { "latexindent" },
+		typst = { "typstyle" },
+		asm = { "asmfmt" },
+
+		-- fallback
+		["_"] = { "trim_whitespace", "trim_newlines" },
+	},
+	formatters = {
+		["google-java-format"] = {
+			prepend_args = { "--skip-javadoc-formatting" },
 		},
-		{
-			"<leader>uf",
-			function()
-				vim.g.disable_autoformat = not vim.g.disable_autoformat
-				vim.notify("Autoformat: " .. (vim.g.disable_autoformat and "OFF" or "ON"))
-			end,
-			desc = "Toggle autoformat",
+		clang_format = {
+			-- this file must be located in `~/.clang-format`. We have an example
+			-- of this file in `assets/templates/clang-format.example.yaml`
+			prepend_args = { "--style=file" },
+		},
+		golines = {
+			prepend_args = { "--base-formatter=gofumpt", "--max-len=100" },
+		},
+		shfmt = {
+			prepend_args = { "-i", "2", "-ci" },
+		},
+		sql_formatter = {
+			prepend_args = {
+				"-l",
+				"mysql",
+				"-c",
+				'{"keywordCase":"upper","dataTypeCase":"upper","functionCase":"upper","tabWidth":4}',
+			},
 		},
 	},
-	config = function()
-		require("conform").setup({
-			notify_on_error = true,
-			formatters_by_ft = {
-				lua = { "stylua" },
-				go = { "goimports-reviser", "golines" },
-				c = { "clang_format" },
-				cpp = { "clang_format" },
-				csharp = { "csharpier" },
-				java = { "google-java-format" },
-				python = { "ruff_organize_imports", "ruff_format" },
-				sh = { "shfmt" },
-				bash = { "shfmt" },
-				javascript = { "prettierd", "prettier", stop_after_first = true },
-				javascriptreact = { "prettierd", "prettier", stop_after_first = true },
-				typescript = { "prettierd", "prettier", stop_after_first = true },
-				typescriptreact = { "prettierd", "prettier", stop_after_first = true },
-				html = { "prettierd", "prettier", stop_after_first = true },
-				css = { "prettierd", "prettier", stop_after_first = true },
-				scss = { "prettierd", "prettier", stop_after_first = true },
-				json = { "prettierd", "prettier", stop_after_first = true },
-				jsonc = { "prettierd", "prettier", stop_after_first = true },
-				yaml = { "yamlfmt" },
-				toml = { "taplo" },
-				xml = { "xmlformatter" },
-				sql = { "sql_formatter" },
-				dockerfile = { "dockerfmt" },
-				terraform = { "terraform_fmt" },
-				markdown = { "prettierd", "prettier", stop_after_first = true },
-				tex = { "latexindent" },
-				typst = { "typstyle" },
-				asm = { "asmfmt" },
-
-				-- fallback
-				["_"] = { "trim_whitespace", "trim_newlines" },
-			},
-			formatters = {
-				["google-java-format"] = {
-					prepend_args = { "--skip-javadoc-formatting" },
-				},
-				clang_format = {
-					-- this file must be located in `~/.clang-format`. We have an example
-					-- of this file in `assets/templates/clang-format.example.yaml`
-					prepend_args = { "--style=file" },
-				},
-				golines = {
-					prepend_args = { "--base-formatter=gofumpt", "--max-len=100" },
-				},
-				shfmt = {
-					prepend_args = { "-i", "2", "-ci" },
-				},
-				sql_formatter = {
-					prepend_args = {
-						"-l",
-						"mysql",
-						"-c",
-						'{"keywordCase":"upper","dataTypeCase":"upper","functionCase":"upper","tabWidth":4}',
-					},
-				},
-			},
-			format_on_save = function(bufnr)
-				if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
-					return
-				end
-				return { timeout_ms = 2000, lsp_format = "fallback" }
-			end,
-		})
+	format_on_save = function(bufnr)
+		if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+			return
+		end
+		return { timeout_ms = 2000, lsp_format = "fallback" }
 	end,
-}
+})

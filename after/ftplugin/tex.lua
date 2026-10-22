@@ -1,18 +1,44 @@
 -- after/ftplugin/tex.lua
 
--- This file MUST be named `tex.lua`, not `latex.lua`.
--- Neovim's ftplugin autoload is keyed off the buffer's `filetype`
--- value, and for .tex files that value is "tex" (not "latex");
--- see vimtex's `ft = { "tex" }`, lspconfig's `texlab`, conform's
--- `tex = { "latexindent" }`, and `load_snippets("tex", ...)` above.
---
--- Renaming this back to `latex.lua` will silently stop it from
--- being sourced when a .tex buffer is opened, and the langs.latex
--- keymaps/settings won't be applied (vimtex commands will still
--- work when typed manually, since the plugin itself loads fine,
--- only the buffer-local keymaps depend on this file running).
---
--- The `langs.latex` module name below is unrelated to this
--- constraint; it's just this project's own naming convention.
+-- Runs once per tex buffer. Mappings below are buffer-local, so they need the
+-- real buffer number (a nil `buffer` would make them global)
+local bufnr = vim.api.nvim_get_current_buf()
 
-require("langs.latex").setup()
+-- Visual wrapping, respecting word boundaries.
+vim.opt_local.wrap = true
+vim.opt_local.linebreak = true
+vim.opt_local.breakindent = true
+vim.opt_local.showbreak = "  "
+
+-- Spell check
+vim.opt_local.spell = true
+vim.opt_local.spelllang = "en_us"
+
+-- Required for vimtex's own concealment (accents, greek, etc.)
+vim.opt_local.conceallevel = 2
+vim.opt_local.concealcursor = "nc"
+
+-- No line numbers or sign column
+vim.opt_local.number = false
+vim.opt_local.relativenumber = false
+vim.opt_local.signcolumn = "no"
+
+-- Visual-line motion (matters with 'wrap'); a count keeps physical lines
+for key, visual in pairs({ j = "gj", k = "gk" }) do
+	vim.keymap.set({ "n", "x" }, key, ("v:count == 0 ? '%s' : '%s'"):format(visual, key), {
+		buffer = bufnr,
+		expr = true,
+		silent = true,
+		desc = "Move by visual line (" .. key .. ")",
+	})
+end
+
+local function map(lhs, rhs, desc)
+	vim.keymap.set("n", lhs, rhs, { buffer = bufnr, silent = true, desc = desc })
+end
+
+map("<localleader>xc", "<cmd>VimtexCompile<cr>", "Compile (continuous)")
+map("<localleader>xv", "<cmd>VimtexView<cr>", "View PDF")
+map("<localleader>xt", "<cmd>VimtexTocToggle<cr>", "Table of contents")
+map("<localleader>xs", "<cmd>VimtexStop<cr>", "Stop compilation")
+map("<localleader>xk", "<cmd>VimtexClean<cr>", "Clean aux files")

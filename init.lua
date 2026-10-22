@@ -1,22 +1,22 @@
 -- init.lua
 
--- stop annoying deprecation errors that i cant control
--- because i dont have access to the plugins that use
--- the deprecated functions
+-- Caches compiled Lua bytecode so `require` calls are faster on later startups
+vim.loader.enable()
+
+-- Leader keys
+-- must be set before any <leader> based mapping below is created
+vim.g.mapleader = " "
+vim.g.maplocalleader = ","
+
+-- Stop annoying deprecation errors that I can't control
 vim.deprecate = function() end
 
-require("options")
+require("config.options")
+require("config.keymaps")
+require("config.autocmds")
+require("config.commands")
+require("config.statusline").setup()
+require("config.pack")
+require("plugins")
 
-require("keymaps")
-
-require("lazynvim")
-
-require("autocmds")
-require("commands")
-require("snippets")
-require("statusline").setup()
-
--- vim.cmd.colorscheme("insanity")
-vim.cmd.colorscheme("transilvanian")
--- vim.cmd.colorscheme("transilvanian-alt")
--- vim.cmd.colorscheme("hollow")
+vim.cmd.colorscheme("venom")

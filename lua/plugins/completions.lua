@@ -1,83 +1,161 @@
 -- lua/plugins/completions.lua
 
--- Modules under lua/snippets/ registered with LuaSnip, as { filetype, module }
+-- Modules under lua/snippets/, required lazily the first time a buffer of that
+-- filetype is opened. `common` is loaded with the first filetype that uses it
 local snippet_modules = {
-	{ "tex", "snippets.latex" },
-	{ "typst", "snippets.typst" },
-	{ "c", "snippets.c" },
-	{ "python", "snippets.python" },
-	{ "java", "snippets.java" },
-	{ "scheme", "snippets.lisp" },
-	{ "lisp", "snippets.lisp" },
-	{ "sql", "snippets.sql" },
-	{ "mysql", "snippets.sql" },
-	{ "plsql", "snippets.sql" },
-	{ "markdown", "snippets.markdown" },
-	{ "common", "snippets.common" },
+	tex = "snippets.latex",
+	typst = "snippets.typst",
+	c = "snippets.c",
+	python = "snippets.python",
+	java = "snippets.java",
+	lisp = "snippets.lisp",
+	sql = "snippets.sql",
+	markdown = "snippets.markdown",
+	common = "snippets.common",
 }
 
--- Filetypes that inherit the "common" snippets
+-- Filetypes that reuse the snippets of another filetype
+local aliases = { scheme = "lisp", mysql = "sql", plsql = "sql" }
+
+-- Filetypes that also inherit the "common" snippets
 local common_filetypes = {
-	"python",
-	"c",
-	"scheme",
-	"lua",
-	"java",
-	"javascript",
-	"typescript",
-	"go",
-	"sh",
-	"markdown",
-	"tex",
-	"typst",
-	"sql",
-	"mysql",
-	"plsql",
-	"html",
-	"css",
+	python = true,
+	c = true,
+	scheme = true,
+	lua = true,
+	java = true,
+	javascript = true,
+	typescript = true,
+	go = true,
+	sh = true,
+	markdown = true,
+	tex = true,
+	typst = true,
+	sql = true,
+	mysql = true,
+	plsql = true,
+	html = true,
+	css = true,
 }
 
-local function setup_luasnip()
-	local luasnip = require("luasnip")
+-- Filetypes where the completion menu opens automatically
+local auto_show_filetypes = {
+	javascript = true,
+	javascriptreact = true,
+	typescript = true,
+	typescriptreact = true,
+	htmlangular = true,
+	html = true,
+	css = true,
+	scss = true,
+	tex = true,
+	json = true,
+	jsonc = true,
+	yaml = true,
+	toml = true,
+}
 
-	luasnip.setup({
-		enable_autosnippets = true,
-		store_selection_keys = "<Tab>",
-		update_events = "TextChanged,TextChangedI",
-		region_check_events = "InsertEnter",
-		delete_check_events = "TextChanged",
-	})
+-- Markdown is prose, so the menu stays closed except while typing a citation
+-- key (@smith, [@smith; @doe) or a wikilink ([[Note)
+local citekeys = require("shared.citekeys")
 
-	for _, entry in ipairs(snippet_modules) do
-		local ok, snippets = pcall(require, entry[2])
-		if ok then
-			luasnip.add_snippets(entry[1], snippets)
-		else
-			vim.notify(string.format("Failed to load snippets '%s': %s", entry[2], snippets), vim.log.levels.ERROR)
-		end
+local function markdown_auto_show()
+	local col = vim.api.nvim_win_get_cursor(0)[2]
+	local before = vim.api.nvim_get_current_line():sub(1, col)
+	return citekeys.citation_at(before) ~= nil or before:match("%[%[[^%]]*$") ~= nil
+end
+
+-- LuaSnip
+local luasnip = require("luasnip")
+
+luasnip.setup({
+	enable_autosnippets = true,
+	store_selection_keys = "<Tab>",
+	update_events = "TextChanged,TextChangedI",
+	region_check_events = "InsertEnter",
+	delete_check_events = "TextChanged",
+})
+
+-- `filetype_extend` is cheap, so it stays eager
+for ft in pairs(common_filetypes) do
+	luasnip.filetype_extend(ft, { "common" })
+end
+for ft, base in pairs(aliases) do
+	luasnip.filetype_extend(ft, { base })
+end
+
+local loaded = {}
+
+local function load(name)
+	local module = snippet_modules[name]
+	if not module or loaded[name] then
+		return
 	end
-
-	for _, ft in ipairs(common_filetypes) do
-		luasnip.filetype_extend(ft, { "common" })
+	loaded[name] = true
+	local ok, snippets = pcall(require, module)
+	if ok then
+		luasnip.add_snippets(name, snippets)
+	else
+		vim.notify(("Failed to load snippets '%s': %s"):format(module, snippets), vim.log.levels.ERROR)
 	end
 end
 
--- Keymaps. The preset is "none", so only the mappings below exist.
--- Each entry is a list of commands tried in order; the first one that returns
--- true stops the chain. A function returning nil/false lets the next entry run
-local function blink_keymap()
-	local luasnip = require("luasnip")
-
-	local function defer(fn)
-		vim.schedule(fn)
-		return true
+local function load_snippets(ft)
+	load(aliases[ft] or ft)
+	if common_filetypes[ft] then
+		load("common")
 	end
+end
 
-	return {
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("LazySnippets", { clear = true }),
+	callback = function(args)
+		load_snippets(args.match)
+	end,
+})
+
+-- Buffers opened before this file ran missed their FileType event
+for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+	if vim.api.nvim_buf_is_loaded(buf) then
+		load_snippets(vim.bo[buf].filetype)
+	end
+end
+
+-- blink.compat must run before cmp-latex-symbols is added, because that
+-- plugin does `require("cmp")`
+require("blink.compat").setup({ impersonate_nvim_cmp = true })
+
+-- cmp-latex-symbols is only added when the first tex/markdown buffer opens
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "tex", "markdown" },
+	once = true,
+	callback = function()
+		vim.cmd.packadd("cmp-latex-symbols")
+	end,
+})
+
+-- blink.cmp
+local function choice(dir)
+	return function()
+		if luasnip.choice_active() then
+			vim.schedule(function()
+				luasnip.change_choice(dir)
+			end)
+			return true
+		end
+	end
+end
+
+require("blink.cmp").setup({
+	-- Preset "none": only the mappings below exist. Each entry is tried in
+	-- order and the first one that returns true stops the chain
+	keymap = {
 		preset = "none",
-
 		["<C-y>"] = { "show" },
-
+		["<CR>"] = { "accept", "fallback" },
+		["<C-n>"] = { "select_next", choice(1), "fallback" },
+		["<C-p>"] = { "select_prev", choice(-1), "fallback" },
+		["<S-Tab>"] = { "snippet_backward", "fallback" },
 		["<C-q>"] = {
 			"hide",
 			function()
@@ -88,192 +166,71 @@ local function blink_keymap()
 			end,
 			"fallback",
 		},
-
-		["<CR>"] = { "accept", "fallback" },
-
-		["<C-n>"] = {
-			"select_next",
-			function()
-				if luasnip.choice_active() then
-					return defer(function()
-						luasnip.change_choice(1)
-					end)
-				end
-			end,
-			"fallback",
-		},
-
-		["<C-p>"] = {
-			"select_prev",
-			function()
-				if luasnip.choice_active() then
-					return defer(function()
-						luasnip.change_choice(-1)
-					end)
-				end
-			end,
-			"fallback",
-		},
-
 		["<Tab>"] = {
 			"accept",
 			function()
 				if luasnip.expandable() then
-					return defer(luasnip.expand)
+					vim.schedule(luasnip.expand)
+					return true
 				end
 			end,
 			"snippet_forward",
 			"fallback",
 		},
-
-		["<S-Tab>"] = { "snippet_backward", "fallback" },
-	}
-end
-
--- file types for which I want autocompletion to appear automatically
-local auto_show_filetypes = {
-	javascript = true,
-	javascriptreact = true,
-	typescript = true,
-	typescriptreact = true,
-	htmlangular = true,
-	tex = true,
-	css = true,
-	scss = true,
-	html = true,
-	json = true,
-	jsonc = true,
-	yaml = true,
-	toml = true,
-}
-
-local function setup_blink()
-	require("blink.cmp").setup({
-		keymap = blink_keymap(),
-
-		completion = {
-			menu = {
-				-- autocompletion only for specific file types
-				auto_show = function()
-					return auto_show_filetypes[vim.bo.filetype] == true
-				end,
-
-				border = "none",
-				min_width = 70,
-				max_height = 18,
-				scrollbar = false,
-				scrolloff = 2,
-				winblend = 0,
-				winhighlight = "Normal:BlinkCmpMenu,FloatBorder:BlinkCmpMenuBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
-				draw = {
-					padding = { 1, 1 },
-					gap = 1,
-					columns = {
-						{ "label", "label_description", gap = 1 },
-						{ "kind" },
-					},
-					components = {
-						kind_icon = { width = { max = 3 } },
-						label = { width = { fill = true, min = 30 } },
-						label_description = { width = { min = 20 } },
-						kind = { width = { min = 12 } },
-					},
-					-- treesitter = { "lsp" },
-				},
-			},
-
-			documentation = {
-				auto_show = false,
-				auto_show_delay_ms = 250,
-				window = {
-					border = "none",
-				},
-			},
-
-			ghost_text = { enabled = false },
-			-- First item is preselected when opened, but not inserted into the
-			-- buffer (equivalent to completeopt "noinsert")
-			list = {
-				selection = { preselect = true, auto_insert = false },
-			},
-
-			accept = { auto_brackets = { enabled = false } },
-		},
-
-		-- Snippets are handled by LuaSnip
-		snippets = { preset = "luasnip" },
-
-		cmdline = { enabled = false },
-
-		sources = {
-			-- Shared by every filetype
-			default = { "lsp", "snippets", "path", "buffer" },
-
-			-- Lua gets lazydev, LaTeX gets vimtex and LaTeX symbols, Markdown gets
-			-- LaTeX symbols for math blocks
-			per_filetype = {
-				lua = { inherit_defaults = true, "lazydev" },
-				tex = { inherit_defaults = true, "vimtex", "latex_symbols" },
-				markdown = { inherit_defaults = true, "latex_symbols" },
-			},
-
-			providers = {
-				lsp = { score_offset = 0 },
-				snippets = {
-					score_offset = -3,
-					opts = { show_autosnippets = false },
-				},
-				path = { score_offset = -4 },
-				buffer = { score_offset = -5 },
-
-				-- Takes precedence over every other source (group_index = 0 before)
-				lazydev = {
-					name = "LazyDev",
-					module = "lazydev.integrations.blink",
-					score_offset = 100,
-				},
-
-				vimtex = {
-					name = "vimtex",
-					module = "blink.compat.source",
-					score_offset = -1,
-					async = true,
-				},
-
-				latex_symbols = {
-					name = "latex_symbols",
-					module = "blink.compat.source",
-					score_offset = -2,
-					async = true,
-				},
-			},
-		},
-	})
-end
-
-return {
-	{
-		"L3MON4D3/LuaSnip",
-		version = "v2.*",
-		build = "make install_jsregexp",
-		config = setup_luasnip,
 	},
 
-	{
-		"saghen/blink.cmp",
-		version = "1.*", -- prebuilt fuzzy matcher binaries
-		event = "InsertEnter",
-		dependencies = {
-			"L3MON4D3/LuaSnip",
-			"micangl/cmp-vimtex",
-			"kdheepak/cmp-latex-symbols",
-			{
-				"saghen/blink.compat",
-				version = "*",
-				lazy = true,
-				opts = { impersonate_nvim_cmp = true },
+	completion = {
+		menu = {
+			auto_show = function()
+				local ft = vim.bo.filetype
+				if ft == "markdown" then
+					return markdown_auto_show()
+				end
+				return auto_show_filetypes[ft] == true
+			end,
+			border = "none",
+			min_width = 70,
+			max_height = 18,
+			scrollbar = false,
+			draw = {
+				columns = {
+					{ "label", "label_description", gap = 1 },
+					{ "kind" },
+				},
+				components = {
+					label = { width = { fill = true, min = 30 } },
+					label_description = { width = { min = 20 } },
+					kind = { width = { min = 12 } },
+				},
 			},
 		},
-		config = setup_blink,
+		documentation = { window = { border = "none" } },
+		-- Preselect the first item without inserting it (like "noinsert")
+		list = { selection = { auto_insert = false } },
+		accept = { auto_brackets = { enabled = false } },
 	},
-}
+
+	snippets = { preset = "luasnip" },
+	cmdline = { enabled = false },
+
+	sources = {
+		-- Lua: lazydev. LaTeX: vimtex + LaTeX symbols. Markdown: LaTeX symbols
+		-- and the citation keys of the bibliography
+		per_filetype = {
+			lua = { inherit_defaults = true, "lazydev" },
+			tex = { inherit_defaults = true, "vimtex", "latex_symbols" },
+			markdown = { inherit_defaults = true, "latex_symbols", "citekeys" },
+		},
+
+		providers = {
+			snippets = { score_offset = -3, opts = { show_autosnippets = false } },
+			path = { score_offset = -4 },
+			buffer = { score_offset = -5 },
+			lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
+			vimtex = { name = "vimtex", module = "blink.compat.source", score_offset = -1, async = true },
+			latex_symbols = { name = "latex_symbols", module = "blink.compat.source", score_offset = -2, async = true },
+			-- Own source, no plugin needed: reads the .bib found by shared/bib.lua
+			citekeys = { name = "Citations", module = "shared.citekeys", score_offset = 100 },
+		},
+	},
+})

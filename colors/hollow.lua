@@ -18,9 +18,9 @@ local set_hl = vim.api.nvim_set_hl
 
 local _ = false
 
-local fg0 = "#e2e2e2"
-local fg1 = "#e2e2e2"
-local str = "#e2e2e2"
+local fg0 = "#c8c8c8"
+local fg1 = "#c8c8c8"
+local str = "#c8c8c8"
 local dim = "#707070"
 local cmt = "#6a6a6a"
 local doc = "#7a7a7a"

@@ -1,3 +1,3 @@
 -- after/ftplugin/javascriptreact.lua
 
-require("langs.jsts").setup({ react = true })
+require("shared.web").setup({ react = true })

@@ -1,0 +1,21 @@
+# ~/.config/nvim/pandoc/profiles/abnt.yaml
+#
+# ABNT-like layout. Use it with:  :Pandoc pdf abnt
+# It is loaded after metadata.yaml, so it overrides it, and the YAML header
+# of the note still overrides it.
+#
+# If ~/.config/nvim/pandoc/csl/abnt.csl exists it is used as the citation
+# style automatically (see README).
+fontsize: 12pt
+linestretch: 1.5
+geometry:
+  - top=3cm
+  - left=3cm
+  - bottom=2cm
+  - right=2cm
+numbersections: true
+
+# Optional, uncomment what you want:
+# toc: true
+# toc-title: Sumário
+# mainfont: TeX Gyre Termes   # a font that is installed on your system

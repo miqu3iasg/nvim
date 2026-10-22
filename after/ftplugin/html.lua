@@ -1,3 +1,3 @@
 -- after/ftplugin/html.lua
 
-require("langs.jsts").markup()
+require("shared.web").markup()

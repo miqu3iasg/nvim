@@ -1,0 +1,24 @@
+# ~/.config/nvim/pandoc/defaults.yaml
+#
+# Global pandoc defaults, always loaded by lua/shared/pandoc.lua. This file
+# only describes the pipeline. Everything about the look of the document
+# (language, margins, font size...) lives in metadata.yaml, where a document
+# can override it from its own YAML header.
+#
+# A file called `defaults.yaml` in the note's folder (or in any parent folder,
+# up to $HOME) is loaded right after this one and wins over it. Relative
+# paths inside it are relative to the folder of the note being exported.
+#
+# See: https://pandoc.org/MANUAL.html#default-files
+#
+# Plain markdown plus the things that matter when writing notes:
+#
+# - wikilinks_title_after_pipe: [[Note]] and [[Note|alias]] (Obsidian)
+# - lists_without_preceding_blankline: a list may follow a paragraph directly
+# - autolink_bare_uris: https://example.org becomes a link
+from: markdown+wikilinks_title_after_pipe+lists_without_preceding_blankline+autolink_bare_uris
+standalone: true
+pdf-engine: xelatex
+
+# Citations (citeproc, bibliography, csl) are handled by the plugin: they are
+# only switched on when a bibliography exists, so plain notes never break.

@@ -362,157 +362,145 @@ local function module_api_search()
 	})
 end
 
-return {
-	"ibhagwan/fzf-lua",
-	opts = function()
-		local actions = require("fzf-lua").actions
+-- (lazy's `opts = function() ... end`, now called directly)
+local function make_opts()
+	local actions = require("fzf-lua").actions
 
-		return {
-			file_icons = false,
-			git_icons = false,
+	return {
+		file_icons = false,
+		git_icons = false,
 
-			winopts = {
-				on_create = function(e)
-					if e.winid and vim.api.nvim_win_is_valid(e.winid) then
-						vim.api.nvim_win_set_config(e.winid, { title = "" })
-					end
-				end,
+		winopts = {
+			on_create = function(e)
+				if e.winid and vim.api.nvim_win_is_valid(e.winid) then
+					vim.api.nvim_win_set_config(e.winid, { title = "" })
+				end
+			end,
 
-				-- split       = "botright 10new",
-				-- border      = "none",
-				height = 0.95,
-				width = 0.90,
-				row = 0.35,
-				col = 0.50,
-				border = "single",
-				fullscreen = false,
-				title = false,
-				title_flags = false,
-				backdrop = 100,
+			-- split       = "botright 10new",
+			-- border      = "none",
+			height = 0.95,
+			width = 0.90,
+			row = 0.35,
+			col = 0.50,
+			border = "single",
+			fullscreen = false,
+			title = false,
+			title_flags = false,
+			backdrop = 100,
+			scrollbar = false,
+			preview = {
+				default = "bat",
+				hidden = true,
+				layout = "horizontal",
+				horizontal = "right:50%",
+				wrap = true,
 				scrollbar = false,
-				preview = {
-					default = "bat",
-					hidden = true,
-					layout = "horizontal",
-					horizontal = "right:50%",
-					wrap = true,
-					scrollbar = false,
-					winopts = {
-						number = false,
-						relativenumber = false,
-						cursorline = true,
-						foldenable = false,
-					},
+				winopts = {
+					number = false,
+					relativenumber = false,
+					cursorline = true,
+					foldenable = false,
 				},
 			},
+		},
 
+		fzf_opts = {
+			["--ansi"] = true,
+			["--layout"] = "default",
+			["--info"] = false,
+			["--highlight-line"] = false,
+			["--border"] = "none",
+			["--no-scrollbar"] = true,
+		},
+
+		previewers = {
+			builtin = {
+				treesitter = { enabled = true },
+			},
+		},
+
+		actions = {
+			files = {
+				["enter"] = actions.file_edit_or_qf,
+				["ctrl-t"] = actions.file_tabedit,
+				["ctrl-x"] = actions.file_split,
+			},
+		},
+
+		keymap = {
+			builtin = {
+				["<C-f>"] = "preview-page-down",
+				["<C-b>"] = "preview-page-up",
+			},
+			fzf = {
+				["ctrl-g"] = "execute(less -c -i --incsearch --search-options=W -g {})",
+				["ctrl-z"] = "abort",
+				["ctrl-u"] = "unix-line-discard",
+				["ctrl-a"] = "beginning-of-line",
+				["ctrl-e"] = "end-of-line",
+				["ctrl-q"] = "select-all+accept",
+			},
+		},
+
+		-- Hide the line and column fields from grep results
+		grep = {
 			fzf_opts = {
-				["--ansi"] = true,
-				["--layout"] = "default",
-				["--info"] = false,
-				["--highlight-line"] = false,
-				["--border"] = "none",
-				["--no-scrollbar"] = true,
+				["--delimiter"] = ":",
+				["--with-nth"] = "1,4..",
 			},
-
-			previewers = {
-				builtin = {
-					treesitter = { enabled = true },
-				},
-			},
-
-			actions = {
-				files = {
-					["enter"] = actions.file_edit_or_qf,
-					["ctrl-t"] = actions.file_tabedit,
-					["ctrl-x"] = actions.file_split,
-				},
-			},
-
-			keymap = {
-				builtin = {
-					["<C-f>"] = "preview-page-down",
-					["<C-b>"] = "preview-page-up",
-				},
-				fzf = {
-					["ctrl-g"] = "execute(less -c -i --incsearch --search-options=W -g {})",
-					["ctrl-z"] = "abort",
-					["ctrl-u"] = "unix-line-discard",
-					["ctrl-a"] = "beginning-of-line",
-					["ctrl-e"] = "end-of-line",
-					["ctrl-q"] = "select-all+accept",
-				},
-			},
-
-			-- Hide the line and column fields from grep results
-			grep = {
-				fzf_opts = {
-					["--delimiter"] = ":",
-					["--with-nth"] = "1,4..",
-				},
-			},
-		}
-	end,
-
-	config = function(_, opts)
-		require("fzf-lua").setup(opts)
-
-		local function set_fzf_hl()
-			vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
-			vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })
-		end
-
-		set_fzf_hl()
-
-		vim.api.nvim_create_autocmd("ColorScheme", { callback = set_fzf_hl })
-
-		vim.api.nvim_create_user_command("Todo", search_pending_comments, {
-			desc = "Fzf: search TODO/FIXME/HACK/BUG/XXX in the current directory",
-		})
-
-		vim.api.nvim_create_user_command("Api", module_api_search, {
-			desc = "Fzf: explore the API of the current module via regex",
-		})
-	end,
-
-	keys = {
-		{
-			"<leader>ff",
-			"<cmd>FzfLua files<cr>",
-			desc = "Fzf: find files in cwd (respects .gitignore)",
 		},
-		{
-			"<leader>fu",
-			"<cmd>FzfLua files cwd=%:p:h<cr>",
-			desc = "Fzf: find files in the current buffer's directory",
-		},
-		{ "<leader>fb", "<cmd>FzfLua buffers<cr>", desc = "Fzf: switch between open buffers" },
-		{ "<leader>fo", "<cmd>FzfLua oldfiles<cr>", desc = "Fzf: reopen recently edited files" },
-		{ "<leader>fp", "<cmd>FzfLua zoxide<cr>", desc = "Fzf: jump to a frequent directory (zoxide)" },
-		{ "<leader>fg", "<cmd>FzfLua live_grep<cr>", desc = "Fzf: live grep across all files in cwd" },
-		{ "<leader>fw", "<cmd>FzfLua grep_cword<cr>", desc = "Fzf: grep the word under the cursor in cwd" },
-		{ "<leader>fl", "<cmd>FzfLua blines<cr>", desc = "Fzf: search lines in the current buffer" },
-		{
-			"<leader>fd",
-			"<cmd>FzfLua diagnostics_workspace<cr>",
-			desc = "Fzf: list LSP diagnostics for the whole workspace",
-		},
-		{ "<leader>fk", "<cmd>FzfLua keymaps<cr>", desc = "Fzf: search all keymaps" },
-		{
-			"<leader>fc",
-			"<cmd>FzfLua resume<cr>",
-			desc = "Fzf: resume the last picker with its previous query",
-		},
-		{ "<leader>fz", "<cmd>FzfLua<cr>", desc = "Fzf: open the full picker menu" },
-		{
-			"<leader>fe",
-			search_pending_comments,
-			desc = "Fzf: list TODO/FIXME/HACK/BUG/XXX in current directory",
-		},
-		{
-			"<leader>fs",
-			module_api_search,
-			desc = "Fzf: explore module API (functions/types) via regex",
-		},
-	},
-}
+	}
+end
+
+require("fzf-lua").setup(make_opts())
+
+local function set_fzf_hl()
+	vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
+	vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })
+end
+
+set_fzf_hl()
+
+vim.api.nvim_create_autocmd("ColorScheme", { callback = set_fzf_hl })
+
+vim.api.nvim_create_user_command("Todo", search_pending_comments, {
+	desc = "Fzf: search TODO/FIXME/HACK/BUG/XXX in the current directory",
+})
+
+vim.api.nvim_create_user_command("Api", module_api_search, {
+	desc = "Fzf: explore the API of the current module via regex",
+})
+
+vim.keymap.set("n", "<leader>ff", "<cmd>FzfLua files<cr>", {
+	desc = "Fzf: find files in cwd (respects .gitignore)",
+})
+
+vim.keymap.set("n", "<leader>fu", "<cmd>FzfLua files cwd=%:p:h<cr>", {
+	desc = "Fzf: find files in the current buffer's directory",
+})
+
+vim.keymap.set("n", "<leader>fb", "<cmd>FzfLua buffers<cr>", { desc = "Fzf: switch between open buffers" })
+vim.keymap.set("n", "<leader>fo", "<cmd>FzfLua oldfiles<cr>", { desc = "Fzf: reopen recently edited files" })
+vim.keymap.set("n", "<leader>fp", "<cmd>FzfLua zoxide<cr>", { desc = "Fzf: jump to a frequent directory (zoxide)" })
+vim.keymap.set("n", "<leader>fg", "<cmd>FzfLua live_grep<cr>", { desc = "Fzf: live grep across all files in cwd" })
+vim.keymap.set("n", "<leader>fw", "<cmd>FzfLua grep_cword<cr>", { desc = "Fzf: grep the word under the cursor in cwd" })
+vim.keymap.set("n", "<leader>fl", "<cmd>FzfLua blines<cr>", { desc = "Fzf: search lines in the current buffer" })
+vim.keymap.set("n", "<leader>fk", "<cmd>FzfLua keymaps<cr>", { desc = "Fzf: search all keymaps" })
+vim.keymap.set("n", "<leader>fz", "<cmd>FzfLua<cr>", { desc = "Fzf: open the full picker menu" })
+
+vim.keymap.set("n", "<leader>fd", "<cmd>FzfLua diagnostics_workspace<cr>", {
+	desc = "Fzf: list LSP diagnostics for the whole workspace",
+})
+
+vim.keymap.set("n", "<leader>fc", "<cmd>FzfLua resume<cr>", {
+	desc = "Fzf: resume the last picker with its previous query",
+})
+
+vim.keymap.set("n", "<leader>fe", search_pending_comments, {
+	desc = "Fzf: list TODO/FIXME/HACK/BUG/XXX in current directory",
+})
+
+vim.keymap.set("n", "<leader>fs", module_api_search, {
+	desc = "Fzf: explore module API (functions/types) via regex",
+})

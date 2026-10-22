@@ -1,3 +1,3 @@
 -- after/ftplugin/javascript.lua
 
-require("langs.jsts").setup()
+require("shared.web").setup()
