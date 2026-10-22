@@ -34,6 +34,7 @@
 require("nvim-treesitter").install({ "scheme", "commonlisp", "racket" })
 
 -- Conjure
+
 -- vim.pack: this was lazy's `init`. The plugin itself is installed in
 -- lua/config/pack.lua; Conjure only reads these globals when it starts for a
 -- lisp/scheme/racket buffer, which happens after init.lua finishes

@@ -12,6 +12,7 @@ for _, mod in ipairs({
 	"lisp",
 	"obsidian",
 	"oil",
+	"colorschemes",
 }) do
 	local ok, err = pcall(require, "plugins." .. mod)
 	if not ok then

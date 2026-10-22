@@ -56,6 +56,4 @@ vim.pack.add({
 	gh("Olical/conjure"),
 	gh("julienvincent/nvim-paredit"),
 	gh("nvim-lua/plenary.nvim"),
-	gh("metalelf0/black-metal-theme-neovim"),
-	gh("amedoeyes/eyes.nvim"),
 })

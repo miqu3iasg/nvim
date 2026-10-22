@@ -23,6 +23,9 @@ km("v", "<Up>", "<Nop>")
 -- Move line/selection up/down
 km("x", "ZK", ":move '<-2<CR>gv=gv", { desc = "Move selection up" })
 km("x", "ZJ", ":move '>+1<CR>gv=gv", { desc = "Move selection down" })
+-- Why two ways to do the same thing? Idk, just because I want and fuck you dawg
+km("x", "K", ":move '<-2<CR>gv=gv", { desc = "Move selection up" })
+km("x", "J", ":move '>+1<CR>gv=gv", { desc = "Move selection down" })
 
 km("n", "ZK", ":move -2<CR>==", { desc = "Move line up" })
 km("n", "ZJ", ":move +1<CR>==", { desc = "Move line down" })
@@ -36,11 +39,11 @@ km("n", "zk", ":t .-1<CR>", { desc = "Duplicate line above" })
 
 -- Insert N blank lines above/below without entering insert mode
 km("n", "ZH", function()
-  vim.cmd("put!=repeat(nr2char(10), " .. vim.v.count1 .. ")")
+	vim.cmd("put!=repeat(nr2char(10), " .. vim.v.count1 .. ")")
 end, { desc = "Insert blank line(s) above" })
 
 km("n", "ZN", function()
-  vim.cmd("put =repeat(nr2char(10), " .. vim.v.count1 .. ")")
+	vim.cmd("put =repeat(nr2char(10), " .. vim.v.count1 .. ")")
 end, { desc = "Insert blank line(s) below" })
 
 -- Indentation
@@ -48,16 +51,16 @@ km("x", "<", "<gv", { desc = "Indent selection left" })
 km("x", ">", ">gv", { desc = "Indent selection right" })
 
 km("n", "<leader>=", function()
-  local view = vim.fn.winsaveview()
-  vim.cmd("normal! gg=G")
-  vim.fn.winrestview(view)
+	local view = vim.fn.winsaveview()
+	vim.cmd("normal! gg=G")
+	vim.fn.winrestview(view)
 end, { desc = "Indent entire file" })
 
 km("x", "<leader>=", function()
-  local view = vim.fn.winsaveview()
-  vim.cmd("normal! =")
-  vim.fn.winrestview(view)
-  vim.cmd("normal! gv")
+	local view = vim.fn.winsaveview()
+	vim.cmd("normal! =")
+	vim.fn.winrestview(view)
+	vim.cmd("normal! gv")
 end, { desc = "Indent selection" })
 
 -- Editing
@@ -81,35 +84,44 @@ km("n", "U", "<C-r>", { desc = "Redo" })
 -- Rebuilt in Lua so the word/WORD is escaped before it ever reaches the
 -- substitute pattern (avoids breaking on chars like . * $ ^ ~ [ ] / \)
 local function sub_prompt(scope, text, use_boundary)
-  if text == "" then
-    return
-  end
-  local pattern = vim.fn.escape(text, "\\/.*$^~[]")
-  if use_boundary then
-    pattern = [[\<]] .. pattern .. [[\>]]
-  end
-  local cmd = string.format(":keeppatterns %s/%s//gc", scope, pattern)
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd, true, false, true), "n", false)
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Left><Left><Left>", true, false, true), "n", false)
+	if text == "" then
+		return
+	end
+	local pattern = vim.fn.escape(text, "\\/.*$^~[]")
+	if use_boundary then
+		pattern = [[\<]] .. pattern .. [[\>]]
+	end
+	local cmd = string.format(":keeppatterns %s/%s//gc", scope, pattern)
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd, true, false, true), "n", false)
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Left><Left><Left>", true, false, true), "n", false)
 end
 
-km("n", "cu", function() sub_prompt("%s", vim.fn.expand("<cword>"), true) end, { desc = "Substitute word in buffer" })
-km("n", "cU", function() sub_prompt("%s", vim.fn.expand("<cWORD>"), false) end, { desc = "Substitute WORD in buffer" })
-km("n", "cd", function() sub_prompt("s", vim.fn.expand("<cword>"), true) end, { desc = "Substitute word in line" })
-km("n", "cD", function() sub_prompt("s", vim.fn.expand("<cWORD>"), false) end, { desc = "Substitute WORD in line" })
+km("n", "cu", function()
+	sub_prompt("%s", vim.fn.expand("<cword>"), true)
+end, { desc = "Substitute word in buffer" })
+km("n", "cU", function()
+	sub_prompt("%s", vim.fn.expand("<cWORD>"), false)
+end, { desc = "Substitute WORD in buffer" })
+km("n", "cd", function()
+	sub_prompt("s", vim.fn.expand("<cword>"), true)
+end, { desc = "Substitute word in line" })
+km("n", "cD", function()
+	sub_prompt("s", vim.fn.expand("<cWORD>"), false)
+end, { desc = "Substitute WORD in line" })
 
 -- Change the word in the entire file
 km(
-  "n",
-  "<leader>cw", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-  { desc = "Substitute word under cursor at once" }
+	"n",
+	"<leader>cw",
+	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
+	{ desc = "Substitute word under cursor at once" }
 )
 
 vim.keymap.set(
-  "v",
-  "<leader>cw",
-  [["zy:%s/\V<C-r>=substitute(escape(@z, '/\'), '\n', '\\n', 'g')<CR>//g<Left><Left>]],
-  { desc = "Substitute selection at once" }
+	"v",
+	"<leader>cw",
+	[["zy:%s/\V<C-r>=substitute(escape(@z, '/\'), '\n', '\\n', 'g')<CR>//g<Left><Left>]],
+	{ desc = "Substitute selection at once" }
 )
 
 -- Repeatable "change next occurrence" (search, jump back, change, then `.` repeats)

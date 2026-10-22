@@ -19,4 +19,4 @@ require("config.statusline").setup()
 require("config.pack")
 require("plugins")
 
-vim.cmd.colorscheme("venom")
+vim.cmd.colorscheme("darkthrone")

@@ -37,19 +37,10 @@ ts.install({
 
 local group = vim.api.nvim_create_augroup("TreesitterSetup", { clear = true })
 
--- Filetypes where a legacy :syntax engine must stay in charge of
--- highlighting instead of Treesitter. vimtex ships its own syntax
--- file (tex*, texCmd*, texMathZone*, ...) and relies on it for both
--- highlighting and its conceal rules (accents, greek letters, math
--- bounds, etc). If Treesitter also attaches to the buffer, its
--- captures win and vimtex's groups (and any colorscheme highlights
--- built on top of them) never get applied
---
--- The `latex` parser is still installed above, it's needed for
--- markdown_inline to inject LaTeX math highlighting inside
--- $...$/$$...$$ regions in markdown buffers (see render-markdown.nvim
--- in lua/plugins/latex.lua). It just must never attach directly to
--- a `tex` buffer
+-- Keep Vim's legacy syntax engine for `tex` buffers because vimtex
+-- depends on its highlight groups and conceal rules. Treesitter's
+-- `latex` parser remains installed for LaTeX math highlighting inside
+-- Markdown, but must not attach directly to `tex` buffers.
 --
 -- See: :h vimtex-faq-treesitter
 -- See: https://github.com/lervag/vimtex/wiki/Syntax

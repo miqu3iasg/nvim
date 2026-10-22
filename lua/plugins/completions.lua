@@ -214,8 +214,6 @@ require("blink.cmp").setup({
 	cmdline = { enabled = false },
 
 	sources = {
-		-- Lua: lazydev. LaTeX: vimtex + LaTeX symbols. Markdown: LaTeX symbols
-		-- and the citation keys of the bibliography
 		per_filetype = {
 			lua = { inherit_defaults = true, "lazydev" },
 			tex = { inherit_defaults = true, "vimtex", "latex_symbols" },
@@ -229,7 +227,7 @@ require("blink.cmp").setup({
 			lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
 			vimtex = { name = "vimtex", module = "blink.compat.source", score_offset = -1, async = true },
 			latex_symbols = { name = "latex_symbols", module = "blink.compat.source", score_offset = -2, async = true },
-			-- Own source, no plugin needed: reads the .bib found by shared/bib.lua
+			-- Own source, no plugin needed, reads the .bib found by shared/bib.lua
 			citekeys = { name = "Citations", module = "shared.citekeys", score_offset = 100 },
 		},
 	},
