@@ -33,6 +33,8 @@ local common_filetypes = {
 	"sql",
 	"mysql",
 	"plsql",
+	"html",
+	"css",
 }
 
 local function setup_luasnip()

@@ -60,6 +60,7 @@ return {
 					"eslint",
 					"texlab",
 					"tinymist",
+					"marksman",
 				},
 			})
 		end,
@@ -117,6 +118,16 @@ return {
 					showExpandedAbbreviation = "always",
 					showAbbreviationSuggestions = true,
 				},
+			})
+
+			-- Important for me to take notes
+			vim.lsp.config("marksman", {
+				root_dir = root({
+					".git",
+					"README.md",
+					"README.markdown",
+					".marksman.toml",
+				}, true),
 			})
 
 			-- TypeScript / JavaScript. vtsls replaces ts_ls: it handles large
@@ -258,12 +269,6 @@ return {
 				},
 			})
 
-			-- Java. A minimal config is enough here: mason installs the jdtls
-			-- launcher and lspconfig knows how to invoke it. If you ever need
-			-- per-project workspace data directories (recommended for large
-			-- projects), switch to mfussenegger/nvim-jdtls and remove this block
-			vim.lsp.config("jdtls", {})
-
 			vim.lsp.enable({
 				"cssls",
 				"emmet_language_server",
@@ -272,6 +277,7 @@ return {
 				"tailwindcss",
 				"texlab",
 				"tinymist",
+				"marksman",
 				"vtsls",
 			})
 		end,

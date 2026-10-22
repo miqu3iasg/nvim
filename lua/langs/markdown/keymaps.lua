@@ -81,6 +81,7 @@ local function is_heading(line)
 end
 
 function M.setup(bufnr)
+
   local function map(mode, lhs, rhs, desc, opts)
     vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", {
       buffer = bufnr,

@@ -18,10 +18,9 @@ local set_hl = vim.api.nvim_set_hl
 
 local _ = false
 
-local fg0 = "#dadada"
-local fg1 = "#c6c6c6"
-local str = "#b5b5b5"
--- local str         = '#83a683'
+local fg0 = "#e2e2e2"
+local fg1 = "#e2e2e2"
+local str = "#e2e2e2"
 local dim = "#707070"
 local cmt = "#6a6a6a"
 local doc = "#7a7a7a"
@@ -29,12 +28,22 @@ local doc = "#7a7a7a"
 local accent = "#6382eb"
 local accent_dim = "#1b2152"
 
-local punct = "#808080"
-local tw = "#8c8c8c"
+local punct = "#e2e2e2"
+local tw = "#e2e2e2"
 
 local err = "#b86a6a"
 local warn = "#b09b72"
 local ok = "#678a67"
+
+-- Palette used by the status line / search changes (single source of truth)
+local c = {
+	fg = "#e2e2e2",
+	comment = "#636262",
+	line = "#111111", -- cursorline, statusline, code blocks
+}
+
+local search_fg = "#D6C17A"
+local search_bg = "#3D3525"
 
 local function attrs(s)
 	local t = {}
@@ -155,69 +164,69 @@ local function terminal_colors(list)
 end
 
 local dark = {
-	{ "Normal", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
+	{ "Normal", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
 	{ "ColorColumn", _, "#1c1c1c", _, "NONE", _, 234, "NONE" },
 	{ "Conceal", _, _, _, "NONE", _, _, "NONE" },
-	{ "Constant", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "Number", accent, _, _, "NONE", 62, _, "NONE" },
-	{ "String", str, _, _, "NONE", 249, _, "NONE" },
-	{ "CurSearch", accent, "#000000", _, "reverse", 62, 16, "reverse" },
+	{ "Constant", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "Number", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "String", str, _, _, "NONE", 254, _, "NONE" },
+	{ "CurSearch", search_bg, search_fg, _, "bold", 53, 135, "bold" },
 	{ "CursorColumn", _, "#303030", _, "NONE", _, 236, "NONE" },
 	{ "CursorIM", "#000000", accent, _, "NONE", 16, 62, "NONE" },
-	{ "CursorLine", _, "#121212", _, "NONE", _, 233, "NONE" },
-	{ "CursorLineNr", fg0, "#121212", _, "bold", 253, 233, "bold" },
+	{ "CursorLine", _, c.line, _, "NONE", _, 233, "NONE" },
+	{ "CursorLineNr", fg0, c.line, _, "bold", 254, 233, "bold" },
 
 	-- Diff backgrounds: very dark tints, close to the black background
-	{ "DiffAdd", fg0, "#070f07", _, "NONE", 253, 233, "NONE" },
-	{ "DiffChange", fg0, "#070b11", _, "NONE", 253, 233, "NONE" },
+	{ "DiffAdd", fg0, "#070f07", _, "NONE", 254, 233, "NONE" },
+	{ "DiffChange", fg0, "#070b11", _, "NONE", 254, 233, "NONE" },
 	{ "DiffDelete", err, "#100707", _, "NONE", 131, 233, "NONE" },
-	{ "DiffText", fg0, "#120c1a", _, "NONE", 253, 234, "NONE" },
+	{ "DiffText", fg0, "#120c1a", _, "NONE", 254, 234, "NONE" },
 
 	-- Diff signs / text (gitsigns, `diff` filetype, treesitter): muted tones
 	{ "Added", "#335533", _, _, "NONE", 22, _, "NONE" },
 	{ "Changed", "#334a60", _, _, "NONE", 60, _, "NONE" },
 	{ "Removed", "#7a4a4a", _, _, "NONE", 95, _, "NONE" },
-	{ "diffFile", fg0, _, _, "bold", 253, _, "bold" },
+	{ "diffFile", fg0, _, _, "bold", 254, _, "bold" },
 	{ "diffLine", "#4a3560", _, _, "NONE", 60, _, "NONE" },
 
-	{ "Directory", fg0, _, _, "NONE", 253, _, "NONE" },
+	{ "Directory", fg0, _, _, "NONE", 254, _, "NONE" },
 	{ "EndOfBuffer", dim, _, _, "NONE", 242, _, "NONE" },
 	{ "Error", err, "#000000", _, "bold,reverse", 131, 16, "bold,reverse" },
 	{ "ErrorMsg", err, "#000000", _, "bold", 131, 16, "bold" },
 	{ "FoldColumn", dim, "#000000", _, "NONE", 242, 16, "NONE" },
 	{ "Folded", dim, "#000000", _, "NONE", 242, 16, "NONE" },
-	{ "Identifier", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "Ignore", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "IncSearch", accent, "#000000", _, "reverse", 62, 16, "reverse" },
+	{ "Identifier", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "Ignore", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "IncSearch", search_bg, search_fg, _, "bold", 53, 135, "bold" },
 	{ "LineNr", "#585858", _, _, "NONE", 240, _, "NONE" },
 	{ "MatchParen", accent, _, _, "bold", 62, _, "bold" },
-	{ "ModeMsg", fg0, "#000000", _, "bold", 253, 16, "bold" },
-	{ "MoreMsg", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
-	{ "MsgArea", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
+	{ "ModeMsg", fg0, "#000000", _, "bold", 254, 16, "bold" },
+	{ "MoreMsg", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
+	{ "MsgArea", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
 	{ "MsgSeparator", "#444444", "#000000", _, "NONE", 238, 16, "NONE" },
 	{ "NonText", dim, _, _, "NONE", 242, _, "NONE" },
-	{ "PreProc", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "Question", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
-	{ "QuickFixLine", _, "#121212", _, "bold", _, 233, "bold" },
-	{ "Search", fg0, accent_dim, _, "NONE", 253, 17, "NONE" },
-	{ "SignColumn", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
-	{ "Special", fg0, _, _, "NONE", 253, _, "NONE" },
+	{ "PreProc", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "Question", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
+	{ "QuickFixLine", _, c.line, _, "bold", _, 233, "bold" },
+	{ "Search", search_fg, search_bg, _, "NONE", 135, 53, "NONE" },
+	{ "SignColumn", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
+	{ "Special", fg0, _, _, "NONE", 254, _, "NONE" },
 	{ "SpecialKey", dim, _, _, "bold", 242, _, "bold" },
 	{ "SpellBad", err, _, err, "undercurl", 131, _, "underline" },
 	{ "SpellCap", warn, _, warn, "undercurl", 137, _, "underline" },
 	{ "SpellLocal", dim, _, dim, "undercurl", 242, _, "underline" },
 	{ "SpellRare", dim, _, dim, "undercurl", 242, _, "underline" },
-	{ "StatusLine", "#a8a8a8", "#121212", _, "NONE", 248, 233, "NONE" },
-	{ "StatusLineNC", "#5f5f5f", "#050505", _, "NONE", 59, 233, "NONE" },
+	{ "StatusLine", c.fg, c.line, _, "NONE", 254, 233, "NONE" },
+	{ "StatusLineNC", c.comment, c.line, _, "NONE", 241, 233, "NONE" },
 	{ "TabLine", dim, "#000000", _, "NONE", 242, 16, "NONE" },
-	{ "TabLineFill", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
-	{ "TabLineSel", fg0, "#000000", _, "bold", 253, 16, "bold" },
-	{ "TitleBar", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
+	{ "TabLineFill", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
+	{ "TabLineSel", fg0, "#000000", _, "bold", 254, 16, "bold" },
+	{ "TitleBar", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
 	{ "TitleBarNC", dim, "#000000", _, "NONE", 242, 16, "NONE" },
 	{ "Todo", "#000000", warn, _, "bold", 16, 137, "bold" },
-	{ "ToolbarButton", fg0, "#000000", _, "bold", 253, 16, "bold" },
+	{ "ToolbarButton", fg0, "#000000", _, "bold", 254, 16, "bold" },
 	{ "ToolbarLine", _, "#000000", _, "NONE", _, 16, "NONE" },
-	{ "Underlined", fg0, _, _, "underline", 253, _, "underline" },
+	{ "Underlined", fg0, _, _, "underline", 254, _, "underline" },
 	{ "VertSplit", dim, "#000000", _, "NONE", 242, 16, "NONE" },
 	{ "Visual", _, "#444444", _, "NONE", _, 238, "NONE" },
 	{ "VisualNOS", _, "#303030", _, "NONE", _, 236, "NONE" },
@@ -225,21 +234,21 @@ local dark = {
 }
 
 local popups = {
-	{ "NormalFloat", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
+	{ "NormalFloat", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
 	{ "FloatBorder", "#444444", "#000000", _, "NONE", 238, 16, "NONE" },
-	{ "FloatTitle", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
+	{ "FloatTitle", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
 	{ "FloatFooter", dim, "#000000", _, "NONE", 242, 16, "NONE" },
-	{ "Pmenu", fg0, "#000000", _, "NONE", 253, 16, "NONE" },
+	{ "Pmenu", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
 	{ "PmenuExtra", dim, "#000000", _, "NONE", 242, 16, "NONE" },
-	{ "PmenuExtraSel", fg0, "#303030", _, "NONE", 253, 236, "NONE" },
+	{ "PmenuExtraSel", fg0, "#303030", _, "NONE", 254, 236, "NONE" },
 	{ "PmenuKind", dim, "#000000", _, "NONE", 242, 16, "NONE" },
-	{ "PmenuKindSel", fg0, "#303030", _, "NONE", 253, 236, "NONE" },
+	{ "PmenuKindSel", fg0, "#303030", _, "NONE", 254, 236, "NONE" },
 	{ "PmenuMatch", "#ffffff", "#000000", _, "bold", 231, 16, "bold" },
 	{ "PmenuMatchSel", "#ffffff", "#303030", _, "bold", 231, 236, "bold" },
 	{ "PmenuSbar", _, "#000000", _, "NONE", _, 16, "NONE" },
-	{ "PmenuSel", fg0, "#121212", _, "NONE", 253, 233, "NONE" },
+	{ "PmenuSel", fg0, c.line, _, "NONE", 254, 233, "NONE" },
 	{ "PmenuThumb", _, "#444444", _, "NONE", _, 238, "NONE" },
-	{ "WildMenu", fg0, "#303030", _, "NONE", 253, 236, "NONE" },
+	{ "WildMenu", fg0, "#303030", _, "NONE", 254, 236, "NONE" },
 }
 
 -- Modern groups
@@ -249,51 +258,50 @@ local modern = {
 	{ "@comment.documentation", doc, _, _, "NONE", 243, _, "NONE" },
 
 	-- Structure
-	{ "Statement", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "Type", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "@module", fg1, _, _, "NONE", 251, _, "NONE" },
+	{ "Statement", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "Type", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "@module", fg1, _, _, "NONE", 254, _, "NONE" },
 	{ "@attribute", doc, _, _, "italic", 243, _, "italic" },
 
-	-- Functions bold only on declarations, never on calls
-	{ "Function", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@function", fg0, _, _, "bold", 253, _, "bold" },
-	{ "@function.method", fg0, _, _, "bold", 253, _, "bold" },
-	{ "@function.call", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@function.method.call", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@function.builtin", fg0, _, _, "NONE", 253, _, "NONE" },
-	-- LSP semantic tokens reset the generic type (it links to @function and
-	-- would make every call bold), then bold only the declarations
-	{ "@lsp.type.function", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@lsp.type.method", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@lsp.typemod.function.declaration", _, _, _, "bold", _, _, "bold" },
-	{ "@lsp.typemod.method.declaration", _, _, _, "bold", _, _, "bold" },
+	-- Functions never bold
+	{ "Function", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@function", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@function.method", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@function.call", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@function.method.call", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@function.builtin", fg0, _, _, "NONE", 254, _, "NONE" },
+	-- LSP semantic tokens
+	{ "@lsp.type.function", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@lsp.type.method", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@lsp.typemod.function.declaration", _, _, _, "NONE", _, _, "NONE" },
+	{ "@lsp.typemod.method.declaration", _, _, _, "NONE", _, _, "NONE" },
 
 	-- Variables
-	{ "@variable.parameter", fg0, _, _, "italic", 253, _, "italic" },
-	{ "@variable.builtin", fg1, _, _, "italic", 251, _, "italic" },
+	{ "@variable.parameter", fg0, _, _, "italic", 254, _, "italic" },
+	{ "@variable.builtin", fg1, _, _, "italic", 254, _, "italic" },
 
-	-- Literal values (accent blue; Number/Float/Boolean come from `Number`)
-	{ "@constant.builtin", accent, _, _, "NONE", 62, _, "NONE" },
-	{ "@string.escape", fg0, _, _, "bold", 253, _, "bold" },
+	-- Literal values (no accent: everything shares the default fg)
+	{ "@constant.builtin", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@string.escape", fg0, _, _, "NONE", 254, _, "NONE" },
 
 	-- Punctuation and operators: brackets and operators use the default text
 	-- color; only separators (, ; :) are dimmed
-	{ "Delimiter", punct, _, _, "NONE", 244, _, "NONE" },
-	{ "@punctuation", punct, _, _, "NONE", 244, _, "NONE" },
-	{ "@punctuation.bracket", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@punctuation.delimiter", punct, _, _, "NONE", 244, _, "NONE" },
-	{ "Operator", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@operator", fg0, _, _, "NONE", 253, _, "NONE" },
+	{ "Delimiter", punct, _, _, "NONE", 254, _, "NONE" },
+	{ "@punctuation", punct, _, _, "NONE", 254, _, "NONE" },
+	{ "@punctuation.bracket", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@punctuation.delimiter", punct, _, _, "NONE", 254, _, "NONE" },
+	{ "Operator", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@operator", fg0, _, _, "NONE", 254, _, "NONE" },
 
 	-- Tags
-	{ "@tag", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "@tag.delimiter", punct, _, _, "NONE", 244, _, "NONE" },
-	{ "@tag.attribute", fg1, _, _, "italic", 251, _, "italic" },
+	{ "@tag", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "@tag.delimiter", punct, _, _, "NONE", 254, _, "NONE" },
+	{ "@tag.attribute", fg1, _, _, "italic", 254, _, "italic" },
 
 	-- Diagnostics
 	{ "DiagnosticError", err, _, _, "NONE", 131, _, "NONE" },
 	{ "DiagnosticWarn", warn, _, _, "NONE", 137, _, "NONE" },
-	{ "DiagnosticInfo", fg1, _, _, "NONE", 251, _, "NONE" },
+	{ "DiagnosticInfo", fg1, _, _, "NONE", 254, _, "NONE" },
 	{ "DiagnosticHint", cmt, _, _, "NONE", 241, _, "NONE" },
 	{ "DiagnosticOk", ok, _, _, "NONE", 65, _, "NONE" },
 	{ "DiagnosticUnderlineError", _, _, err, "undercurl", _, _, "underline" },
@@ -309,22 +317,22 @@ local modern = {
 	{ "LspReferenceWrite", _, "#1c1c1c", _, "underline", _, 234, "underline" },
 
 	-- Markup, markdown (generic)
-	{ "Title", fg0, _, _, "bold", 253, _, "bold" },
-	{ "@markup.heading", fg0, _, _, "bold", 253, _, "bold" },
+	{ "Title", fg0, _, _, "bold", 254, _, "bold" },
+	{ "@markup.heading", fg0, _, _, "bold", 254, _, "bold" },
 	{ "@markup.strong", _, _, _, "bold", _, _, "bold" },
 	{ "@markup.italic", _, _, _, "italic", _, _, "italic" },
-	{ "@markup.link", fg1, _, _, "underline", 251, _, "underline" },
-	{ "@markup.raw", fg1, _, _, "NONE", 251, _, "NONE" },
+	{ "@markup.link", fg1, _, _, "underline", 254, _, "underline" },
+	{ "@markup.raw", fg1, _, _, "NONE", 254, _, "NONE" },
 
 	-- Regex
 	{ "@string.regexp", "#8a94a0", _, _, "NONE", 245, _, "NONE" },
-	{ "@character.special", fg0, _, _, "bold", 253, _, "bold" },
-	{ "@operator.regex", warn, _, _, "bold", 137, _, "bold" },
-	{ "@keyword.operator.regex", warn, _, _, "bold", 137, _, "bold" },
+	{ "@character.special", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@operator.regex", warn, _, _, "NONE", 137, _, "NONE" },
+	{ "@keyword.operator.regex", warn, _, _, "NONE", 137, _, "NONE" },
 	{ "@punctuation.bracket.regex", dim, _, _, "NONE", 242, _, "NONE" },
 	{ "@punctuation.delimiter.regex", "#946060", _, _, "NONE", 95, _, "NONE" },
 	{ "@property.regex", "#5f7f5f", _, _, "italic", 65, _, "italic" },
-	{ "@variable.builtin.regex", fg1, _, _, "NONE", 251, _, "NONE" },
+	{ "@variable.builtin.regex", fg1, _, _, "NONE", 254, _, "NONE" },
 }
 
 -- JSX, TSX, React and Tailwind only
@@ -333,36 +341,39 @@ local modern = {
 -- after/queries/{tsx,javascript}/highlights.scm, so every other filetype is
 -- unaffected. Without those query files they simply never match
 local jsx = {
-	{ "@tag.component", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@tag.intrinsic", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "@function.call.hook", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "@string.tailwind", tw, _, _, "NONE", 245, _, "NONE" },
+	{ "@tag.component", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@tag.intrinsic", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "@function.call.hook", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "@string.tailwind", tw, _, _, "NONE", 254, _, "NONE" },
 }
 
 -- Oil (stevearc/oil.nvim)
+--
+-- All entries share the default fg color (#e2e2e2). Only status indicators
+-- (hidden, errors, warnings) keep their semantic colors.
 local oil = {
-	{ "OilDir", "#5f87ff", _, _, "bold", 69, _, "bold" },
-	{ "OilDirIcon", "#5f87ff", _, _, "NONE", 69, _, "NONE" },
-	{ "OilFile", fg1, _, _, "NONE", 251, _, "NONE" },
-	{ "OilLink", fg1, _, _, "italic", 251, _, "italic" },
+	{ "OilDir", fg0, _, _, "bold", 254, _, "bold" },
+	{ "OilDirIcon", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "OilFile", fg1, _, _, "NONE", 254, _, "NONE" },
+	{ "OilLink", fg1, _, _, "italic", 254, _, "italic" },
 	{ "OilLinkTarget", dim, _, _, "italic", 242, _, "italic" },
 	{ "OilOrphanLink", err, _, _, "italic", 131, _, "italic" },
 	{ "OilOrphanLinkTarget", err, _, _, "italic", 131, _, "italic" },
 	{ "OilHidden", cmt, _, _, "NONE", 241, _, "NONE" },
 
-	{ "OilCreate", "#ffffff", _, _, "bold", 231, _, "bold" },
-	{ "OilCopy", "#ffffff", _, _, "bold", 231, _, "bold" },
+	{ "OilCreate", fg0, _, _, "bold", 254, _, "bold" },
+	{ "OilCopy", fg0, _, _, "bold", 254, _, "bold" },
 	{ "OilMove", warn, _, _, "NONE", 137, _, "NONE" },
 	{ "OilChange", warn, _, _, "NONE", 137, _, "NONE" },
 	{ "OilDelete", err, _, _, "NONE", 131, _, "NONE" },
 	{ "OilPurge", err, _, _, "bold", 131, _, "bold" },
-	{ "OilRestore", "#ffffff", _, _, "bold", 231, _, "bold" },
+	{ "OilRestore", fg0, _, _, "bold", 254, _, "bold" },
 	{ "OilTrash", dim, _, _, "NONE", 242, _, "NONE" },
 	{ "OilTrashSourcePath", cmt, _, _, "NONE", 241, _, "NONE" },
 
-	{ "OilTypeDir", "#5f87ff", _, _, "bold", 69, _, "bold" },
+	{ "OilTypeDir", fg0, _, _, "bold", 254, _, "bold" },
 	{ "OilTypeFile", dim, _, _, "NONE", 242, _, "NONE" },
-	{ "OilTypeLink", fg1, _, _, "NONE", 251, _, "NONE" },
+	{ "OilTypeLink", fg1, _, _, "NONE", 254, _, "NONE" },
 	{ "OilTypeFifo", dim, _, _, "NONE", 242, _, "NONE" },
 	{ "OilTypeSocket", dim, _, _, "NONE", 242, _, "NONE" },
 	{ "OilTypeUnknown", dim, _, _, "NONE", 242, _, "NONE" },
@@ -397,11 +408,11 @@ local md = {
 -- Heading gradient
 local heading_levels = {
 	{ "#ffffff", 231 },
-	{ fg0, 253 },
-	{ fg1, 251 },
-	{ str, 249 },
-	{ str, 249 },
-	{ str, 249 },
+	{ fg0, 254 },
+	{ fg1, 254 },
+	{ str, 254 },
+	{ str, 254 },
+	{ str, 254 },
 }
 
 local markdown = {
@@ -409,8 +420,8 @@ local markdown = {
 	{ "@keyword.directive.markdown", md.accent, _, _, "NONE", 139, _, "NONE" },
 
 	-- Structural punctuation
-	{ "@punctuation.special.markdown", fg0, _, _, "NONE", 253, _, "NONE" },
-	{ "@punctuation.delimiter.markdown", fg0, _, _, "NONE", 253, _, "NONE" },
+	{ "@punctuation.special.markdown", fg0, _, _, "NONE", 254, _, "NONE" },
+	{ "@punctuation.delimiter.markdown", fg0, _, _, "NONE", 254, _, "NONE" },
 
 	-- Lists and task items
 	{ "@markup.list.markdown", md.accent, _, _, "bold", 139, _, "bold" },
@@ -567,7 +578,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "BufEnter", "WinEnter" 
 })
 sync_frontmatter_ns()
 
-set_hl(0, "Cursor", { fg = "#000000", bg = fg0, ctermfg = 16, ctermbg = 253 })
+set_hl(0, "Cursor", { fg = "#000000", bg = fg0, ctermfg = 16, ctermbg = 254 })
 
 vim.api.nvim_create_autocmd({ "FileType", "ColorScheme" }, {
 	group = vim.api.nvim_create_augroup("HollowOil", { clear = true }),
