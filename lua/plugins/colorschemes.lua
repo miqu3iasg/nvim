@@ -35,6 +35,9 @@ require("black-metal").setup({
 	highlights = {
 		StatusLine = { fg = "#a8a8a8", bg = "#121212" },
 		StatusLineNC = { fg = "#5f5f5f", bg = "#050505" },
+		Search = { fg = "#D6C17A", bg = "#3D3525" },
+		CurSearch = { fg = "#3D3525", bg = "#D6C17A", fmt = "bold" },
+		IncSearch = { fg = "#3D3525", bg = "#D6C17A", fmt = "bold" },
 	},
 })
 

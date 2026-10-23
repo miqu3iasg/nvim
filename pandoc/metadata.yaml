@@ -21,3 +21,7 @@ booktabs: true # nicer tables
 colorlinks: true
 linkcolor: blue
 urlcolor: blue
+# Monospace font for code blocks. It needs the box-drawing characters used in
+# directory trees (├ │ └ ─), which Latin Modern Mono lacks.
+monofont: DejaVu Sans Mono
+monofontoptions: Scale=0.85

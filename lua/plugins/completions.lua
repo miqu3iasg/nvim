@@ -113,7 +113,7 @@ local luasnip = require("luasnip")
 
 luasnip.setup({
 	enable_autosnippets = true,
-	store_selection_keys = "<Tab>",
+	store_selection_keys = "<leader>s",
 	update_events = "TextChanged,TextChangedI",
 	region_check_events = "InsertEnter",
 	delete_check_events = "TextChanged",
