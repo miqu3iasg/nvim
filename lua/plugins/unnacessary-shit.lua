@@ -8,7 +8,6 @@ local ts = ai.gen_spec.treesitter
 require("mini.align").setup({})
 require("mini.comment").setup({})
 require("mini.splitjoin").setup({})
-require("mini.jump").setup({})
 
 local ai_opts = {
 	n_lines = 500,

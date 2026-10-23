@@ -1,4 +1,4 @@
-# ~/.config/nvim/pandoc/profiles/abnt.yaml
+# pandoc/profiles/abnt.yaml
 #
 # ABNT-like layout. Use it with:  :Pandoc pdf abnt
 # It is loaded after metadata.yaml, so it overrides it, and the YAML header

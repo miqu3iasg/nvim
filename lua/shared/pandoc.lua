@@ -2,20 +2,22 @@
 
 -- Converts the current markdown buffer to PDF, EPUB, DOCX or HTML by running
 -- `pandoc` asynchronously through `vim.system`, so the editor never blocks.
--- The buffer is sent through stdin, so unsaved changes are exported too.
--- The result goes to a hidden `.build/` folder next to the note (Obsidian
--- ignores dot folders) and is opened in zathura (PDF/EPUB) or xdg-open.
--- A preview mode builds and opens the document once, then rebuilds it on
--- every `:w`; zathura reloads the file by itself.
+-- The buffer is sent through stdin, so unsaved changes are exported too. The
+-- result goes to <repo>/exports/ (see lua/shared/exports.lua) and is opened in
+-- zathura (PDF/EPUB) or xdg-open (DOCX/HTML).
 --
---   * ~/.config/nvim/pandoc/defaults.yaml  the pipeline (always loaded)
---   * ~/.config/nvim/pandoc/metadata.yaml  default layout and language; the
---                                          YAML header of a note overrides it
---   * a `defaults.yaml` in the note's folder or a parent folder (optional)
---   * profiles/<name>.yaml                 extra layout, `:Pandoc pdf abnt`
---   * Obsidian [[wikilinks]] become plain text and ![[image.png|300]] becomes
---     a real image, looked up in any `attachments/` folder above the note
---   * Citations are disabled: "@john" is always plain text
+-- Preview mode builds and opens the document once, then rebuilds it on every
+-- `:w`; zathura reloads the file by itself.
+--
+-- Each export loads, in order, the pipeline in ~/.config/nvim/pandoc/
+-- defaults.yaml, an optional `defaults.yaml` in the note's folder or a parent
+-- folder, the default layout and language in metadata.yaml, and a profile from
+-- profiles/<name>.yaml if one is requested (`:Pandoc pdf abnt`). Later files
+-- win, and the YAML header of the note overrides all of them.
+--
+-- Obsidian [[wikilinks]] become plain text, and ![[image.png|300]] becomes a
+-- real image, looked up in any `attachments/` folder above the note. Citations
+-- are disabled, so "@john" is always plain text.
 --
 -- Nothing is notified on success. Errors and pandoc warnings are shown with
 -- pandoc's own message.
@@ -29,11 +31,12 @@
 -- See: https://pandoc.org/MANUAL.html
 -- See: https://neovim.io/doc/user/lua.html#vim.system()
 
+local exports = require("shared.exports")
+
 local M = {}
 
 M.formats = { "pdf", "epub", "docx", "html" }
 M.viewers = { pdf = "zathura", epub = "zathura", docx = "xdg-open", html = "xdg-open" }
-M.build_dir = ".build"
 M.config_dir = vim.fn.stdpath("config") .. "/pandoc"
 
 -- Last file built for each buffer
@@ -155,11 +158,11 @@ function M.build(opts, on_done)
 	end
 
 	local text = preprocess(table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n") .. "\n")
-	local outdir = indir .. "/" .. M.build_dir
-	vim.fn.mkdir(outdir, "p")
-	local out = outdir .. "/" .. base .. "." .. fmt
 
-	-- Order matters: pandoc applies options as they appear, later ones win
+	local out = exports.output_path(buf, fmt)
+	vim.fn.mkdir(vim.fs.dirname(out), "p")
+
+	-- Order matters, pandoc applies options as they appear, later ones win
 	local cmd = { "pandoc", "-o", out, "-d", defaults }
 
 	local project = vim.fs.find("defaults.yaml", { path = indir, upward = true, stop = home })[1]

@@ -1,4 +1,4 @@
-# ~/.config/nvim/pandoc/defaults.yaml
+# pandoc/defaults.yaml
 #
 # Global pandoc defaults, always loaded by lua/shared/pandoc.lua. This file
 # only describes the pipeline. Everything about the look of the document

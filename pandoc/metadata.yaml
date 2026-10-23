@@ -1,4 +1,4 @@
-# ~/.config/nvim/pandoc/metadata.yaml
+# pandoc/metadata.yaml
 #
 # Default look of every exported document. These are *metadata*, so any of
 # them can be overridden from the YAML header of a note:

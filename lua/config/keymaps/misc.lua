@@ -73,6 +73,7 @@ edit_file("<leader>zt", "~/.config/tmux/tmux.conf", "Edit tmux.conf")
 open_dir("<leader>zn", "~/.config/nvim", "Open nvim config dir")
 open_dir("<leader>zr", "~/repos", "Open repos dir (workspace)")
 open_dir("<leader>zc", "~/.config", "Open ~/.config directory")
+open_dir("<leader>zb", "~/.local/bin", "Open ~/.local/bin directory (scripts)")
 
 -- Save and quit
 

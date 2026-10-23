@@ -184,11 +184,16 @@ vim.lsp.config("texlab", {
 })
 
 vim.lsp.config("tinymist", {
+	-- Same root as the other exporters
+	-- See: lua/shared/exports.lua
+	root_dir = function(bufnr, on_dir)
+		on_dir(require("shared.exports").root(bufnr))
+	end,
 	settings = {
 		formatterMode = "typstyle",
 		exportPdf = "onSave",
-		-- Keep in sync with pdf_path() in after/ftplugin/typst.lua
-		outputPath = "$root/build/$dir/$name",
+		-- Mirrors exports.output_path(): <root>/exports/<reldir>/<name>
+		outputPath = "$root/exports/$dir/$name",
 		-- Highlighting comes from treesitter only
 		semanticTokens = "disable",
 		lint = { enabled = false },

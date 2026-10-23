@@ -29,14 +29,20 @@
 
 local tex_group = vim.api.nvim_create_augroup("latex_buffer_plugins", { clear = true })
 
+local exports = require("shared.exports")
+
 vim.g.vimtex_view_method = "zathura"
 vim.g.vimtex_compiler_method = "latexmk"
 vim.g.vimtex_compiler_latexmk = {
 	continuous = 1,
-	-- VimTeX renamed `build_dir` to `out_dir` in v2.13; `build_dir` is
-	-- now silently ignored. This path is relative to the .tex file's
-	-- directory, keeping generated files inside exports/build/output/.
-	out_dir = "output",
+	-- NOTE: VimTeX renamed `build_dir` to `out_dir` in v2.13; `build_dir` is
+	-- now silently ignored.
+
+	-- Byproducts (and the first PDF) go to <root>/.build/<reldir>/<name>/.
+	-- A function is used because the folder depends on the project.
+	out_dir = function()
+		return exports.build_dir(vim.api.nvim_get_current_buf())
+	end,
 	options = {
 		"-pdf",
 		"-interaction=nonstopmode",
@@ -57,9 +63,7 @@ vim.g.vimtex_complete_bib = {
 	info_fmt = "@author_all (@year)\n@title",
 }
 
--- After a successful compilation, copy the resulting PDF from
--- exports/build/output/ to exports/. This keeps the final PDFs separate
--- from the compilation byproducts.
+-- After a successful compilation, copy the PDF from .build/ to exports/
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VimtexEventCompileSuccess",
 	group = vim.api.nvim_create_augroup("latex_export_pdf", { clear = true }),
@@ -71,22 +75,19 @@ vim.api.nvim_create_autocmd("User", {
 			return
 		end
 
-		local build_dir = vim.fn.fnamemodify(tex_file, ":h")
-		local basename = vim.fn.fnamemodify(tex_file, ":t:r")
-		local src = build_dir .. "/output/" .. basename .. ".pdf"
-		local exports_dir = vim.fn.fnamemodify(build_dir, ":h")
-		local dest = exports_dir .. "/" .. basename .. ".pdf"
+		local src = exports.build_dir(tex_file) .. "/" .. exports.basename(tex_file) .. ".pdf"
+		local dest = exports.output_path(tex_file)
 
 		if vim.fn.filereadable(src) == 0 then
 			return
 		end
 
-		local uv = vim.uv or vim.loop
+		vim.fn.mkdir(vim.fs.dirname(dest), "p")
 
-		uv.fs_copyfile(src, dest, function(err)
+		vim.uv.fs_copyfile(src, dest, function(err)
 			if err then
 				vim.schedule(function()
-					vim.notify("vimtex: Failed to copy PDF to exports/ (" .. err .. ")", vim.log.levels.ERROR)
+					vim.notify("vimtex: failed to copy PDF to exports/ (" .. err .. ")", vim.log.levels.ERROR)
 				end)
 			end
 		end)
