@@ -1,5 +1,46 @@
 -- lua/plugins/completions.lua
 
+-- This configuration uses blink.cmp for completion, LuaSnip for snippets,
+-- and blink.compat to integrate completion sources that use the nvim-cmp
+-- interface. The snippet definitions are stored under lua/snippets/ and
+-- are loaded lazily when a buffer of the corresponding filetype is opened.
+--
+-- Completion works alongside the language servers and formatters configured
+-- elsewhere in this Neovim setup. Install the required language servers and
+-- formatters through Mason, and make sure the corresponding servers are
+-- configured and enabled in lua/plugins/lsp.lua. Mason manages the external
+-- tools, while the LSP configuration determines how Neovim starts and uses
+-- the language servers.
+--
+-- On Arch Linux, install the Tree-sitter CLI and the system dependencies
+-- required by the supported languages with:
+--
+-- $ sudo pacman -S tree-sitter-cli nodejs npm jdk-openjdk typst typstyle
+-- $ sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra
+--
+-- Install the Tree-sitter parsers used by this configuration from Neovim
+-- with the following command:
+--
+-- :TSInstall c java python lua scheme racket sql markdown javascript typescript
+-- :TSInstall html css json jsonc yaml toml bash latex typst
+--
+-- Language servers and formatters are installed separately through Mason.
+-- For example, use :Mason to open the Mason interface or :MasonInstall followed
+-- by the relevant package names. The exact tools required depend on the
+-- languages you use and the configurations in lua/plugins/lsp.lua and
+-- lua/plugins/conform.lua.
+--
+-- The completion menu also integrates with LazyDev for Lua development and
+-- VimTeX for LaTeX completion. These sources require their corresponding
+-- plugins to be installed and configured. VimTeX's completion integration
+-- uses blink.compat to provide compatibility with the nvim-cmp source API.
+--
+-- See: https://github.com/Saghen/blink.cmp
+-- See: https://github.com/L3MON4D3/LuaSnip
+-- See: https://github.com/Saghen/blink.compat
+-- See: https://github.com/nvim-treesitter/nvim-treesitter
+-- See: https://github.com/mason-org/mason.nvim
+
 -- Modules under lua/snippets/, required lazily the first time a buffer of that
 -- filetype is opened. `common` is loaded with the first filetype that uses it
 local snippet_modules = {
@@ -15,7 +56,11 @@ local snippet_modules = {
 }
 
 -- Filetypes that reuse the snippets of another filetype
-local aliases = { scheme = "lisp", mysql = "sql", plsql = "sql" }
+local aliases = {
+	scheme = "lisp",
+	mysql = "sql",
+	plsql = "sql",
+}
 
 -- Filetypes that also inherit the "common" snippets
 local common_filetypes = {
@@ -55,17 +100,15 @@ local auto_show_filetypes = {
 	toml = true,
 }
 
--- Markdown is prose, so the menu stays closed except while typing a citation
--- key (@smith, [@smith; @doe) or a wikilink ([[Note)
-local citekeys = require("shared.citekeys")
-
+-- Markdown is prose, so the menu stays closed except while typing a wikilink ([[Note)
 local function markdown_auto_show()
 	local col = vim.api.nvim_win_get_cursor(0)[2]
 	local before = vim.api.nvim_get_current_line():sub(1, col)
-	return citekeys.citation_at(before) ~= nil or before:match("%[%[[^%]]*$") ~= nil
+	return before:match("%[%[[^%]]*$") ~= nil
 end
 
--- LuaSnip
+-- LuaSnip Setup
+
 local luasnip = require("luasnip")
 
 luasnip.setup({
@@ -80,17 +123,22 @@ luasnip.setup({
 for ft in pairs(common_filetypes) do
 	luasnip.filetype_extend(ft, { "common" })
 end
+
 for ft, base in pairs(aliases) do
 	luasnip.filetype_extend(ft, { base })
 end
+
+-- Lazy Snippet Loading
 
 local loaded = {}
 
 local function load(name)
 	local module = snippet_modules[name]
+
 	if not module or loaded[name] then
 		return
 	end
+
 	loaded[name] = true
 	local ok, snippets = pcall(require, module)
 	if ok then
@@ -121,20 +169,14 @@ for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 	end
 end
 
--- blink.compat must run before cmp-latex-symbols is added, because that
--- plugin does `require("cmp")`
-require("blink.compat").setup({ impersonate_nvim_cmp = true })
-
--- cmp-latex-symbols is only added when the first tex/markdown buffer opens
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = { "tex", "markdown" },
-	once = true,
-	callback = function()
-		vim.cmd.packadd("cmp-latex-symbols")
-	end,
+-- blink.compat is still needed for the vimtex source
+require("blink.compat").setup({
+	impersonate_nvim_cmp = true,
 })
 
--- blink.cmp
+-- blink.cmp Setup
+
+-- Navigate LuaSnip choices through blink.cmp's keymap callback chain
 local function choice(dir)
 	return function()
 		if luasnip.choice_active() then
@@ -179,6 +221,7 @@ require("blink.cmp").setup({
 		},
 	},
 
+	-- Completion Behavior
 	completion = {
 		menu = {
 			auto_show = function()
@@ -188,15 +231,18 @@ require("blink.cmp").setup({
 				end
 				return auto_show_filetypes[ft] == true
 			end,
+
 			border = "none",
 			min_width = 70,
 			max_height = 18,
 			scrollbar = false,
+
 			draw = {
 				columns = {
 					{ "label", "label_description", gap = 1 },
 					{ "kind" },
 				},
+
 				components = {
 					label = { width = { fill = true, min = 30 } },
 					label_description = { width = { min = 20 } },
@@ -204,31 +250,66 @@ require("blink.cmp").setup({
 				},
 			},
 		},
-		documentation = { window = { border = "none" } },
+
+		documentation = {
+			window = { border = "none" },
+		},
+
 		-- Preselect the first item without inserting it (like "noinsert")
-		list = { selection = { auto_insert = false } },
-		accept = { auto_brackets = { enabled = false } },
+		list = {
+			selection = { auto_insert = false },
+		},
+
+		accept = {
+			auto_brackets = { enabled = false },
+		},
 	},
 
-	snippets = { preset = "luasnip" },
-	cmdline = { enabled = false },
+	-- Snippet Integration
+	snippets = {
+		preset = "luasnip",
+	},
 
+	-- Command-Line Completion
+	cmdline = {
+		enabled = false,
+	},
+
+	-- Completion Sources
 	sources = {
 		per_filetype = {
-			lua = { inherit_defaults = true, "lazydev" },
-			tex = { inherit_defaults = true, "vimtex", "latex_symbols" },
-			markdown = { inherit_defaults = true, "latex_symbols", "citekeys" },
+			lua = {
+				inherit_defaults = true,
+				"lazydev",
+			},
+			tex = {
+				inherit_defaults = true,
+				"vimtex",
+			},
 		},
 
 		providers = {
-			snippets = { score_offset = -3, opts = { show_autosnippets = false } },
-			path = { score_offset = -4 },
-			buffer = { score_offset = -5 },
-			lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
-			vimtex = { name = "vimtex", module = "blink.compat.source", score_offset = -1, async = true },
-			latex_symbols = { name = "latex_symbols", module = "blink.compat.source", score_offset = -2, async = true },
-			-- Own source, no plugin needed, reads the .bib found by shared/bib.lua
-			citekeys = { name = "Citations", module = "shared.citekeys", score_offset = 100 },
+			snippets = {
+				score_offset = -3,
+				opts = { show_autosnippets = false },
+			},
+			path = {
+				score_offset = -4,
+			},
+			buffer = {
+				score_offset = -5,
+			},
+			lazydev = {
+				name = "LazyDev",
+				module = "lazydev.integrations.blink",
+				score_offset = 100,
+			},
+			vimtex = {
+				name = "vimtex",
+				module = "blink.compat.source",
+				score_offset = -1,
+				async = true,
+			},
 		},
 	},
 })

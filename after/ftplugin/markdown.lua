@@ -182,8 +182,8 @@ local function toggle_checkbox_line(lnum)
 	end
 end
 
--- Works in any markdown file
--- that many lines (3<leader>lt); in visual mode every selected line
+-- Works in any markdown file. Toggles the current line, or that many lines
+-- with a count (3<leader>lt); in visual mode every selected line
 map("n", "<leader>lt", function()
 	local row = vim.fn.line(".")
 	local last = math.min(row + vim.v.count1 - 1, vim.fn.line("$"))
@@ -254,18 +254,6 @@ end, "Wrap selection as wiki link")
 map("n", "<leader>iw", function()
 	insert_template("[[]]", 2)
 end, "Insert wiki link")
-
--- Insert a citation [@] and open the key completion
--- See: shared/citekeys.lua
-map("n", "<leader>ir", function()
-	insert_template("[@]", 2)
-	vim.schedule(function()
-		local ok, blink = pcall(require, "blink.cmp")
-		if ok then
-			blink.show()
-		end
-	end)
-end, "Insert citation")
 
 -- Insert an inline footnote ^[] and start typing it
 map("n", "<leader>if", function()

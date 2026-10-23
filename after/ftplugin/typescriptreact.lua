@@ -1,3 +1,3 @@
 -- after/ftplugin/typescriptreact.lua
 
-require("shared.web").setup({ react = true })
+require("shared.web_filetype_settings").setup({ react = true })

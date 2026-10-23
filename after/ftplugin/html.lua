@@ -1,3 +1,3 @@
 -- after/ftplugin/html.lua
 
-require("shared.web").markup()
+require("shared.web_filetype_settings").markup()

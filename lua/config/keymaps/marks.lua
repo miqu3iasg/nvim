@@ -1,30 +1,29 @@
--- keymaps/marks.lua
+-- lua/keymaps/marks.lua
 
 local km = vim.keymap.set
 
--- Marks
--- explicit, even though redundant with native `m` — kept visible here for
--- discoverability and as a diagnostic data point (just for redundancy, to reinforce)
+-- Mark Creation
+
+-- Explicitly expose the native mapping for discoverability and consistency
 km("n", "m", "m", { desc = "Set mark" })
 
--- jump to a named mark, mirrors the gi/gI (lowercase/uppercase variant)
--- convention used in lsp.lua
+-- Mark Navigation
 km({ "n", "v", "o" }, "gm", "`", { desc = "Jump to mark (exact position)" })
 km({ "n", "v", "o" }, "gM", "'", { desc = "Jump to mark (start of line)" })
 
--- next/previous mark, matching the [e / ]e bracket convention used for diagnostics
 km("n", "]m", "]`", { desc = "Jump to next mark" })
 km("n", "[m", "[`", { desc = "Jump to previous mark" })
 
--- delete a mark by name (dm{a-zA-Z}), mirrors the `m{a-zA-Z}` set-mark
--- convention
-km("n", "dm", function()
-  local ok, char = pcall(vim.fn.getcharstr)
+-- Mark Deletion
 
-  if ok and char:match("^%a$") then
-    pcall(vim.cmd.delmarks, char)
-  end
+-- Delete a named mark using the `dm{a-zA-Z}` convention
+km("n", "dm", function()
+	local ok, char = pcall(vim.fn.getcharstr)
+
+	if ok and char:match("^%a$") then
+		pcall(vim.cmd.delmarks, char)
+	end
 end, { desc = "Delete mark" })
 
--- delete all lowercase marks in the current buffer
-km("n", "<leader>dm", "<cmd>silent! delmarks!<cr>", { desc = "Delete all marks in buffer" })
+-- Delete all lowercase marks in the current buffer
+km("n", "<leader>dm", "<cmd>silent! delmarks!<CR>", { desc = "Delete all marks in buffer" })

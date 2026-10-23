@@ -1,14 +1,47 @@
 -- lua/plugins/lsp.lua
 
--- LSP is enabled only for the frontend stack (HTML, CSS, Tailwind, Emmet,
--- TypeScript/JavaScript) plus a few document-format tools (LaTeX, Typst,
--- Markdown). Backend languages (Lua, C, Python, Go, etc.) are intentionally
--- left without an LSP: constant type hints, completions and inline
--- diagnostics make it too easy to skim code without actually reading it.
--- Hover, go-to-definition and rename stay where the structure is mostly
--- declarative.
+-- This configuration enables LSP support for frontend development (HTML, CSS,
+-- Tailwind CSS, Emmet and TypeScript/JavaScript), LaTeX, Typst and Markdown.
+-- Backend language servers are intentionally excluded. Java's `jdtls` is
+-- installed through Mason but started separately by another part of the config.
+--
+-- Mason manages the language servers, but some of them rely on external
+-- runtimes and command-line tools. On Arch Linux, install Node.js and npm for
+-- the JavaScript-based servers, a JDK for Java, and the Typst CLI and typstyle
+-- for Typst compilation and formatting:
+--
+-- $ sudo pacman -S nodejs npm jdk-openjdk typst typstyle
+--
+-- Texlab provides LaTeX language-server features. A TeX Live installation is
+-- also needed to compile LaTeX documents; the following packages provide the
+-- core distribution, LaTeX packages and additional build utilities:
+--
+-- $ sudo pacman -S texlive-basic texlive-latex texlive-latexextra texlive-binextra
+--
+-- Install the language servers through Mason. The configuration below
+-- automatically requests their installation at startup, but they can also
+-- be installed manually with the following command inside Neovim:
+--
+-- :MasonInstall css-lsp emmet-language-server eslint-lsp html-lsp marksman tailwindcss-language-server texlab tinymist vtsls jdtls
+--
+-- Marksman handles Markdown navigation, document symbols and diagnostics.
+-- Tinymist provides Typst language support and uses `typstyle` for formatting;
+-- its PDF export also requires the `typst` executable. Texlab provides LaTeX
+-- language support, while the actual compilation depends on the installed TeX
+-- tools and packages.
+--
+-- The LSP servers are configured individually below. `vim.lsp.enable(servers)`
+-- enables the servers listed in `servers`, while `jdtls` is deliberately
+-- excluded because it is started elsewhere. Mason installation alone does
+-- not replace the server-specific configuration in this file.
+--
+-- See: https://github.com/mason-org/mason.nvim
+-- See: https://github.com/mason-org/mason-lspconfig.nvim
+-- See: https://github.com/neovim/nvim-lspconfig
+-- See: https://github.com/latex-lsp/texlab
+-- See: https://github.com/Myriad-Dreamin/tinymist
+-- See: https://github.com/artempyanykh/marksman
 
--- jdtls is installed here but started elsewhere
 local servers = {
 	"cssls",
 	"emmet_language_server",

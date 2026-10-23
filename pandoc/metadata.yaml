@@ -10,7 +10,7 @@
 # Language: hyphenation, quotes and labels ("Contents", "Sumário", ...)
 # Needs texlive-langportuguese on Arch Linux for pt-BR hyphenation.
 lang: pt-BR
-# Academic-looking page
+# Page layout
 documentclass: article
 fontsize: 11pt
 geometry: margin=2.5cm
@@ -21,9 +21,3 @@ booktabs: true # nicer tables
 colorlinks: true
 linkcolor: blue
 urlcolor: blue
-citecolor: blue
-# Citations: link each citation to its entry and title the reference list.
-# For an English document set `reference-section-title: References`.
-# Only used when the document actually cites something.
-link-citations: true
-reference-section-title: Referências

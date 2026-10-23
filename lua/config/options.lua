@@ -3,15 +3,12 @@
 -- General behavior
 vim.opt.hidden = true
 vim.opt.history = 10000
-vim.opt.encoding = "utf-8"
-vim.opt.fileencoding = "utf-8"
 vim.opt.timeoutlen = 500
 vim.opt.showtabline = 0
 vim.opt.ttimeoutlen = 30
 vim.opt.switchbuf = "uselast"
 vim.opt.exrc = true
 vim.opt.showcmd = false
-vim.opt.secure = true
 vim.opt.mouse = ""
 vim.opt.wrap = false
 vim.opt.startofline = false
@@ -22,6 +19,7 @@ vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:6
 -- Search and completion
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+vim.opt.inccommand = "split"
 vim.opt.wildignorecase = true
 vim.opt.wildignore:append({ "*/.git/*", "*/node_modules/*", "*/target/*", "*/dist/*" })
 vim.opt.completeopt = "menuone,noselect"
@@ -45,10 +43,10 @@ vim.opt.virtualedit = "block"
 vim.opt.jumpoptions = "view"
 
 -- Indentation
-vim.opt.tabstop = 2
-vim.opt.shiftwidth = 2
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
-vim.opt.softtabstop = 2
+vim.opt.softtabstop = 4
 
 -- Window layout
 vim.opt.splitright = true

@@ -20,8 +20,7 @@
     },
     "blink.compat": {
       "rev": "2ed6d9a28b07fa6f3bface818470605f8896408c",
-      "src": "https://github.com/saghen/blink.compat",
-      "version": ">=0.0.0"
+      "src": "https://github.com/saghen/blink.compat"
     },
     "canola.nvim": {
       "rev": "b5f19d41b294e84e9fd2a81460cfc02fed8321ed",
@@ -127,8 +126,7 @@
     },
     "obsidian.nvim": {
       "rev": "a562bedd7b418a289b005cb4c62b1fe79066253b",
-      "src": "https://github.com/obsidian-nvim/obsidian.nvim",
-      "version": ">=0.0.0"
+      "src": "https://github.com/obsidian-nvim/obsidian.nvim"
     },
     "oil.nvim": {
       "rev": "d3733d933833a0e59b813ecec99341527adf0c28",

@@ -1,11 +1,9 @@
 -- lua/config/pack.lua
 
--- To update, you can use: :lua vim.pack.update()
-local gh = function(repo)
-	return "https://github.com/" .. repo
-end
+-- Declares and installs plugins through Neovim's built-in package manager.
+-- Run :lua vim.pack.update() to update plugins.
 
--- Must be created before plugins installations
+-- Must be created before plugin installations.
 vim.api.nvim_create_autocmd("PackChanged", {
 	callback = function(ev)
 		local name, kind = ev.data.spec.name, ev.data.kind
@@ -31,29 +29,83 @@ vim.api.nvim_create_autocmd("PackChanged", {
 
 vim.pack.add({
 	{ src = "https://forge.barrettruth.com/barrettruth/canola.nvim" },
-	{ src = gh("nvim-treesitter/nvim-treesitter"), version = "main" },
-	{ src = gh("obsidian-nvim/obsidian.nvim"), version = vim.version.range("*") },
-	{ src = gh("nvim-treesitter/nvim-treesitter-textobjects"), version = "main" },
-	{ src = gh("saghen/blink.cmp"), version = vim.version.range("1.*") }, -- dependency of nvim-lspconfig (capabilities); its own config is not converted yet
-	{ src = gh("L3MON4D3/LuaSnip"), version = vim.version.range("2.*") },
-	{ src = gh("saghen/blink.compat"), version = vim.version.range("*") },
-	gh("stevearc/conform.nvim"),
-	gh("ibhagwan/fzf-lua"),
-	gh("tpope/vim-fugitive"),
-	gh("tpope/vim-rhubarb"), -- dependency of vim-fugitive (:GBrowse)
-	gh("lewis6991/gitsigns.nvim"),
-	gh("mason-org/mason.nvim"), -- also used by mason-tool-installer for latex configuration
-	gh("mason-org/mason-lspconfig.nvim"),
-	gh("folke/lazydev.nvim"), -- Needed for .lua files and configurations
-	gh("neovim/nvim-lspconfig"),
-	gh("micangl/cmp-vimtex"),
-	gh("kdheepak/cmp-latex-symbols"),
-	gh("nvim-mini/mini.nvim"),
-	gh("christoomey/vim-tmux-navigator"),
-	gh("catgoose/nvim-colorizer.lua"),
-	gh("lervag/vimtex"),
-	gh("WhoIsSethDaniel/mason-tool-installer.nvim"),
-	gh("Olical/conjure"),
-	gh("julienvincent/nvim-paredit"),
-	gh("nvim-lua/plenary.nvim"),
+	{
+		src = "https://github.com/saghen/blink.compat",
+	},
+	{
+		src = "https://github.com/nvim-treesitter/nvim-treesitter",
+		version = "main",
+	},
+	{
+		src = "https://github.com/obsidian-nvim/obsidian.nvim",
+	},
+	{
+		src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects",
+		version = "main",
+	},
+	{
+		-- dependency of nvim-lspconfig (capabilities); its own config is not converted yet
+		src = "https://github.com/saghen/blink.cmp",
+		version = vim.version.range("1.*"),
+	},
+	{
+		src = "https://github.com/L3MON4D3/LuaSnip",
+		version = vim.version.range("2.*"),
+	},
+	{
+		src = "https://github.com/saghen/blink.compat",
+	},
+	{
+		src = "https://github.com/stevearc/conform.nvim",
+	},
+	{
+		src = "https://github.com/ibhagwan/fzf-lua",
+	},
+	{
+		src = "https://github.com/tpope/vim-fugitive",
+	},
+	{
+		src = "https://github.com/lewis6991/gitsigns.nvim",
+	},
+	{
+		-- also used by mason-tool-installer for latex configuration
+		src = "https://github.com/mason-org/mason.nvim",
+	},
+	{
+		src = "https://github.com/mason-org/mason-lspconfig.nvim",
+	},
+	{
+		-- Needed for .lua files and configurations
+		src = "https://github.com/folke/lazydev.nvim",
+	},
+	{
+		src = "https://github.com/neovim/nvim-lspconfig",
+	},
+	{
+		src = "https://github.com/micangl/cmp-vimtex",
+	},
+	{
+		src = "https://github.com/nvim-mini/mini.nvim",
+	},
+	{
+		src = "https://github.com/christoomey/vim-tmux-navigator",
+	},
+	{
+		src = "https://github.com/catgoose/nvim-colorizer.lua",
+	},
+	{
+		src = "https://github.com/lervag/vimtex",
+	},
+	{
+		src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim",
+	},
+	{
+		src = "https://github.com/Olical/conjure",
+	},
+	{
+		src = "https://github.com/julienvincent/nvim-paredit",
+	},
+	{
+		src = "https://github.com/nvim-lua/plenary.nvim",
+	},
 })

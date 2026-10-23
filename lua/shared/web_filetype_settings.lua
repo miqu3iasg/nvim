@@ -1,4 +1,4 @@
--- lua/langs/jsts/web.lua
+-- lua/langs/jsts/web_filetype_settings.lua
 
 -- Shared setup for the JavaScript, TypeScript and React ftplugins
 

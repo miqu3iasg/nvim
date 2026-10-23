@@ -8,19 +8,17 @@
 -- A preview mode builds and opens the document once, then rebuilds it on
 -- every `:w`; zathura reloads the file by itself.
 --
--- Every export works for any markdown, from a shopping list to a paper:
 --   * ~/.config/nvim/pandoc/defaults.yaml  the pipeline (always loaded)
---   * ~/.config/nvim/pandoc/metadata.yaml  academic layout and language; the
+--   * ~/.config/nvim/pandoc/metadata.yaml  default layout and language; the
 --                                          YAML header of a note overrides it
 --   * a `defaults.yaml` in the note's folder or a parent folder (optional)
---   * profiles/<name>.yaml                 extra layout, `:Pandoc pdf <name>`
---   * citations are turned on ONLY when a bibliography exists (see
---     shared/bib.lua); otherwise "@john" stays plain text and nothing fails
+--   * profiles/<name>.yaml                 extra layout, `:Pandoc pdf abnt`
 --   * Obsidian [[wikilinks]] become plain text and ![[image.png|300]] becomes
 --     a real image, looked up in any `attachments/` folder above the note
+--   * Citations are disabled: "@john" is always plain text
 --
--- Nothing is notified on success. Errors and pandoc warnings (for example a
--- citation missing from the .bib) are shown with pandoc's own message.
+-- Nothing is notified on success. Errors and pandoc warnings are shown with
+-- pandoc's own message.
 --
 -- Packages on Arch Linux:
 --
@@ -30,8 +28,6 @@
 --
 -- See: https://pandoc.org/MANUAL.html
 -- See: https://neovim.io/doc/user/lua.html#vim.system()
-
-local bib = require("shared.bib")
 
 local M = {}
 
@@ -51,6 +47,32 @@ end
 
 local function readable(path)
 	return vim.fn.filereadable(path) == 1
+end
+
+-- Folder of the note, or the cwd for an unnamed buffer
+local function note_dir(buf)
+	local name = vim.api.nvim_buf_get_name(buf)
+	if name == "" then
+		return vim.uv.cwd()
+	end
+	return vim.fs.dirname(name)
+end
+
+-- True when the YAML header of the note defines `key`
+local function frontmatter_has(buf, key)
+	local lines = vim.api.nvim_buf_get_lines(buf, 0, 300, false)
+	if not (lines[1] and lines[1]:match("^%-%-%-%s*$")) then
+		return false
+	end
+	for i = 2, #lines do
+		if lines[i]:match("^%-%-%-%s*$") or lines[i]:match("^%.%.%.%s*$") then
+			return false
+		end
+		if lines[i]:match("^" .. key .. "%s*:") then
+			return true
+		end
+	end
+	return false
 end
 
 local function list_profiles()
@@ -94,11 +116,6 @@ local function preprocess(text)
 	)
 end
 
--- "@" preceded by something that is not a word character or a backslash
-local function uses_citations(text)
-	return ("\n" .. text):find("[^%w_\\]@[%w_]") ~= nil
-end
-
 -- Folders named `attachments` in the note's folder and in every parent up to $HOME
 local function resource_path(indir)
 	local dirs = { "." }
@@ -113,20 +130,6 @@ local function resource_path(indir)
 	return table.concat(dirs, ":")
 end
 
-local function find_csl(profile)
-	local names = {}
-	if profile then
-		names[#names + 1] = profile
-	end
-	names[#names + 1] = "default"
-	for _, name in ipairs(names) do
-		local path = M.config_dir .. "/csl/" .. name .. ".csl"
-		if readable(path) then
-			return path
-		end
-	end
-end
-
 -- opts: { fmt = "pdf", profile = "abnt", buf = <bufnr> }
 function M.build(opts, on_done)
 	opts = opts or {}
@@ -135,7 +138,7 @@ function M.build(opts, on_done)
 	local buf = opts.buf or vim.api.nvim_get_current_buf()
 
 	local name = vim.api.nvim_buf_get_name(buf)
-	local indir = bib.dir(buf)
+	local indir = note_dir(buf)
 	local base = name ~= "" and vim.fn.fnamemodify(name, ":t:r") or "scratch"
 
 	local defaults = M.config_dir .. "/defaults.yaml"
@@ -175,33 +178,11 @@ function M.build(opts, on_done)
 	end
 
 	cmd[#cmd + 1] = "--lua-filter=" .. M.config_dir .. "/filters/wikilinks.lua"
-
-	-- Citations only when there is something to cite from. Otherwise "@john"
-	-- would be rendered as "(john?)"
-	local refs = bib.resolve(buf)
-	local cite = refs.declared or (refs.fallback and #refs.files > 0 and uses_citations(text))
-	if cite then
-		if refs.fallback then
-			for _, f in ipairs(refs.files) do
-				cmd[#cmd + 1] = "--bibliography=" .. f
-			end
-		end
-		if not refs.csl_declared then
-			local csl = find_csl(profile)
-			if csl then
-				cmd[#cmd + 1] = "--csl=" .. csl
-			end
-		end
-		cmd[#cmd + 1] = "--citeproc"
-	else
-		cmd[#cmd + 1] = "--lua-filter=" .. M.config_dir .. "/filters/cites_to_text.lua"
-	end
-
 	cmd[#cmd + 1] = "--resource-path=" .. resource_path(indir)
 
 	-- EPUB needs a title and HTML a page title; use the file name when the
 	-- note has none
-	if not bib.has_key(bib.frontmatter(buf), "title") then
+	if not frontmatter_has(buf, "title") then
 		if fmt == "epub" then
 			cmd[#cmd + 1] = "--metadata=title:" .. base
 		elseif fmt == "html" then

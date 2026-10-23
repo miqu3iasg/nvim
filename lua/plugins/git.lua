@@ -1,6 +1,29 @@
 -- lua/plugins/git.lua
 
--- The default blame width is too narrow for author, timestamp and summary
+-- Git must be installed and configured for the commands in this file to work.
+-- These commands also require the current directory to belong to a Git repository
+-- that has already been initialized with `git init` or cloned from a remote.
+--
+-- On Arch Linux, install Git with:
+--
+-- $ sudo pacman -S git
+--
+-- My global Git configuration is stored in ~/.gitconfig. Make sure it contains
+-- the necessary settings, such as your user name and email. You can inspect it
+-- with:
+--
+-- $ git config --global --list
+-- $ cat ~/.gitconfig
+--
+-- The keymaps below use vim-fugitive, gitsigns.nvim and, optionally, fzf-lua.
+-- fzf-lua keymaps are registered only when fzf-lua is available.
+--
+-- See: https://git-scm.com/doc
+-- See: https://github.com/tpope/vim-fugitive
+-- See: https://github.com/lewis6991/gitsigns.nvim
+-- See: https://github.com/ibhagwan/fzf-lua
+
+-- Adjust the default blame view width to fit the author, timestamp and summary.
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "fugitiveblame",
 	callback = function()
@@ -17,19 +40,10 @@ local map = vim.keymap.set
 -- vim-fugitive
 map("n", "<leader>gs", "<cmd>silent tab Git<cr>", { desc = "Git status" })
 map("n", "<leader>ga", "<cmd>silent Gwrite<cr>", { desc = "Stage current file" })
-
-map("n", "<leader>gC", "<cmd>silent tab Git commit -v<cr>", { desc = "Git commit -v (new tab)" })
-map("n", "<leader>gc", "<cmd>silent leftabove vertical Git commit -v<cr>", { desc = "Git commit -v (new tab)" })
-
 map("n", "<leader>gd", "<cmd>silent Gvdiffsplit<cr>", { desc = "Diff against index" })
 map("n", "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>", { desc = "Diff against HEAD" })
 map("n", "<leader>gb", "<cmd>silent Git blame<cr>", { desc = "Git blame" })
 map("n", "<leader>ge", "<cmd>.Git blame<cr>", { desc = "Git blame (line)" })
-
-map("n", "<leader>go", "<cmd>silent .GBrowse<cr>", { desc = "Open in browser" })
-map("n", "<leader>gy", "<cmd>silent .GBrowse!<cr>", { desc = "Copy browser link" })
-map("x", "<leader>go", ":<C-u>silent '<,'>GBrowse<cr>", { desc = "Open selection in browser" })
-map("x", "<leader>gy", ":<C-u>silent '<,'>GBrowse!<cr>", { desc = "Copy selection link" })
 
 -- gitsigns.nvim
 require("gitsigns").setup({

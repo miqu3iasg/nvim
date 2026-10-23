@@ -3,9 +3,6 @@
 # ABNT-like layout. Use it with:  :Pandoc pdf abnt
 # It is loaded after metadata.yaml, so it overrides it, and the YAML header
 # of the note still overrides it.
-#
-# If ~/.config/nvim/pandoc/csl/abnt.csl exists it is used as the citation
-# style automatically (see README).
 fontsize: 12pt
 linestretch: 1.5
 geometry:

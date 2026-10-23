@@ -1,3 +1,5 @@
+-- pandoc/filters/wikilinks.lua
+
 -- Obsidian [[wikilinks]] for pandoc output.
 
 -- [[Note]] and [[Note|alias]] become plain text: a link to "Note" would be a

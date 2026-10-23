@@ -1,63 +1,104 @@
 -- lua/plugins/obsidian.lua
 
+-- This configuration integrates Neovim with the Obsidian desktop application.
+-- On Arch Linux, install Obsidian with pacman:
+--
+-- $ sudo pacman -S obsidian
+--
+-- The vault path below must point to an existing Obsidian vault.
+--
+-- Obsidian.nvim also depends on plenary.nvim and fzf-lua. Both are declared
+-- in `lua/config/pack.lua` and must be installed. The `fzf.lua` plugin
+-- configuration must be loaded before this file because fzf-lua is used
+-- as the picker for searching and navigating notes.
+--
+-- Marksman provides Markdown language-server features, including navigation,
+-- document symbols and diagnostics. Install it through Mason:
+--
+-- :MasonInstall marksman
+--
+-- Installing Marksman is not enough: it must also be configured and enabled in
+-- the Neovim LSP setup. The LSP configuration is located in
+-- `lua/plugins/lsp.lua`; make sure Marksman is configured there for Markdown
+-- buffers.
+--
+-- See: https://github.com/obsidian-nvim/obsidian.nvim
+-- See: https://github.com/nvim-lua/plenary.nvim
+-- See: https://github.com/ibhagwan/fzf-lua
+-- See: https://github.com/artempyanykh/marksman
+
 local VAULT_PATH = "~/personal/documents/vault"
 
 local DEFAULT_TEMPLATE = "note_template"
 local INBOX_TEMPLATE = "inbox_template"
 
+local km = vim.keymap.set
+
 local function new_inbox_capture()
 	local title = "CAP-" .. os.date("%Y%m%d-%H%M%S")
+
 	vim.cmd("Obsidian new " .. title)
+
 	vim.schedule(function()
 		vim.cmd("Obsidian template " .. INBOX_TEMPLATE)
 	end)
 end
 
--- dependencies: plenary.nvim and fzf-lua (picker), both installed in
--- lua/config/pack.lua; plugins/fzf.lua must be loaded before this file
-
--- Global entry points, available from ANY buffer/filetype, not just
--- inside a recognized vault note
-vim.keymap.set("n", "<leader>os", "<cmd>Obsidian quick_switch<cr>", { desc = "Obsidian: jump to a note" })
-vim.keymap.set("n", "<leader>oc", "<cmd>Obsidian new<cr>", { desc = "Obsidian: quick capture" })
-vim.keymap.set("n", "<leader>oi", new_inbox_capture, { desc = "Obsidian: new inbox capture" })
-vim.keymap.set("n", "<leader>od", "<cmd>Obsidian today<cr>", { desc = "Obsidian: daily note (today)" })
-vim.keymap.set("n", "<leader>ow", "<cmd>e ~/personal/documents/vault/Dumping.md<cr>", { desc = "Open Dumping.md note" })
-
-vim.keymap.set(
-	"n",
-	"<leader>ot",
-	"<cmd>Obsidian new_from_template<cr>",
-	{ desc = "Obsidian: new note (pick template)" }
-)
+-- Global mappings, available from any buffer or filetype.
+km("n", "<leader>os", "<cmd>Obsidian quick_switch<cr>", { desc = "Obsidian: jump to a note" })
+km("n", "<leader>oc", "<cmd>Obsidian new<cr>", { desc = "Obsidian: quick capture" })
+km("n", "<leader>oi", new_inbox_capture, { desc = "Obsidian: new inbox capture" })
+km("n", "<leader>od", "<cmd>Obsidian today<cr>", { desc = "Obsidian: daily note (today)" })
+km("n", "<leader>ow", "<cmd>e ~/personal/documents/vault/Dumping.md<cr>", { desc = "Open Dumping.md note" })
+km("n", "<leader>ot", "<cmd>Obsidian new_from_template<cr>", { desc = "Obsidian: new note (pick template)" })
 
 local opts = {
 	legacy_commands = false,
 
-	ui = { enable = false },
-
-	footer = { enabled = false },
-
+	-- Workspace and note creation
 	workspaces = {
 		{ name = "Brain", path = VAULT_PATH },
 	},
+	new_notes_location = "notes_subdir",
+	notes_subdir = "_inbox",
 
-	frontmatter = { enabled = false },
+	-- UI and metadata
+	ui = {
+		enable = false,
+	},
+	footer = {
+		enabled = false,
+	},
+	frontmatter = {
+		enabled = false,
+	},
 
+	-- Links, attachments and completion
 	link = {
 		style = "wiki",
 		format = "shortest",
 	},
+	attachments = {
+		folder = "attachments",
+	},
+	completion = {
+		min_chars = 2,
+		match_case = true,
+		create_new = true,
+	},
+	picker = {
+		name = "fzf-lua",
+	},
 
-	new_notes_location = "notes_subdir",
-	notes_subdir = "_inbox",
-
+	-- Daily notes
 	daily_notes = {
-		-- The year used to be hardcoded, which breaks on January 1st
+		-- The year used to be hardcoded, which breaks on January 1st.
 		folder = "journal/daily/" .. os.date("%Y"),
 		date_format = "DD-MM-YYYY",
 		workdays_only = true,
 	},
+
+	-- Templates
 	templates = {
 		folder = "system/templates",
 		date_format = "YYYY-MM-DD",
@@ -66,69 +107,67 @@ local opts = {
 			["DATE:YYYYMMDDHHmm"] = function()
 				return os.date("%Y%m%d%H%M")
 			end,
-			-- Same thing, covers the variant with a space after the colon
+			-- Also handles the variant with a space after the colon.
 			["DATE: YYYYMMDDHHmm"] = function()
 				return os.date("%Y%m%d%H%M")
 			end,
 		},
 	},
 
-	picker = { name = "fzf-lua" },
-
-	completion = {
-		min_chars = 2,
-		match_case = true,
-		create_new = true,
-	},
-
-	attachments = { folder = "attachments" },
-
-	-- Generates the file name from the entered title (slug) instead of a random code
+	-- Generate filenames from note titles instead of random IDs.
 	note_id_func = function(title)
-		if title ~= nil and title ~= "" then
-			if title:match("^CAP%-%d+%-%d+$") then
-				return title
-			end
-			return title:gsub(" ", "-"):gsub("[^%w-]", ""):lower()
+		if title == nil or title == "" then
+			return tostring(os.time())
 		end
-		return tostring(os.time())
+
+		if title:match("^CAP%-%d+%-%d+$") then
+			return title
+		end
+
+		return title:gsub(" ", "-"):gsub("[^%w-]", ""):lower()
 	end,
 }
 
--- Mappings registered only inside buffers the plugin recognizes as a vault note
 require("obsidian").setup(opts)
 
+-- Trigger command-line completion for partially typed Obsidian commands.
 vim.api.nvim_create_autocmd("CmdlineChanged", {
 	callback = function()
 		if vim.fn.getcmdtype() ~= ":" then
 			return
 		end
+
 		local cmdline = vim.fn.getcmdline()
+
 		if not cmdline:match("^Obsidian[A-Za-z0-9]*$") then
 			return
 		end
+
 		vim.fn.wildtrigger()
 	end,
 })
 
+-- Register mappings only in buffers recognized as vault notes.
 vim.api.nvim_create_autocmd("User", {
 	pattern = "ObsidianNoteEnter",
 	callback = function()
 		local actions = require("obsidian.actions")
 
-		local map = function(mode, lhs, rhs, desc)
-			vim.keymap.set(mode, lhs, rhs, { buffer = true, silent = true, desc = desc })
+		local function map(mode, lhs, rhs, desc)
+			km(mode, lhs, rhs, {
+				buffer = true,
+				silent = true,
+				desc = desc,
+			})
 		end
 
 		map("n", "<leader>ia", "<cmd>Obsidian paste_img<cr>", "Paste image from clipboard")
-
 		map(
 			"n",
 			"<leader>on",
 			"<cmd>Obsidian template " .. DEFAULT_TEMPLATE .. "<cr>",
 			"Insert default template into this note"
 		)
-
 		map("n", "<leader>oo", "<cmd>Obsidian open<cr>", "Open this note in the Obsidian app")
 		map("n", "<leader>om", actions.move_note, "Move note to another folder")
 		map("n", "<leader>or", vim.lsp.buf.rename, "Rename note")

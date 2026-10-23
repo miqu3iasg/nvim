@@ -13,12 +13,10 @@
 #
 # Plain markdown plus the things that matter when writing notes:
 #
+# - citations: "@john" stays plain text (no bibliography support)
 # - wikilinks_title_after_pipe: [[Note]] and [[Note|alias]] (Obsidian)
 # - lists_without_preceding_blankline: a list may follow a paragraph directly
 # - autolink_bare_uris: https://example.org becomes a link
-from: markdown+wikilinks_title_after_pipe+lists_without_preceding_blankline+autolink_bare_uris
+from: markdown-citations+wikilinks_title_after_pipe+lists_without_preceding_blankline+autolink_bare_uris
 standalone: true
 pdf-engine: xelatex
-
-# Citations (citeproc, bibliography, csl) are handled by the plugin: they are
-# only switched on when a bibliography exists, so plain notes never break.

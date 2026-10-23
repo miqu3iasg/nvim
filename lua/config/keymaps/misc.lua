@@ -1,68 +1,87 @@
 -- lua/keymaps/misc.lua
 
+-- Helpers
+
 local km = vim.keymap.set
 
--- Toggles a boolean window option (vim.wo)
-local function toggle(lhs, opt, desc)
-	km("n", lhs, function()
-		vim.wo[opt] = not vim.wo[opt]
-	end, { desc = desc })
+-- Normal-mode mapping shorthand
+local function map(lhs, rhs, desc)
+	km("n", lhs, rhs, { desc = desc })
 end
 
--- Appearance
+-- Toggles a boolean window option (vim.wo)
+local function toggle_wo(lhs, opt, desc)
+	map(lhs, function()
+		vim.wo[opt] = not vim.wo[opt]
+	end, desc)
+end
 
-km("n", "<leader>vt", "<cmd>FzfLua colorschemes<cr>", { desc = "Choose colorscheme" })
+-- Opens a file for editing
+local function edit_file(lhs, path, desc)
+	map(lhs, "<cmd>e " .. path .. "<cr>", desc)
+end
 
-toggle("<leader>vw", "wrap", "Toggle line wrap")
-toggle("<leader>vl", "list", "Toggle whitespace characters")
-toggle("<leader>vs", "spell", "Toggle spell check")
-toggle("<leader>vc", "cursorline", "Toggle cursorline")
+-- Opens a directory with oil.nvim
+local function open_dir(lhs, path, desc)
+	map(lhs, function()
+		require("oil").open(vim.fn.expand(path))
+	end, desc)
+end
 
-km("n", "<leader>vg", function()
+-- View and appearance toggles
+
+map("<leader>vt", "<cmd>FzfLua colorschemes<cr>", "Choose colorscheme")
+
+toggle_wo("<leader>vw", "wrap", "Toggle line wrap")
+toggle_wo("<leader>vl", "list", "Toggle whitespace characters")
+toggle_wo("<leader>vs", "spell", "Toggle spell check")
+toggle_wo("<leader>vc", "cursorline", "Toggle cursorline")
+
+map("<leader>vg", function()
 	vim.wo.signcolumn = vim.wo.signcolumn == "no" and "yes" or "no"
-end, { desc = "Toggle sign column" })
+end, "Toggle sign column")
 
-km("n", "<leader>vd", function()
+map("<leader>vd", function()
 	local enabled = not vim.diagnostic.is_enabled()
 	vim.diagnostic.enable(enabled)
 	vim.notify("Diagnostics " .. (enabled and "enabled" or "disabled"))
-end, { desc = "Toggle diagnostics" })
+end, "Toggle diagnostics")
 
 -- Line numbers
 
 -- Toggle absolute and relative numbers together
-km("n", "<leader>vn", function()
+map("<leader>vn", function()
 	vim.wo.number = not vim.wo.number
 	vim.wo.relativenumber = vim.wo.number
-end, { desc = "Toggle line numbers" })
+end, "Toggle line numbers")
 
 -- Keep absolute numbers on and toggle only relative numbers
-km("n", "<leader>vr", function()
+map("<leader>vr", function()
 	vim.wo.number = true
 	vim.wo.relativenumber = not vim.wo.relativenumber
-end, { desc = "Toggle relative numbers" })
+end, "Toggle relative numbers")
 
 -- Config files and bookmarked directories
 
-km("n", "<leader>zg", "<cmd>e ~/.gitconfig<cr>", { desc = "Edit .gitconfig" })
-km("n", "<leader>zi", "<cmd>e ~/.config/i3/config<cr>", { desc = "Edit i3 config" })
-km("n", "<leader>zs", "<cmd>e ~/.zshrc<cr>", { desc = "Edit .zshrc" })
-km("n", "<leader>zt", "<cmd>e ~/.config/tmux/tmux.conf<cr>", { desc = "Edit tmux.conf" })
+-- Files
+edit_file("<leader>zg", "~/.gitconfig", "Edit .gitconfig")
+edit_file("<leader>zi", "~/.config/i3/config", "Edit i3 config")
+edit_file("<leader>zs", "~/.zshrc", "Edit .zshrc")
+edit_file("<leader>zt", "~/.config/tmux/tmux.conf", "Edit tmux.conf")
 
--- TODO: add more pinned bookmarked directories here
-km("n", "<leader>zn", function()
-	require("oil").open("~/.config/nvim")
-end, { desc = "Open nvim config dir (Oil)" })
+-- Directories
+open_dir("<leader>zn", "~/.config/nvim", "Open nvim config dir")
+open_dir("<leader>zr", "~/repos", "Open repos dir (workspace)")
+open_dir("<leader>zc", "~/.config", "Open ~/.config directory")
 
 -- Save and quit
 
--- Explicit mappings for Z* commands so they show up in which-key
-km("n", "ZZ", "<cmd>x<cr>", { desc = "Save and quit" })
-km("n", "ZQ", "<cmd>q!<cr>", { desc = "Quit without saving" })
-km("n", "ZX", "<cmd>w<cr>", { desc = "Save file" })
+-- Explicit mappings to remind me that they exist and to use them.
+map("ZZ", "<cmd>x<cr>", "Save and quit")
+map("ZQ", "<cmd>q!<cr>", "Quit without saving")
+map("ZX", "<cmd>w<cr>", "Save file")
 
 -- Reload, restart and run
-
-km("n", "<leader>rl", "<cmd>source $MYVIMRC<cr>", { desc = "Reload nvim config" })
-km("n", "<leader>re", "<cmd>restart<cr>", { desc = "Restart Neovim" })
-km("n", "<leader>rs", "<cmd>source %<cr>", { desc = "Source current file" })
+map("<leader>rl", "<cmd>source $MYVIMRC<cr>", "Reload nvim config")
+map("<leader>re", "<cmd>restart<cr>", "Restart Neovim")
+map("<leader>rs", "<cmd>source %<cr>", "Source current file")
