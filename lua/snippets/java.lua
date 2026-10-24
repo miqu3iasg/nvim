@@ -16,11 +16,6 @@ local function get_classname()
 	return name ~= "" and name or "Untitled"
 end
 
--- Current user name, used in @author
-local function author()
-	return os.getenv("USER") or os.getenv("USERNAME") or "author"
-end
-
 -- Date in ISO format, used in @since
 local function today()
 	return os.date("%Y-%m-%d")
@@ -342,120 +337,11 @@ local snippets = {
 		i(0),
 	}),
 
-	s("override", { t({ "@Override", "" }), i(0) }),
-
 	-- Output
 
 	s("sout", { t("System.out.println("), i(1), t(");"), i(0) }),
 	s("souf", { t('System.out.printf("'), i(1, "%s"), t('%n"'), i(2), t(");"), i(0) }),
 	s("serr", { t("System.err.println("), i(1), t(");"), i(0) }),
-
-	-- Control flow
-
-	s("fori", {
-		t("for (int "),
-		i(1, "i"),
-		t(" = 0; "),
-		mirror(1),
-		t(" < "),
-		i(2, "n"),
-		t("; "),
-		mirror(1),
-		t({ "++) {", "    " }),
-		i(3),
-		t({ "", "}" }),
-		i(0),
-	}),
-
-	s("fore", {
-		t("for ("),
-		i(1, "int"),
-		t(" "),
-		i(2, "x"),
-		t(" : "),
-		i(3, "arr"),
-		t({ ") {", "    " }),
-		i(4),
-		t({ "", "}" }),
-		i(0),
-	}),
-
-	s("while", {
-		t("while ("),
-		i(1, "condition"),
-		t({ ") {", "    " }),
-		i(2),
-		t({ "", "}" }),
-		i(0),
-	}),
-
-	s("if", {
-		t("if ("),
-		i(1, "condition"),
-		t({ ") {", "    " }),
-		i(2),
-		t({ "", "}" }),
-		i(0),
-	}),
-
-	s("ifelse", {
-		t("if ("),
-		i(1, "condition"),
-		t({ ") {", "    " }),
-		i(2),
-		t({ "", "} else {", "    " }),
-		i(3),
-		t({ "", "}" }),
-		i(0),
-	}),
-
-	s("switch", {
-		t("switch ("),
-		i(1, "value"),
-		t({ ") {", "    case " }),
-		i(2, "X"),
-		t(" -> "),
-		i(3),
-		t({ ";", "    default -> " }),
-		i(4),
-		t({ ";", "}" }),
-		i(0),
-	}),
-
-	s("try", {
-		t({ "try {", "    " }),
-		i(1),
-		t({ "", "} catch (" }),
-		i(2, "Exception"),
-		t(" "),
-		i(3, "e"),
-		t({ ") {", "    " }),
-		i(4, "e.printStackTrace();"),
-		t({ "", "}" }),
-		i(0),
-	}),
-
-	-- Collections
-
-	s("list", {
-		t("List<"),
-		i(1, "Integer"),
-		t("> "),
-		i(2, "list"),
-		t(" = new ArrayList<>();"),
-		i(0),
-	}),
-
-	s("map", {
-		t("Map<"),
-		i(1, "String"),
-		t(", "),
-		i(2, "Integer"),
-		t("> "),
-		i(3, "map"),
-		t(" = new HashMap<>();"),
-		i(0),
-	}),
 
 	-- Comments
 
@@ -467,6 +353,14 @@ local snippets = {
 		t({ "/*", " * " }),
 		i(1, "comment"),
 		t({ "", " */" }),
+		i(0),
+	}),
+
+	-- Long annotation block
+	s("nb", {
+		t({ "/*", "", "" }),
+		i(1),
+		t({ "", "", "*/" }),
 		i(0),
 	}),
 
@@ -506,12 +400,12 @@ local snippets = {
 		i(0),
 	}),
 
-	-- Class doc. @author and @since are filled in on expansion
+	-- Class doc. @since is filled in on expansion
 	s("docc", {
 		t({ "/**", " * " }),
 		i(1, "Description."),
 		t({ "", " *", " * @author " }),
-		dynamic_default(2, author),
+		i(2, "Miquéias Alves Medeiros"),
 		t({ "", " * @version " }),
 		i(3, "1.0"),
 		t({ "", " * @since " }),

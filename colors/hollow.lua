@@ -25,6 +25,8 @@ local dim = "#707070"
 local cmt = "#6a6a6a"
 local doc = "#7a7a7a"
 
+local popup_bg = "#0d0d0d"
+
 local accent = "#6382eb"
 local accent_dim = "#1b2152"
 
@@ -234,19 +236,19 @@ local dark = {
 }
 
 local popups = {
-	{ "NormalFloat", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
-	{ "FloatBorder", "#444444", "#000000", _, "NONE", 238, 16, "NONE" },
-	{ "FloatTitle", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
-	{ "FloatFooter", dim, "#000000", _, "NONE", 242, 16, "NONE" },
-	{ "Pmenu", fg0, "#000000", _, "NONE", 254, 16, "NONE" },
-	{ "PmenuExtra", dim, "#000000", _, "NONE", 242, 16, "NONE" },
+	{ "NormalFloat", fg0, popup_bg, _, "NONE", 254, 233, "NONE" },
+	{ "FloatBorder", "#444444", popup_bg, _, "NONE", 238, 233, "NONE" },
+	{ "FloatTitle", fg0, popup_bg, _, "NONE", 254, 233, "NONE" },
+	{ "FloatFooter", dim, popup_bg, _, "NONE", 242, 233, "NONE" },
+	{ "Pmenu", fg0, popup_bg, _, "NONE", 254, 233, "NONE" },
+	{ "PmenuExtra", dim, popup_bg, _, "NONE", 242, 233, "NONE" },
 	{ "PmenuExtraSel", fg0, "#303030", _, "NONE", 254, 236, "NONE" },
-	{ "PmenuKind", dim, "#000000", _, "NONE", 242, 16, "NONE" },
+	{ "PmenuKind", dim, popup_bg, _, "NONE", 242, 233, "NONE" },
 	{ "PmenuKindSel", fg0, "#303030", _, "NONE", 254, 236, "NONE" },
-	{ "PmenuMatch", "#ffffff", "#000000", _, "bold", 231, 16, "bold" },
+	{ "PmenuMatch", "#ffffff", popup_bg, _, "bold", 231, 233, "bold" },
 	{ "PmenuMatchSel", "#ffffff", "#303030", _, "bold", 231, 236, "bold" },
-	{ "PmenuSbar", _, "#000000", _, "NONE", _, 16, "NONE" },
-	{ "PmenuSel", fg0, c.line, _, "NONE", 254, 233, "NONE" },
+	{ "PmenuSbar", _, popup_bg, _, "NONE", _, 233, "NONE" },
+	{ "PmenuSel", fg0, "#1c1c1c", _, "NONE", 254, 234, "NONE" },
 	{ "PmenuThumb", _, "#444444", _, "NONE", _, 238, "NONE" },
 	{ "WildMenu", fg0, "#303030", _, "NONE", 254, 236, "NONE" },
 }
@@ -254,8 +256,9 @@ local popups = {
 -- Modern groups
 local modern = {
 	-- Comments
-	{ "Comment", cmt, _, _, "NONE", 241, _, "NONE" },
-	{ "@comment.documentation", doc, _, _, "NONE", 243, _, "NONE" },
+	-- Comments
+	{ "Comment", cmt, _, _, "italic", 241, _, "italic" },
+	{ "@comment.documentation", doc, _, _, "italic", 243, _, "italic" },
 
 	-- Structure
 	{ "Statement", fg1, _, _, "NONE", 254, _, "NONE" },

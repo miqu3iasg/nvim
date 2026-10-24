@@ -200,4 +200,54 @@ vim.lsp.config("tinymist", {
 	},
 })
 
+-- LSP keymaps, buffer-local and only set once a server attaches
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+	callback = function(ev)
+		local fzf = require("fzf-lua")
+
+		local function km(mode, lhs, rhs, desc)
+			vim.keymap.set(mode, lhs, rhs, { buffer = ev.buf, desc = desc })
+		end
+
+		km("n", "gd", fzf.lsp_definitions, "Go to definition")
+		km("n", "K", vim.lsp.buf.hover, "Show hover information")
+		km("i", "<C-j>", vim.lsp.buf.signature_help, "Signature help")
+
+		km("n", "grp", vim.lsp.buf.signature_help, "Show signature help")
+		km("n", "grc", fzf.lsp_declarations, "Go to declaration")
+		km("n", "gri", fzf.lsp_implementations, "Go to implementation")
+		km("n", "grt", fzf.lsp_typedefs, "Go to type definition")
+		km("n", "grr", fzf.lsp_references, "Go to references")
+		km("n", "grm", fzf.lsp_document_symbols, "Document symbols")
+		km("n", "grw", fzf.lsp_live_workspace_symbols, "Workspace symbols")
+		km("n", "grf", fzf.lsp_finder, "LSP finder")
+		km("n", "grd", fzf.diagnostics_document, "Document diagnostics")
+		km("n", "grD", fzf.diagnostics_workspace, "Workspace diagnostics")
+		km("n", "grn", vim.lsp.buf.rename, "Rename symbol")
+		km({ "n", "v" }, "gra", fzf.lsp_code_actions, "Code action")
+
+		km("n", "grs", function()
+			vim.cmd("vsplit")
+			vim.lsp.buf.implementation()
+		end, "Go to implementation in split")
+
+		km("n", "gro", function()
+			vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } }, apply = true })
+		end, "Organize imports")
+
+		km("n", "gre", function()
+			vim.diagnostic.open_float({ scope = "cursor" })
+		end, "Show diagnostic under cursor")
+
+		km("n", "[e", function()
+			vim.diagnostic.jump({ count = -1, float = true })
+		end, "Go to previous diagnostic")
+
+		km("n", "]e", function()
+			vim.diagnostic.jump({ count = 1, float = true })
+		end, "Go to next diagnostic")
+	end,
+})
+
 vim.lsp.enable(servers)

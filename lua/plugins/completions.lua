@@ -286,6 +286,10 @@ require("blink.cmp").setup({
 				inherit_defaults = true,
 				"vimtex",
 			},
+			-- java = {
+			-- 	"snippets",
+			-- 	"buffer",
+			-- },
 		},
 
 		providers = {
