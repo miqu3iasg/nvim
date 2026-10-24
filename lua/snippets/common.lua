@@ -173,7 +173,7 @@ local function line_prefix(style)
 	end
 end
 
--- Compile/run instructions for the `ehead` header.
+-- Compile/run instructions for the `ehead` and `shead` headers.
 local usage_by_ft = {
 	c = function(style)
 		return {
@@ -201,10 +201,9 @@ local usage_by_ft = {
 	end,
 	java = function(style)
 		return {
-			t({ "", wrap(style, "    Compile and run from the directory containing this file.") }),
-			t({ "", wrap(style, ""), wrap(style, "    $ javac ") }),
+			t({ "", wrap(style, label("Compilation:") .. "$ javac ") }),
 			f(get_filename, {}),
-			t({ "", wrap(style, "    $ java ") }),
+			t({ "", wrap(style, label("Execution:") .. "$ java ") }),
 			f(get_basename, {}),
 		}
 	end,
@@ -344,6 +343,32 @@ local usage_by_ft = {
 }
 usage_by_ft.bash = usage_by_ft.sh
 usage_by_ft.zsh = usage_by_ft.sh
+
+-- Filetypes whose usage lines carry their own labels, so the "Usage:"
+-- title is skipped.
+local inline_usage_fts = { java = true }
+
+-- Blank line, then the usage block. Falls back to a placeholder when the
+-- filetype has no entry in `usage_by_ft`. LuaSnip needs contiguous insert
+-- indices, so this takes the next free index and returns the next one
+-- still free (it only consumes an index in the fallback case).
+local function add_usage(add, style, ft, idx)
+	local usage_fn = usage_by_ft[ft]
+	add(t({ "", wrap(style, "") }))
+	if usage_fn then
+		if not inline_usage_fts[ft] then
+			add(t({ "", wrap(style, label("Usage:")) }))
+		end
+		for _, n in ipairs(usage_fn(style)) do
+			add(n)
+		end
+		return idx
+	end
+	add(t({ "", wrap(style, label("Usage:")) }))
+	add(t({ "", wrap(style, "    ") }))
+	add(i(idx, "how to compile/run this file"))
+	return idx + 1
+end
 
 -- Test-suite commands for the `thead` header. Unlike `usage_by_ft`, these
 -- run the tests, not just the file.
@@ -703,8 +728,9 @@ local function build_head(_, _)
 	return sn(nil, nodes)
 end
 
--- `shead`: for code written while studying a book or article. The license
--- is fixed to AGPL-3.0-only.
+-- `shead`: for code written while studying a book or article. Includes the
+-- compile/run commands from `usage_by_ft`. The license is fixed to
+-- AGPL-3.0-only.
 local function build_study(_, _)
 	local ft = vim.bo.filetype
 	local style = comment_styles[ft] or DEFAULT_STYLE
@@ -729,8 +755,9 @@ local function build_study(_, _)
 	add(i(3, "actual author(s) of the source material"))
 	add(t({ "", wrap(style, label("Location:")) }))
 	add(i(4, "chapter / pages / section"))
+	local idx = add_usage(add, style, ft, 5)
 	add(t({ "", wrap(style, ""), line_prefix(style) }))
-	add(i(5, "what you implemented / learned here"))
+	add(i(idx, "what you implemented / learned here"))
 	add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: AGPL-3.0-only") }))
 	add(t({ "", wrap(style, label("Copyright:")) }))
 	add(t("(c) "))
@@ -824,12 +851,11 @@ local function build_allhead(_, _)
 	return sn(nil, nodes)
 end
 
--- `ehead`: exercise header. `shead` fields plus a problem statement and
+-- `ehead`: exercise header. `shead` fields plus a problem statement, with
 -- compile/run commands from `usage_by_ft`.
 local function build_exs(_, _)
 	local ft = vim.bo.filetype
 	local style = comment_styles[ft] or DEFAULT_STYLE
-	local usage_fn = usage_by_ft[ft]
 	local nodes = {}
 	local function add(...)
 		for _, n in ipairs({ ... }) do
@@ -851,27 +877,15 @@ local function build_exs(_, _)
 	add(i(3, "actual author(s) of the source material"))
 	add(t({ "", wrap(style, label("Location:")) }))
 	add(i(4, "chapter / pages / section"))
-	add(t({ "", wrap(style, ""), line_prefix(style) }))
-	add(i(5, "Longer description, if needed."))
-	add(t({ "", wrap(style, ""), wrap(style, label("Problem Statement:")) }))
+	local idx = add_usage(add, style, ft, 5)
+	add(t({ "", wrap(style, ""), wrap(style, "Problem Statement:") }))
 	add(t({ "", wrap(style, "    ") }))
-	add(i(6, "Paste the exercise/assignment text here."))
-	add(t({ "", wrap(style, ""), wrap(style, label("Usage:")) }))
-
-	if usage_fn then
-		for _, n in ipairs(usage_fn(style)) do
-			add(n)
-		end
-	else
-		add(t({ "", wrap(style, "    ") }))
-		add(i(7, "how to compile/run this file"))
-	end
-
-	local refs_idx = usage_fn and 7 or 8
-
-	add(t({ "", wrap(style, ""), wrap(style, label("References:")) }))
-	add(t({ "", wrap(style, "    - ") }))
-	add(i(refs_idx, "https://..."))
+	add(i(idx, "Paste the exercise/assignment text here."))
+	add(t({ "", wrap(style, ""), line_prefix(style) }))
+	add(i(idx + 1, "Longer description, if needed."))
+	add(t({ "", wrap(style, ""), wrap(style, "References:") }))
+	add(t({ "", wrap(style, "  - ") }))
+	add(i(idx + 2, "https://..."))
 	add(t({ "", wrap(style, ""), wrap(style, "SPDX-License-Identifier: AGPL-3.0-only") }))
 	add(t({ "", wrap(style, label("Copyright:")) }))
 	add(t("(c) "))

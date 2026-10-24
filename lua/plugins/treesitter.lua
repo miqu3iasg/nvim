@@ -63,6 +63,7 @@ ts.install({
 	"css",
 	"scss",
 	"java",
+	"javadoc",
 	"javascript",
 	"typescript",
 	"tsx",

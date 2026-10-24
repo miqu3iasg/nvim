@@ -211,7 +211,7 @@ require("blink.cmp").setup({
 		["<Tab>"] = {
 			"accept",
 			function()
-				if luasnip.expandable() then
+				if vim.fn.mode() == "i" and luasnip.expandable() then
 					vim.schedule(luasnip.expand)
 					return true
 				end

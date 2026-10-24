@@ -13,7 +13,6 @@ km("n", "<leader>bw", "<cmd>write<CR>", { desc = "Save buffer" })
 km("n", "<leader>bs", "<cmd>noautocmd write<CR>", { desc = "Save buffer without auto-formatting" })
 
 -- Buffer Deletion and Cleanup
-
 km("n", "<leader>bd", function()
 	local buf = vim.api.nvim_get_current_buf()
 
@@ -22,9 +21,7 @@ km("n", "<leader>bd", function()
 	else
 		vim.notify("Could not save buffer, not deleted", vim.log.levels.WARN)
 	end
-end, {
-	desc = "Save and delete buffer",
-})
+end, { desc = "Save and delete buffer" })
 
 km("n", "<leader>bo", function()
 	local current_win = vim.api.nvim_get_current_win()
@@ -39,9 +36,7 @@ km("n", "<leader>bo", function()
 	utils.delete_where(function(info)
 		return info.bufnr ~= current_buf
 	end)
-end, {
-	desc = "Close other windows and buffers",
-})
+end, { desc = "Close other windows and buffers" })
 
 -- Buffer Navigation
 km("n", "]b", "<cmd>bnext<CR>", { desc = "Next buffer" })

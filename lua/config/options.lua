@@ -19,7 +19,7 @@ vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:6
 -- Search and completion
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-vim.opt.inccommand = "split"
+-- vim.opt.inccommand = "split"
 vim.opt.wildignorecase = true
 vim.opt.wildignore:append({ "*/.git/*", "*/node_modules/*", "*/target/*", "*/dist/*" })
 vim.opt.completeopt = "menuone,noselect"
