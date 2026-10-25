@@ -15,9 +15,14 @@
 -- profiles/<name>.yaml if one is requested (`:Pandoc pdf abnt`). Later files
 -- win, and the YAML header of the note overrides all of them.
 --
--- Obsidian [[wikilinks]] become plain text, and ![[image.png|300]] becomes a
--- real image, looked up in any `attachments/` folder above the note. Citations
--- are disabled, so "@john" is always plain text.
+-- Wikilinks become plain text, and ![[image.png|300]] becomes a real image,
+-- looked up in any `attachments/` folder above the note. Citations are
+-- disabled, so "@john" is always plain text.
+--
+-- A second filter (filters/metadata-block.lua) adds a block with the reference
+-- fields of the note (file_name, authors, description, source, location,
+-- external_urls) below the title. Its labels follow the `lang` of the
+-- document.
 --
 -- Nothing is notified on success. Errors and pandoc warnings are shown with
 -- pandoc's own message.
@@ -180,8 +185,18 @@ function M.build(opts, on_done)
 		cmd[#cmd + 1] = "--metadata-file=" .. profile_file
 	end
 
+	-- Filters run in this order: wikilinks first, so [[links]] inside the
+	-- metadata values are already plain text when the block is built
 	cmd[#cmd + 1] = "--lua-filter=" .. M.config_dir .. "/filters/wikilinks.lua"
+	cmd[#cmd + 1] = "--lua-filter=" .. M.config_dir .. "/filters/metadata-block.lua"
 	cmd[#cmd + 1] = "--resource-path=" .. resource_path(indir)
+
+	-- The buffer goes through stdin, so pandoc does not know the file name;
+	-- always pass the real one (with extension). Command-line metadata wins
+	-- over the YAML header, so this also overrides `file_name` in the note
+	if name ~= "" then
+		cmd[#cmd + 1] = "--metadata=file_name:" .. vim.fs.basename(name)
+	end
 
 	-- EPUB needs a title and HTML a page title; use the file name when the
 	-- note has none

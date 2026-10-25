@@ -1,16 +1,23 @@
--- lua/plugins/obsidian.lua
+-- lua/plugins/markdown.lua
 
--- This configuration integrates Neovim with the Obsidian desktop application.
+-- This configuration groups the plugins used for writing Markdown notes: image
+-- pasting with img-clip.nvim and integration with the Obsidian desktop application
+-- through obsidian.nvim.
+--
+-- All plugins are declared in `lua/config/pack.lua` and must be installed
+-- before this file is loaded. Obsidian.nvim also depends on plenary.nvim and
+-- fzf-lua. The `fzf.lua` plugin configuration must be loaded before this file
+-- because fzf-lua is used as the picker for searching and navigating notes.
+--
 -- On Arch Linux, install Obsidian with pacman:
 --
 -- $ sudo pacman -S obsidian
 --
 -- The vault path below must point to an existing Obsidian vault.
 --
--- Obsidian.nvim also depends on plenary.nvim and fzf-lua. Both are declared
--- in `lua/config/pack.lua` and must be installed. The `fzf.lua` plugin
--- configuration must be loaded before this file because fzf-lua is used
--- as the picker for searching and navigating notes.
+-- Images pasted inside the vault use the `![[$FILE_NAME]]` wikilink template,
+-- while images pasted anywhere else use the standard Markdown link template.
+-- In both cases they are saved in `<project-root>/attachments`.
 --
 -- Marksman provides Markdown language-server features, including navigation,
 -- document symbols and diagnostics. Install it through Mason:
@@ -22,6 +29,7 @@
 -- `lua/plugins/lsp.lua`; make sure Marksman is configured there for Markdown
 -- buffers.
 --
+-- See: https://github.com/HakonHarnes/img-clip.nvim
 -- See: https://github.com/obsidian-nvim/obsidian.nvim
 -- See: https://github.com/nvim-lua/plenary.nvim
 -- See: https://github.com/ibhagwan/fzf-lua
@@ -34,20 +42,60 @@ local INBOX_TEMPLATE = "inbox_template"
 
 local km = vim.keymap.set
 
+-- Images
+
+require("img-clip").setup({
+	default = {
+		-- Always save images in <project-root>/attachments
+		dir_path = function()
+			local root = vim.fs.root(0, { ".git", ".obsidian" }) or vim.fn.expand("%:p:h")
+			return root .. "/attachments"
+		end,
+		-- dir_path = "attachments",
+		relative_to_current_file = false,
+		relative_template_path = true,
+		use_absolute_path = false,
+		file_name = "%Y-%m-%d-%H-%M-%S",
+		prompt_for_file_name = false,
+		insert_mode_after_paste = false,
+		embed_image_as_base64 = false,
+		verbose = false,
+		drag_and_drop = {
+			enabled = true,
+			insert_mode = true,
+		},
+	},
+
+	filetypes = {
+		markdown = {
+			url_encode_path = true,
+			template = "![$CURSOR]($FILE_PATH)",
+			download_images = true,
+		},
+	},
+
+	dirs = {
+		[VAULT_PATH] = {
+			url_encode_path = false,
+			template = "![[$FILE_NAME]]",
+		},
+	},
+})
+
+-- Obsidian
+
 local function new_inbox_capture()
 	local title = "CAP-" .. os.date("%Y%m%d-%H%M%S")
-
 	vim.cmd("Obsidian new " .. title)
-
 	vim.schedule(function()
 		vim.cmd("Obsidian template " .. INBOX_TEMPLATE)
 	end)
 end
 
--- Global mappings, available from any buffer or filetype.
+-- Global mappings, available from any buffer or filetype
 km("n", "<leader>os", "<cmd>Obsidian quick_switch<cr>", { desc = "Obsidian: jump to a note" })
-km("n", "<leader>oc", "<cmd>Obsidian new<cr>", { desc = "Obsidian: quick capture" })
-km("n", "<leader>oi", new_inbox_capture, { desc = "Obsidian: new inbox capture" })
+km("n", "<leader>oi", "<cmd>Obsidian new<cr>", { desc = "Obsidian: quick capture" })
+km("n", "<leader>oc", new_inbox_capture, { desc = "Obsidian: new inbox capture" })
 km("n", "<leader>od", "<cmd>Obsidian today<cr>", { desc = "Obsidian: daily note (today)" })
 km("n", "<leader>ow", "<cmd>e ~/personal/documents/vault/Dumping.md<cr>", { desc = "Open Dumping.md note" })
 km("n", "<leader>ot", "<cmd>Obsidian new_from_template<cr>", { desc = "Obsidian: new note (pick template)" })
@@ -136,13 +184,10 @@ vim.api.nvim_create_autocmd("CmdlineChanged", {
 		if vim.fn.getcmdtype() ~= ":" then
 			return
 		end
-
 		local cmdline = vim.fn.getcmdline()
-
 		if not cmdline:match("^Obsidian[A-Za-z0-9]*$") then
 			return
 		end
-
 		vim.fn.wildtrigger()
 	end,
 })

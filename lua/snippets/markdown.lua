@@ -252,11 +252,14 @@ local snippets = {
 
 	-- Misc
 
-	-- YAML front matter, file_name
+	-- Note front matter
+	-- lang is commented out by default (the language comes from
+	-- metadata.yaml); uncomment it in notes written in another language, so
+	-- the labels of the metadata block in the PDF change too
 	s("front", {
 		t({ "---", "file_name: " }),
 		f(get_filename, {}),
-		t({ "", "summary: " }),
+		t({ "", "title: " }),
 		i(1),
 		t({ "", "description: " }),
 		i(2),
@@ -270,6 +273,7 @@ local snippets = {
 		i(6),
 		t({ "", "related: " }),
 		i(7),
+		t({ "", "# lang: en-US            # switch language" }),
 		t({ "", "" }),
 		d(8, function()
 			local ts = os.date("%Y-%m-%dT%H:%M")

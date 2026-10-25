@@ -16,6 +16,7 @@ local ai_opts = {
 		c = ts({ a = "@class.outer", i = "@class.inner" }),
 		a = ts({ a = "@parameter.outer", i = "@parameter.inner" }),
 		k = ts({ a = "@code_block.outer", i = "@code_block.inner" }),
+		m = ts({ a = "@comment.outer", i = "@comment.inner" }),
 
 		-- Entire file
 		e = function()

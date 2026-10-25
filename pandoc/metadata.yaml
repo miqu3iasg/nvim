@@ -12,9 +12,9 @@
 lang: pt-BR
 # Page layout
 documentclass: article
-fontsize: 11pt
+fontsize: 12pt
 geometry: margin=2.5cm
-linestretch: 1.15
+linestretch: 1.5
 indent: true # first-line indent instead of space between paragraphs
 booktabs: true # nicer tables
 # Colored (not boxed) links

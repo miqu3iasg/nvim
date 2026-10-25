@@ -71,7 +71,7 @@ end
 
 local c = {
 	bg = "#000000",
-	line = "#111111", -- cursorline, statusline, code blocks
+	line = "#111111", -- cursorline, code blocks
 	visual = "#262626",
 	bright = "#ffffff", -- titles, directories, emphasis
 	fg = "#e2e2e2", -- default code color
@@ -144,8 +144,8 @@ apply({
 
 	WinSeparator = { fg = c.comment },
 	WinBarNC = { fg = c.comment, bg = bg_main },
-	StatusLine = { fg = c.fg, bg = c.line },
-	StatusLineNC = { fg = c.comment, bg = c.line },
+	StatusLine = { fg = "#a8a8a8", bg = "#121212" },
+	StatusLineNC = { fg = "#5f5f5f", bg = "#050505" },
 	TabLineSel = { fg = c.bright, bg = c.visual, fmt = "bold" },
 	ToolbarButton = { fg = c.bright, bg = c.line, fmt = "bold" },
 	ToolbarLine = { bg = bg_main },
@@ -341,7 +341,7 @@ apply({
 
 -- Heading levels fade in brightness, not in hue
 for i, color in ipairs({ c.bright, c.bright, c.fg, c.fg, c.mid, c.mid }) do
-	hl(("@markup.heading.%d.markdown"):format(i), { fg = color, fmt = i == 1 and "bold,underline" or "bold" })
+	hl(("@markup.heading.%d.markdown"):format(i), { fg = color, fmt = i == 1 and "bold" or "bold" })
 	hl(("@markup.heading.%d.marker.markdown"):format(i), { fg = color })
 	link(("@markup.heading.%d.markdown"):format(i), { "markdownH" .. i })
 end

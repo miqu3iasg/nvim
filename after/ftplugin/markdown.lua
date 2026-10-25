@@ -5,7 +5,6 @@ local opt = vim.opt_local
 opt.wrap = true
 opt.linebreak = true
 opt.breakindent = true
-opt.fillchars = { eob = " " }
 opt.spell = false
 opt.spelllang = { "pt_br", "en_us" }
 opt.textwidth = 100
@@ -20,6 +19,7 @@ opt.softtabstop = -1
 
 -- Setup Pandoc configuration
 -- See: ~/.config/nvim/pandoc
+-- See: ~/.config/nvim/lua/shared/pandoc.lua
 require("shared.pandoc").setup()
 
 local function map(mode, lhs, rhs, desc, opts)
@@ -37,7 +37,13 @@ end
 
 -- Spell
 map("n", "<localleader>ss", "<cmd>setlocal spell!<cr>", "Toggle spell check")
-map("i", "<C-l>", "<c-g>u<Esc>[s1z=`]a<c-g>u", "Fix previous spelling mistake")
+map("i", "<C-s>", "<c-g>u<Esc>[s1z=`]a<c-g>u", "Fix previous spelling mistake")
+
+-- View
+map("n", "<localleader>sc", function()
+	vim.opt_local.conceallevel = vim.opt_local.conceallevel:get() == 0 and 2 or 0
+	vim.notify("conceallevel = " .. vim.opt_local.conceallevel:get())
+end, "Toggle conceal level")
 
 -- Lists and checkboxes
 local function parse_item(line)
@@ -98,6 +104,8 @@ map("n", "<localleader>ik", function()
 	vim.cmd("startinsert")
 end, "Insert code block")
 
+map("n", "<localleader>ii", "<cmd>PasteImage<cr>", "Paste image from clipboard")
+
 map("n", "<localleader>j", "vipJ", "Join paragraph into one line")
 map("x", "<localleader>s", ":sort i<CR>", "Sort lines")
 
@@ -105,7 +113,7 @@ map("n", "<localleader>il", insert("[]()", 3), "Insert markdown link")
 map("n", "<localleader>iw", insert("[[]]", 2), "Insert wiki link")
 map("n", "<localleader>if", insert("^[]", 1), "Insert inline footnote")
 map("n", "<localleader>ib", insert("****", 2), "Insert bold")
-map("n", "<localleader>ie", insert("**", 1), "Insert italic")
+map("n", "<localleader>ie", insert("__", 1), "Insert italic")
 map("n", "<localleader>ic", insert("``", 1), "Insert inline code")
 map("n", "<localleader>is", insert("~~~~", 2), "Insert strikethrough")
 
@@ -113,6 +121,6 @@ map("x", "<localleader>il", '"zc[<C-r>z]()<Left>', "Wrap selection as markdown l
 map("x", "<localleader>cl", '"zc[<C-r>z](<C-r>+)<Esc>', "Link with clipboard URL")
 map("x", "<localleader>iw", wrap("[[", "]]"), "Wrap selection as wiki link")
 map("x", "<localleader>ib", wrap("**", "**"), "Bold selection")
-map("x", "<localleader>ie", wrap("*", "*"), "Italic selection")
+map("x", "<localleader>ie", wrap("_", "_"), "Italic selection")
 map("x", "<localleader>ic", wrap("`", "`"), "Inline code selection")
 map("x", "<localleader>is", wrap("~~", "~~"), "Strikethrough selection")

@@ -14,9 +14,9 @@ for _, mod in ipairs({
 	"unnacessary-shit",
 	"latex",
 	"lisp",
-	"obsidian",
 	"oil",
 	"colorschemes",
+	"markdown",
 }) do
 	local ok, err = pcall(require, "plugins." .. mod)
 	if not ok then
