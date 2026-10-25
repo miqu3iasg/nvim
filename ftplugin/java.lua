@@ -113,7 +113,17 @@ local config = {
 				runtimes = runtimes,
 				updateBuildConfiguration = "automatic",
 			},
-			project = { resourceFilters = { "node_modules", ".git", ".gradle", "target", "build", "out" } },
+			project = {
+				outputPath = "out",
+				resourceFilters = {
+					"node_modules",
+					".git",
+					".gradle",
+					"target",
+					"build",
+					"out",
+				},
+			},
 			eclipse = { downloadSources = true },
 			maven = { downloadSources = true },
 			sources = {

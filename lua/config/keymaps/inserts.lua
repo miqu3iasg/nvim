@@ -10,10 +10,15 @@ km("!", "<C-r><C-d>", "<C-r>=strftime('%d%m%Y')<CR>", { desc = "Insert current d
 km("!", "<C-r><C-b>", "<C-r>=strftime('%d/%m/%Y')<CR>", { desc = "Insert current date (DD/MM/YYYY)" })
 
 -- Time
-km("!", "<C-r><C-t>", "<C-r>=strftime('%T')<CR>", { desc = "Insert current time (HH:MM:SS)" })
+km("!", "<C-r><C-t>", "<C-r>=strftime('%H:%M')<CR>", { desc = "Insert current time (HH:MM)" })
 
 -- Date and Time
-km("!", "<C-r><C-y>", "<C-r>=strftime('%F %T')<CR>", { desc = "Insert current date and time" })
+km(
+	"!",
+	"<C-r><C-y>",
+	"<C-r>=strftime('%Y-%m-%dT%H:%M')<CR>",
+	{ desc = "Insert current date and time (YYYY-MM-DDTHH:MM)" }
+)
 km("!", "<C-r><C-g>", "<C-r>=strftime('%Y%m%d%H%M')<CR>", { desc = "Insert compact date+time (YYYYMMDDHHMM)" })
 
 -- File Metadata

@@ -258,19 +258,21 @@ local snippets = {
 		f(get_filename, {}),
 		t({ "", "summary: " }),
 		i(1),
-		t({ "", "authors: " }),
+		t({ "", "description: " }),
 		i(2),
-		t({ "", "source_title: " }),
+		t({ "", "authors: " }),
 		i(3),
-		t({ "", "source_location: " }),
+		t({ "", "source: " }),
 		i(4),
-		t({ "", "source_url: " }),
+		t({ "", "location: " }),
 		i(5),
-		t({ "", "related: " }),
+		t({ "", "external_urls:", "    - " }),
 		i(6),
+		t({ "", "related: " }),
+		i(7),
 		t({ "", "" }),
-		d(7, function()
-			local ts = now()
+		d(8, function()
+			local ts = os.date("%Y-%m-%dT%H:%M")
 			return sn(nil, {
 				t({ "created_at: " .. ts, "modified_at: " .. ts, "---", "", "" }),
 			})
