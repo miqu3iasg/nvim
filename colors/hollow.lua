@@ -55,14 +55,16 @@ local p = {
 
 	-- Diff
 	diff = {
-		add_bg = "#070f07",
-		change_bg = "#070b11",
-		delete_bg = "#100707",
-		text_bg = "#120c1a",
-		added = "#335533",
-		changed = "#334a60",
-		removed = "#7a4a4a",
-		line = "#4a3560",
+		add_bg = "#0f1a12", -- added line
+		change_bg = "#101722", -- changed line
+		delete_bg = "#1a1112", -- deleted line
+		text_bg = "#1f3050", -- changed text inside a line
+		add_text_bg = "#1c3324", -- added text inside a line
+		delete_text_bg = "#3a1f21", -- deleted text inside a line
+		added = "#6f9a73",
+		changed = "#6f8fb8",
+		removed = "#b87a7a",
+		line = "#6f8fb8", -- hunk header
 	},
 
 	-- Regex injections
@@ -72,21 +74,15 @@ local p = {
 		property = "#5f7f5f",
 	},
 
-	-- Oil
-	oil = {
-		exec_perm = "#5f9a5f",
-		executable = "#9e9e9e",
-	},
-
 	-- Markdown
 	markdown = {
-		italic = "#a8a8a8", -- 248
+		italic = "#949494", -- 246
 		strike = "#6c6c6c", -- 242
 		marker = "#585858", -- 240
 		block = "#b2b2b2", -- 249
 		string = "#cecece", -- 252 (yaml string values)
-		code = "#98a4f2", -- 111, light tint of the accent family
-		accent = "#af87af", -- 139, exclusive color for markup markers
+		code = "#93a0b4", -- 109, blue-gray tint, brighter than italic
+		accent = "#738296", -- 66, same tint, dimmer, exclusive color for markup markers
 	},
 
 	terminal = {
@@ -184,7 +180,7 @@ local editor = {
 
 	-- Statusline, tabline, titlebar, toolbar
 	StatusLine = { fg = p.statusline_fg, bg = p.line, ctermfg = 254, ctermbg = 233 },
-	StatusLineNC = { fg = p.statusline_nc_fg, bg = p.line, ctermfg = 241, ctermbg = 233 },
+	StatusLineNC = { fg = p.statusline_nc_fg, bg = p.black, ctermfg = 241, ctermbg = 16 },
 	TabLine = { fg = p.dim, bg = p.black, ctermfg = 242, ctermbg = 16 },
 	TabLineFill = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
 	TabLineSel = { fg = p.fg, bg = p.black, bold = true, ctermfg = 254, ctermbg = 16 },
@@ -321,62 +317,22 @@ local diagnostics = {
 
 -- Diff
 local diff = {
-	DiffAdd = { fg = p.fg, bg = p.diff.add_bg, ctermfg = 254, ctermbg = 233 },
-	DiffChange = { fg = p.fg, bg = p.diff.change_bg, ctermfg = 254, ctermbg = 233 },
-	DiffDelete = { fg = p.error, bg = p.diff.delete_bg, ctermfg = 131, ctermbg = 233 },
-	DiffText = { fg = p.fg, bg = p.diff.text_bg, ctermfg = 254, ctermbg = 234 },
+	-- Lines
+	DiffAdd = { fg = p.fg, bg = p.diff.add_bg, ctermfg = 254, ctermbg = 22 },
+	DiffChange = { fg = p.fg, bg = p.diff.change_bg, ctermfg = 254, ctermbg = 17 },
+	DiffDelete = { fg = p.diff.removed, bg = p.diff.delete_bg, ctermfg = 138, ctermbg = 52 },
 
-	Added = { fg = p.diff.added, ctermfg = 22 },
-	Changed = { fg = p.diff.changed, ctermfg = 60 },
-	Removed = { fg = p.diff.removed, ctermfg = 95 },
+	-- Text inside a line
+	DiffText = { fg = p.white, bg = p.diff.text_bg, bold = true, ctermfg = 231, ctermbg = 24 },
+	DiffAddText = { fg = p.white, bg = p.diff.add_text_bg, bold = true, ctermfg = 231, ctermbg = 29 },
+	DiffDeleteText = { fg = p.white, bg = p.diff.delete_text_bg, bold = true, ctermfg = 231, ctermbg = 88 },
+
+	-- Signs and diff syntax
+	Added = { fg = p.diff.added, ctermfg = 108 },
+	Changed = { fg = p.diff.changed, ctermfg = 110 },
+	Removed = { fg = p.diff.removed, ctermfg = 138 },
 	diffFile = { fg = p.fg, bold = true, ctermfg = 254 },
-	diffLine = { fg = p.diff.line, ctermfg = 60 },
-}
-
--- Oil.nvim (stevearc/oil.nvim)
-local oil = {
-	-- Entries
-	OilDir = { fg = p.fg, bold = true, ctermfg = 254 },
-	OilDirIcon = { fg = p.fg, ctermfg = 254 },
-	OilFile = { fg = p.fg_alt, ctermfg = 254 },
-	OilLink = { fg = p.fg_alt, italic = true, ctermfg = 254 },
-	OilLinkTarget = { fg = p.dim, italic = true, ctermfg = 242 },
-	OilOrphanLink = { fg = p.error, italic = true, ctermfg = 131 },
-	OilOrphanLinkTarget = { fg = p.error, italic = true, ctermfg = 131 },
-	OilHidden = { fg = p.comment, ctermfg = 241 },
-	OilSocket = { fg = p.dim, ctermfg = 242 },
-	OilExecutable = { fg = p.oil.executable, bold = true, ctermfg = 247 },
-
-	-- Hidden variants
-	OilDirHidden = { fg = p.comment, bold = true, ctermfg = 241 },
-	OilFileHidden = { fg = p.comment, ctermfg = 241 },
-	OilLinkHidden = { fg = p.comment, italic = true, ctermfg = 241 },
-	OilOrphanLinkHidden = { fg = p.error, italic = true, ctermfg = 131 },
-
-	-- Pending actions
-	OilCreate = { fg = p.fg, bold = true, ctermfg = 254 },
-	OilCopy = { fg = p.fg, bold = true, ctermfg = 254 },
-	OilMove = { fg = p.warn, ctermfg = 137 },
-	OilChange = { fg = p.warn, ctermfg = 137 },
-	OilDelete = { fg = p.error, ctermfg = 131 },
-	OilPurge = { fg = p.error, bold = true, ctermfg = 131 },
-	OilRestore = { fg = p.fg, bold = true, ctermfg = 254 },
-	OilTrash = { fg = p.dim, ctermfg = 242 },
-	OilTrashSourcePath = { fg = p.comment, ctermfg = 241 },
-
-	-- Entry types
-	OilTypeDir = { fg = p.fg, bold = true, ctermfg = 254 },
-	OilTypeFile = { fg = p.dim, ctermfg = 242 },
-	OilTypeLink = { fg = p.fg_alt, ctermfg = 254 },
-	OilTypeFifo = { fg = p.dim, ctermfg = 242 },
-	OilTypeSocket = { fg = p.dim, ctermfg = 242 },
-	OilTypeUnknown = { fg = p.dim, ctermfg = 242 },
-
-	-- Permissions
-	OilPermissionNone = { fg = p.comment, ctermfg = 241 },
-	OilPermissionRead = { fg = p.warn, ctermfg = 137 },
-	OilPermissionWrite = { fg = p.error, ctermfg = 131 },
-	OilPermissionExecute = { fg = p.oil.exec_perm, ctermfg = 71 },
+	diffLine = { fg = p.diff.line, ctermfg = 110 },
 }
 
 -- Markdown
@@ -518,11 +474,15 @@ local links = {
 	GitSignsAddNr = "Added",
 	GitSignsChangeNr = "Changed",
 	GitSignsDeleteNr = "Removed",
-	GitSignsAddInline = "DiffAdd",
-	GitSignsChangeInline = "DiffChange",
-	GitSignsDeleteInline = "DiffDelete",
+	GitSignsAddLn = "DiffAdd",
+	GitSignsChangeLn = "DiffChange",
+	GitSignsAddInline = "DiffAddText",
+	GitSignsChangeInline = "DiffText",
+	GitSignsDeleteInline = "DiffDeleteText",
 	GitSignsAddPreview = "DiffAdd",
 	GitSignsDeletePreview = "DiffDelete",
+	GitSignsDeleteVirtLn = "DiffDelete",
+	GitSignsDeleteVirtLnInLine = "DiffDeleteText",
 
 	-- blink.cmp
 	BlinkCmpMenu = "Pmenu",
@@ -589,7 +549,6 @@ apply(popup)
 apply(treesitter)
 apply(diagnostics)
 apply(diff)
-apply(oil)
 apply(markdown)
 
 -- Autocommands
@@ -619,24 +578,3 @@ vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "BufEnter", "WinEnter" 
 })
 
 sync_frontmatter_ns()
-
--- Oil needs to re-apply its highlights, since the plugin defines its own
--- defaults when it loads or when a colorscheme changes
-local oil_group = vim.api.nvim_create_augroup("HollowOil", { clear = true })
-
-vim.api.nvim_create_autocmd("FileType", {
-	group = oil_group,
-	pattern = "oil",
-	callback = function()
-		apply(oil)
-	end,
-})
-
-vim.api.nvim_create_autocmd("ColorScheme", {
-	group = oil_group,
-	callback = function()
-		if vim.g.colors_name == "hollow" then
-			apply(oil)
-		end
-	end,
-})
