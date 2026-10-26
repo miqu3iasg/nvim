@@ -105,3 +105,49 @@ if pcall(require, "fzf-lua") then
 		require("fzf-lua").git_files({ cmd = "git ls-files --cached --others --exclude-standard" })
 	end, { desc = "Git files" })
 end
+
+-- Git log helpers, ported from the Vimscript `enable#fugitive_log` functions
+-- from bruhtus <https://github.com/bruhtus> dotfiles. Both open the result
+-- in a new tab through vim-fugitive's `:Git` command
+-- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fugitive_log.vim
+
+local log_format = "--color=never --date=short --pretty=format:'%h %cd  %s (%an)%d'"
+
+local function git_log_normal()
+	local choice = vim.fn.confirm(
+		"Current file or All or Specific function git commit(s)?",
+		"&NCancel\n&JCurrent\n&KAll\n&LFunction",
+		1
+	)
+
+	if choice == 2 then
+		-- `--follow` keeps tracking the file across renames
+		vim.cmd("-tab Git log " .. log_format .. " --follow %")
+	elseif choice == 3 then
+		-- Repository-wide history
+		vim.cmd("-tab Git log " .. log_format)
+	elseif choice == 4 then
+		-- Uses the word under the cursor as the function name. Git must be able
+		-- to recognize functions for this filetype, otherwise it reports no match
+		local func = vim.fn.expand("<cword>")
+		local file = vim.fn.expand("%:p")
+		vim.cmd(("-tab Git log %s -L :%s:%s"):format(log_format, func, file))
+	end
+end
+
+-- Show the history of the selected line range
+local function git_log_visual()
+	-- Leave visual mode first so the '< and '> marks reflect the current
+	-- selection rather than the previous one
+	vim.cmd("normal! \27")
+	local first = vim.fn.line("'<")
+	local last = vim.fn.line("'>")
+	local file = vim.fn.expand("%:p")
+
+	-- `-L start,end:file` lists every commit that touched those lines
+	vim.cmd(("-tab Git log %s -L %d,%d:%s"):format(log_format, first, last, file))
+	vim.cmd("redraw!")
+end
+
+map("n", "<leader>go", git_log_normal, { desc = "Git log (file/all/function)" })
+map("x", "<leader>go", git_log_visual, { desc = "Git log (selection)" })
