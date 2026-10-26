@@ -96,6 +96,7 @@ local function make_opts()
 			["--highlight-line"] = false,
 			["--border"] = "none",
 			["--no-scrollbar"] = true,
+			["--no-footer"] = true,
 		},
 
 		previewers = {

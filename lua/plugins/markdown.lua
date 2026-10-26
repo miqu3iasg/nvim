@@ -206,7 +206,6 @@ vim.api.nvim_create_autocmd("User", {
 			})
 		end
 
-		map("n", "<leader>ia", "<cmd>Obsidian paste_img<cr>", "Paste image from clipboard")
 		map(
 			"n",
 			"<leader>on",

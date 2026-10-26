@@ -28,40 +28,44 @@ vim.api.nvim_create_autocmd("PackChanged", {
 })
 
 vim.pack.add({
-	-- canola.nvim
+	-- canola.nvim (Oil.nvim fork)
 	-- https://forge.barrettruth.com/barrettruth/canola.nvim
-	-- File explorer that lets you edit your filesystem like a normal buffer (oil.nvim-style).
+	-- File explorer that lets you edit your filesystem like a normal buffer. It is actually
+	-- a fork of oil.nvim, but an improved version.
 	{ src = "https://forge.barrettruth.com/barrettruth/canola.nvim" },
 
 	-- blink.compat
 	-- https://github.com/saghen/blink.compat
-	-- Compatibility layer that lets blink.cmp use nvim-cmp sources (e.g. cmp-vimtex).
+	-- Compatibility layer that lets blink.cmp use nvim-cmp sources. Needed for LaTeX completion.
 	{ src = "https://github.com/saghen/blink.compat" },
 
 	-- nvim-treesitter
 	-- https://github.com/nvim-treesitter/nvim-treesitter
-	-- Treesitter integration: parser management, syntax highlighting, and indentation.
+	-- Treesitter integration for parser management, syntax highlighting, and indentation.
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter",
 		version = "main",
 	},
 
-	-- obsidian.nvim
-	-- https://github.com/obsidian-nvim/obsidian.nvim
-	-- Note-taking workflow for Obsidian vaults: links, backlinks, daily notes, and templates.
-	{ src = "https://github.com/obsidian-nvim/obsidian.nvim" },
-
 	-- nvim-treesitter-textobjects
 	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 	-- Syntax-aware text objects and motions (functions, classes, parameters, etc.).
+	-- Significantly increases the speed of writing code.
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects",
 		version = "main",
 	},
 
+	-- obsidian.nvim
+	-- https://github.com/obsidian-nvim/obsidian.nvim
+	-- Note-taking workflow for Obsidian vaults. I use Obsidian as my main note taking app, so
+	-- having this in my study and work environment really improves my workflow.
+	{ src = "https://github.com/obsidian-nvim/obsidian.nvim" },
+
 	-- blink.cmp
 	-- https://github.com/saghen/blink.cmp
-	-- Fast completion engine with LSP, path, snippet, and buffer sources.
+	-- Fast completion engine with LSP, path, snippet, and buffer sources. I only use it when
+	-- I’m coding front-end applications (which is rare).
 	{
 		-- dependency of nvim-lspconfig (capabilities); its own config is not converted yet
 		src = "https://github.com/saghen/blink.cmp",
@@ -71,6 +75,7 @@ vim.pack.add({
 	-- LuaSnip
 	-- https://github.com/L3MON4D3/LuaSnip
 	-- Snippet engine written in Lua, with support for dynamic and LSP-style snippets.
+	-- For me, snippets are indispensable in my workflow.
 	{
 		src = "https://github.com/L3MON4D3/LuaSnip",
 		version = vim.version.range("2.*"),
@@ -94,6 +99,7 @@ vim.pack.add({
 	-- gitsigns.nvim
 	-- https://github.com/lewis6991/gitsigns.nvim
 	-- Shows git diff markers in the sign column and provides hunk staging, preview, and blame.
+	-- I use it mainly for staging and checking hunks.
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 
 	-- mason.nvim
@@ -119,7 +125,9 @@ vim.pack.add({
 
 	-- nvim-lspconfig
 	-- https://github.com/neovim/nvim-lspconfig
-	-- Collection of default configurations for Neovim's built-in LSP client.
+	-- Collection of default configurations for Neovim's built-in LSP client. Used only for the
+	-- front-end stack (unfortunately, sometimes it’s necessary).
+	-- See: lua/plugins/lsp.lua
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
 
 	-- cmp-vimtex
@@ -130,16 +138,19 @@ vim.pack.add({
 	-- mini.nvim
 	-- https://github.com/nvim-mini/mini.nvim
 	-- Library of small, independent modules (surround, pairs, statusline, icons, etc.).
+	-- In short, a bunch of unnecessary crap, but cool stuff, nonetheless.
 	{ src = "https://github.com/nvim-mini/mini.nvim" },
 
 	-- vim-tmux-navigator
 	-- https://github.com/christoomey/vim-tmux-navigator
-	-- Seamless navigation between Neovim splits and tmux panes with the same keybindings.
+	-- Seamless navigation between Neovim splits and tmux panes with the same
+	-- keybindings (indispensable).
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 
 	-- nvim-colorizer.lua
 	-- https://github.com/catgoose/nvim-colorizer.lua
-	-- Highlights color codes (hex, rgb, names) in the buffer with their actual color.
+	-- Highlights color codes (hex, rgb, names) in the buffer with their actual color. Useful for
+	-- creating themes.
 	{ src = "https://github.com/catgoose/nvim-colorizer.lua" },
 
 	-- vimtex
@@ -155,6 +166,7 @@ vim.pack.add({
 	-- conjure
 	-- https://github.com/Olical/conjure
 	-- Interactive REPL-driven evaluation for Lisp-family languages (Clojure, Fennel, Scheme, etc.).
+	-- I’m currently studying a book that uses Lisp and working on a few projects, so I need this.
 	{ src = "https://github.com/Olical/conjure" },
 
 	-- nvim-paredit
@@ -174,6 +186,7 @@ vim.pack.add({
 
 	-- img-clip.nvim
 	-- https://github.com/HakonHarnes/img-clip.nvim
-	-- Pastes images from the clipboard into files (Markdown, LaTeX, etc.) and inserts the link.
+	-- Pastes images from the clipboard into files (Markdown, LaTeX, etc.) and inserts the link. Useful
+	-- for taking notes in markdown.
 	{ src = "https://github.com/HakonHarnes/img-clip.nvim" },
 })
