@@ -21,9 +21,9 @@ local p = {
 	-- Neutrals
 	black = "#000000",
 	white = "#ffffff",
-	fg = "#c8c8c8", -- default text
-	fg_alt = "#c8c8c8", -- statements, types, preproc
-	string = "#c8c8c8",
+	fg = "#d6d6d6", -- default text
+	fg_alt = "#d6d6d6", -- statements, types, preproc
+	string = "#d6d6d6",
 	punct = "#e2e2e2",
 	tailwind = "#e2e2e2",
 	dim = "#707070",
@@ -76,13 +76,24 @@ local p = {
 
 	-- Markdown
 	markdown = {
-		italic = "#949494", -- 246
-		strike = "#6c6c6c", -- 242
-		marker = "#585858", -- 240
-		block = "#b2b2b2", -- 249
-		string = "#cecece", -- 252 (yaml string values)
-		code = "#93a0b4", -- 109, blue-gray tint, brighter than italic
-		accent = "#738296", -- 66, same tint, dimmer, exclusive color for markup markers
+		italic = "#949494",
+		strike = "#6c6c6c",
+		marker = "#585858",
+		block = "#b2b2b2",
+		string = "#cecece", -- yaml string values
+		code = "#93a0b4", -- blue-gray tint, brighter than italic
+		accent = "#738296", -- same tint, dimmer, exclusive color for markup markers
+	},
+
+	-- Micro-palette for tiny luminance steps so structure, operations and
+	-- values separate without ever reading as "color"
+	t = {
+		op = "#ebebeb", -- + - = == => && ||
+		special = "#f6f6f6", -- ${}, escapes, special regex chars
+		const = "#e3e3e3", -- numbers, booleans, nil
+		prop = "#c9c9c9", -- fields and properties (obj.field)
+		bracket = "#bcbcbc", -- ( ) [ ] { }
+		delim = "#989898", -- , ; . :
 	},
 
 	terminal = {
@@ -106,32 +117,95 @@ local p = {
 }
 
 local md = p.markdown
+local t = p.t
 
 -- Helpers
 
 local GUI_ATTRS = { "bold", "italic", "underline", "undercurl", "reverse", "strikethrough" }
 
--- Turns a group spec into `nvim_set_hl` options
+-- xterm-256 has a 6x6x6 color cube (levels 0,95,135,175,215,255) and a
+-- 24-step gray ramp (8,18,...,238). For every hex we compute the closest
+-- candidate in each and keep the nearest one (euclidean RGB distance).
+-- Results are cached, so the cost is paid once per distinct color
+
+local CUBE = { 0, 95, 135, 175, 215, 255 }
+local cterm_cache = {}
+
+local function rgb(hex)
+	return tonumber(hex:sub(2, 3), 16), tonumber(hex:sub(4, 5), 16), tonumber(hex:sub(6, 7), 16)
+end
+
+local function dist2(r1, g1, b1, r2, g2, b2)
+	return (r1 - r2) ^ 2 + (g1 - g2) ^ 2 + (b1 - b2) ^ 2
+end
+
+local function nearest_cube_level(v)
+	local best_i, best_d = 1, math.huge
+	for i, c in ipairs(CUBE) do
+		local d = math.abs(v - c)
+		if d < best_d then
+			best_i, best_d = i, d
+		end
+	end
+	return best_i - 1
+end
+
+local function hex_to_256(hex)
+	if cterm_cache[hex] then
+		return cterm_cache[hex]
+	end
+
+	local r, g, b = rgb(hex)
+
+	-- Best color-cube candidate
+	local ri, gi, bi = nearest_cube_level(r), nearest_cube_level(g), nearest_cube_level(b)
+	local cube_d = dist2(r, g, b, CUBE[ri + 1], CUBE[gi + 1], CUBE[bi + 1])
+
+	-- Best gray-ramp candidate
+	local step = math.max(0, math.min(23, math.floor(((r + g + b) / 3 - 8) / 10 + 0.5)))
+	local gv = 8 + 10 * step
+	local gray_d = dist2(r, g, b, gv, gv, gv)
+
+	local idx = gray_d < cube_d and (232 + step) or (16 + 36 * ri + 6 * gi + bi)
+	cterm_cache[hex] = idx
+	return idx
+end
+
+local function is_hex(v)
+	return type(v) == "string" and v:match("^#%x%x%x%x%x%x$") ~= nil
+end
+
+-- Turns a group spec into `nvim_set_hl` options.
+-- ctermfg/ctermbg are derived from fg/bg unless given explicitly.
 local function normalize(spec)
 	if type(spec) == "string" then
 		return { link = spec, force = true }
 	end
 
 	local opts = vim.deepcopy(spec)
+
+	if is_hex(opts.fg) and not opts.ctermfg then
+		opts.ctermfg = hex_to_256(opts.fg)
+	end
+	if is_hex(opts.bg) and not opts.ctermbg then
+		opts.ctermbg = hex_to_256(opts.bg)
+	end
+
 	if not opts.cterm then
 		opts.cterm = {}
 		for _, attr in ipairs(GUI_ATTRS) do
 			if opts[attr] then
-				opts.cterm[attr] = true
+				-- terminals without undercurl support fall back to underline
+				opts.cterm[attr == "undercurl" and "underline" or attr] = true
 			end
 		end
 	end
 	return opts
 end
 
-local function apply(groups)
+local function apply(groups, ns)
 	for name, spec in pairs(groups) do
-		set_hl(0, name, normalize(spec))
+		set_hl(ns or 0, name, normalize(spec))
 	end
 end
 
@@ -140,284 +214,285 @@ end
 -- Editor UI
 local editor = {
 	-- Base
-	Normal = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	Cursor = { fg = p.black, bg = p.fg, ctermfg = 16, ctermbg = 254 },
-	CursorIM = { fg = p.black, bg = p.accent, ctermfg = 16, ctermbg = 62 },
-	CursorLine = { bg = p.line, ctermbg = 233 },
-	CursorColumn = { bg = p.surface_hi, ctermbg = 236 },
-	CursorLineNr = { fg = p.fg, bg = p.line, bold = true, ctermfg = 254, ctermbg = 233 },
-	ColorColumn = { bg = p.surface, ctermbg = 234 },
+	Normal = { fg = p.fg, bg = p.black },
+	Cursor = { fg = p.black, bg = p.white },
+	CursorLine = { bg = p.line },
+	CursorColumn = { bg = p.surface_hi },
+	CursorLineNr = { fg = p.fg, bg = p.line, bold = true },
+	ColorColumn = { bg = p.surface },
 	Conceal = {},
-	LineNr = { fg = p.line_nr, ctermfg = 240 },
-	SignColumn = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	FoldColumn = { fg = p.dim, bg = p.black, ctermfg = 242, ctermbg = 16 },
-	Folded = { fg = p.dim, bg = p.black, ctermfg = 242, ctermbg = 16 },
-	EndOfBuffer = { fg = p.dim, ctermfg = 242 },
-	NonText = { fg = p.dim, ctermfg = 242 },
-	SpecialKey = { fg = p.dim, bold = true, ctermfg = 242 },
-	Directory = { fg = p.fg, ctermfg = 254 },
-	MatchParen = { fg = p.accent, bold = true, ctermfg = 62 },
-	QuickFixLine = { bg = p.line, bold = true, ctermbg = 233 },
-	VertSplit = { fg = p.dim, bg = p.black, ctermfg = 242, ctermbg = 16 },
+	LineNr = { fg = p.line_nr },
+	SignColumn = { fg = p.fg, bg = p.black },
+	FoldColumn = { fg = p.dim, bg = p.black },
+	Folded = { fg = p.dim, bg = p.black },
+	EndOfBuffer = { fg = p.dim },
+	NonText = { fg = p.dim },
+	SpecialKey = { fg = p.dim, bold = true },
+	Directory = { fg = p.fg },
+	MatchParen = { fg = p.search_fg, bold = true },
+	QuickFixLine = { bg = p.line, bold = true },
+	VertSplit = { fg = p.dim, bg = p.black },
 
 	-- Selection and search
-	Visual = { bg = p.border, ctermbg = 238 },
-	VisualNOS = { bg = p.surface_hi, ctermbg = 236 },
-	Search = { fg = p.search_fg, bg = p.search_bg, ctermfg = 135, ctermbg = 53 },
-	IncSearch = { fg = p.search_bg, bg = p.search_fg, bold = true, ctermfg = 53, ctermbg = 135 },
-	CurSearch = { fg = p.search_bg, bg = p.search_fg, bold = true, ctermfg = 53, ctermbg = 135 },
+	Visual = { bg = p.border },
+	VisualNOS = { bg = p.surface_hi },
+	Search = { fg = p.search_fg, bg = p.search_bg },
+	IncSearch = { fg = p.search_bg, bg = p.search_fg, bold = true },
+	CurSearch = { fg = p.search_bg, bg = p.search_fg, bold = true },
 
 	-- Messages
-	ModeMsg = { fg = p.fg, bg = p.black, bold = true, ctermfg = 254, ctermbg = 16 },
-	MoreMsg = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	MsgArea = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	MsgSeparator = { fg = p.border, bg = p.black, ctermfg = 238, ctermbg = 16 },
-	Question = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	WarningMsg = { fg = p.warn, bg = p.black, ctermfg = 137, ctermbg = 16 },
-	ErrorMsg = { fg = p.error, bg = p.black, bold = true, ctermfg = 131, ctermbg = 16 },
-	Error = { fg = p.error, bg = p.black, bold = true, reverse = true, ctermfg = 131, ctermbg = 16 },
-	Todo = { fg = p.black, bg = p.warn, bold = true, ctermfg = 16, ctermbg = 137 },
+	ModeMsg = { fg = p.fg, bg = p.black, bold = true },
+	MoreMsg = { fg = p.fg, bg = p.black },
+	MsgArea = { fg = p.fg, bg = p.black },
+	MsgSeparator = { fg = p.border, bg = p.black },
+	Question = { fg = p.fg, bg = p.black },
+	WarningMsg = { fg = p.warn, bg = p.black },
+	ErrorMsg = { fg = p.error, bg = p.black, bold = true },
+	Error = { fg = p.error, bg = p.black, bold = true, reverse = true },
+	Todo = { fg = p.black, bg = p.warn, bold = true },
 
 	-- Statusline, tabline, titlebar, toolbar
-	StatusLine = { fg = p.statusline_fg, bg = p.line, ctermfg = 254, ctermbg = 233 },
-	StatusLineNC = { fg = p.statusline_nc_fg, bg = p.black, ctermfg = 241, ctermbg = 16 },
-	TabLine = { fg = p.dim, bg = p.black, ctermfg = 242, ctermbg = 16 },
-	TabLineFill = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	TabLineSel = { fg = p.fg, bg = p.black, bold = true, ctermfg = 254, ctermbg = 16 },
-	TitleBar = { fg = p.fg, bg = p.black, ctermfg = 254, ctermbg = 16 },
-	TitleBarNC = { fg = p.dim, bg = p.black, ctermfg = 242, ctermbg = 16 },
-	ToolbarButton = { fg = p.fg, bg = p.black, bold = true, ctermfg = 254, ctermbg = 16 },
-	ToolbarLine = { bg = p.black, ctermbg = 16 },
+	StatusLine = { fg = p.statusline_fg, bg = p.line },
+	StatusLineNC = { fg = p.statusline_nc_fg, bg = p.black },
+	TabLine = { fg = p.dim, bg = p.black },
+	TabLineFill = { fg = p.fg, bg = p.black },
+	TabLineSel = { fg = p.fg, bg = p.black, bold = true },
+	TitleBar = { fg = p.fg, bg = p.black },
+	TitleBarNC = { fg = p.dim, bg = p.black },
+	ToolbarButton = { fg = p.fg, bg = p.black, bold = true },
+	ToolbarLine = { bg = p.black },
 
 	-- Spell
-	SpellBad = { fg = p.error, sp = p.error, undercurl = true, ctermfg = 131, cterm = { underline = true } },
-	SpellCap = { fg = p.warn, sp = p.warn, undercurl = true, ctermfg = 137, cterm = { underline = true } },
-	SpellLocal = { fg = p.dim, sp = p.dim, undercurl = true, ctermfg = 242, cterm = { underline = true } },
-	SpellRare = { fg = p.dim, sp = p.dim, undercurl = true, ctermfg = 242, cterm = { underline = true } },
+	SpellBad = { fg = p.error, sp = p.error, undercurl = true },
+	SpellCap = { fg = p.warn, sp = p.warn, undercurl = true },
+	SpellLocal = { fg = p.dim, sp = p.dim, undercurl = true },
+	SpellRare = { fg = p.dim, sp = p.dim, undercurl = true },
 }
 
 -- Popups and floating windows
 local popup = {
-	NormalFloat = { fg = p.fg, bg = p.popup_bg, ctermfg = 254, ctermbg = 233 },
-	FloatBorder = { fg = p.border, bg = p.popup_bg, ctermfg = 238, ctermbg = 233 },
-	FloatTitle = { fg = p.fg, bg = p.popup_bg, ctermfg = 254, ctermbg = 233 },
-	FloatFooter = { fg = p.dim, bg = p.popup_bg, ctermfg = 242, ctermbg = 233 },
+	NormalFloat = { fg = p.fg, bg = p.popup_bg },
+	FloatBorder = { fg = p.border, bg = p.popup_bg },
+	FloatTitle = { fg = p.fg, bg = p.popup_bg },
+	FloatFooter = { fg = p.dim, bg = p.popup_bg },
 
-	Pmenu = { fg = p.fg, bg = p.popup_bg, ctermfg = 254, ctermbg = 233 },
-	PmenuSel = { fg = p.fg, bg = p.surface, ctermfg = 254, ctermbg = 234 },
-	PmenuExtra = { fg = p.dim, bg = p.popup_bg, ctermfg = 242, ctermbg = 233 },
-	PmenuExtraSel = { fg = p.fg, bg = p.surface_hi, ctermfg = 254, ctermbg = 236 },
-	PmenuKind = { fg = p.dim, bg = p.popup_bg, ctermfg = 242, ctermbg = 233 },
-	PmenuKindSel = { fg = p.fg, bg = p.surface_hi, ctermfg = 254, ctermbg = 236 },
-	PmenuMatch = { fg = p.white, bg = p.popup_bg, bold = true, ctermfg = 231, ctermbg = 233 },
-	PmenuMatchSel = { fg = p.white, bg = p.surface_hi, bold = true, ctermfg = 231, ctermbg = 236 },
-	PmenuSbar = { bg = p.popup_bg, ctermbg = 233 },
-	PmenuThumb = { bg = p.border, ctermbg = 238 },
-	WildMenu = { fg = p.fg, bg = p.surface_hi, ctermfg = 254, ctermbg = 236 },
+	Pmenu = { fg = p.fg, bg = p.popup_bg },
+	PmenuSel = { fg = p.fg, bg = p.surface },
+	PmenuExtra = { fg = p.dim, bg = p.popup_bg },
+	PmenuExtraSel = { fg = p.fg, bg = p.surface_hi },
+	PmenuKind = { fg = p.dim, bg = p.popup_bg },
+	PmenuKindSel = { fg = p.fg, bg = p.surface_hi },
+	PmenuMatch = { fg = p.white, bg = p.popup_bg, bold = true },
+	PmenuMatchSel = { fg = p.white, bg = p.surface_hi, bold = true },
+	PmenuSbar = { bg = p.popup_bg },
+	PmenuThumb = { bg = p.border },
+	WildMenu = { fg = p.fg, bg = p.surface_hi },
 }
 
 -- Vim syntax groups
 local syntax = {
-	Comment = { fg = p.comment, ctermfg = 241 },
-	Constant = { fg = p.fg, ctermfg = 254 },
-	Number = { fg = p.fg, ctermfg = 254 },
-	String = { fg = p.string, ctermfg = 254 },
-	Identifier = { fg = p.fg, ctermfg = 254 },
-	Function = { fg = p.fg, ctermfg = 254 },
-	Statement = { fg = p.fg_alt, ctermfg = 254 },
-	Type = { fg = p.fg_alt, ctermfg = 254 },
-	PreProc = { fg = p.fg_alt, ctermfg = 254 },
-	Special = { fg = p.fg, ctermfg = 254 },
-	Ignore = { fg = p.fg, ctermfg = 254 },
-	Underlined = { fg = p.fg, underline = true, ctermfg = 254 },
-	Title = { fg = p.fg, bold = true, ctermfg = 254 },
+	Comment = { fg = p.comment },
+	Constant = { fg = t.const },
+	Number = { fg = t.const },
+	String = { fg = p.string },
+	Identifier = { fg = p.fg },
+	Function = { fg = p.fg },
+	Statement = { fg = p.fg_alt },
+	Type = { fg = p.fg_alt },
+	PreProc = { fg = p.fg_alt },
+	Special = { fg = p.fg },
+	Ignore = { fg = p.fg },
+	Underlined = { fg = p.fg, underline = true },
+	Title = { fg = p.fg, bold = true },
 
-	Delimiter = { fg = p.punct, ctermfg = 254 },
-	Operator = { fg = p.fg, ctermfg = 254 },
+	Delimiter = { fg = t.delim },
+	Operator = { fg = t.op },
 }
 
 -- Treesitter and LSP semantic tokens
 local treesitter = {
 	-- Comments
-	["@comment.documentation"] = { fg = p.doc, ctermfg = 243 },
+	["@comment.documentation"] = { fg = p.doc },
 
 	-- Structure
-	["@module"] = { fg = p.fg_alt, ctermfg = 254 },
-	["@attribute"] = { fg = p.doc, italic = true, ctermfg = 243 },
+	["@module"] = { fg = p.fg_alt },
+	["@attribute"] = { fg = p.doc, italic = true },
 
 	-- Functions (never bold)
-	["@function"] = { fg = p.fg, ctermfg = 254 },
-	["@function.method"] = { fg = p.fg, ctermfg = 254 },
-	["@function.call"] = { fg = p.fg, ctermfg = 254 },
-	["@function.method.call"] = { fg = p.fg, ctermfg = 254 },
-	["@function.builtin"] = { fg = p.fg, ctermfg = 254 },
+	["@function"] = { fg = p.fg },
+	["@function.method"] = { fg = p.fg },
+	["@function.call"] = { fg = p.fg },
+	["@function.method.call"] = { fg = p.fg },
+	["@function.builtin"] = { fg = p.fg },
 
 	-- LSP semantic tokens
-	["@lsp.type.function"] = { fg = p.fg, ctermfg = 254 },
-	["@lsp.type.method"] = { fg = p.fg, ctermfg = 254 },
+	["@lsp.type.function"] = { fg = p.fg },
+	["@lsp.type.method"] = { fg = p.fg },
 	["@lsp.typemod.function.declaration"] = {},
 	["@lsp.typemod.method.declaration"] = {},
+	["@lsp.type.operator"] = { fg = t.op },
+	["@lsp.type.property"] = { fg = t.prop },
 
 	-- Variables
-	["@variable.parameter"] = { fg = p.fg, italic = true, ctermfg = 254 },
-	["@variable.builtin"] = { fg = p.fg_alt, italic = true, ctermfg = 254 },
+	["@variable.parameter"] = { fg = p.fg, italic = true },
+	["@variable.builtin"] = { fg = p.fg_alt, italic = true },
+	["@variable.member"] = { fg = t.prop },
+	["@property"] = { fg = t.prop },
 
 	-- Literals
-	["@constant.builtin"] = { fg = p.fg, ctermfg = 254 },
-	["@string.escape"] = { fg = p.fg, ctermfg = 254 },
+	["@boolean"] = { fg = t.const },
+	["@constant.builtin"] = { fg = t.const },
+	["@string.escape"] = { fg = t.special },
+	["@string.special"] = { fg = t.special },
 
 	-- Punctuation and operators
-	["@punctuation"] = { fg = p.punct, ctermfg = 254 },
-	["@punctuation.bracket"] = { fg = p.fg, ctermfg = 254 },
-	["@punctuation.delimiter"] = { fg = p.punct, ctermfg = 254 },
-	["@operator"] = { fg = p.fg, ctermfg = 254 },
+	["@punctuation"] = { fg = t.delim },
+	["@punctuation.bracket"] = { fg = t.bracket },
+	["@punctuation.delimiter"] = { fg = t.delim },
+	["@punctuation.special"] = { fg = t.special }, -- ${ } in template strings
+	["@operator"] = { fg = t.op },
+	["@keyword.operator"] = { fg = t.op }, -- and, or, not, in, instanceof
 
 	-- Tags
-	["@tag"] = { fg = p.fg_alt, ctermfg = 254 },
-	["@tag.delimiter"] = { fg = p.punct, ctermfg = 254 },
-	["@tag.attribute"] = { fg = p.fg_alt, italic = true, ctermfg = 254 },
+	["@tag"] = { fg = p.fg_alt },
+	["@tag.delimiter"] = { fg = t.bracket },
+	["@tag.attribute"] = { fg = p.fg_alt, italic = true },
 
 	-- Generic markup
-	["@markup.heading"] = { fg = p.fg, bold = true, ctermfg = 254 },
+	["@markup.heading"] = { fg = p.fg, bold = true },
 	["@markup.strong"] = { bold = true },
 	["@markup.italic"] = { italic = true },
-	["@markup.link"] = { fg = p.fg_alt, underline = true, ctermfg = 254 },
-	["@markup.raw"] = { fg = p.fg_alt, ctermfg = 254 },
+	["@markup.link"] = { fg = p.fg_alt, underline = true },
+	["@markup.raw"] = { fg = p.fg_alt },
 
 	-- Regex
-	["@string.regexp"] = { fg = p.regex.string, ctermfg = 245 },
-	["@character.special"] = { fg = p.fg, ctermfg = 254 },
-	["@operator.regex"] = { fg = p.warn, ctermfg = 137 },
-	["@keyword.operator.regex"] = { fg = p.warn, ctermfg = 137 },
-	["@punctuation.bracket.regex"] = { fg = p.dim, ctermfg = 242 },
-	["@punctuation.delimiter.regex"] = { fg = p.regex.delimiter, ctermfg = 95 },
-	["@property.regex"] = { fg = p.regex.property, italic = true, ctermfg = 65 },
-	["@variable.builtin.regex"] = { fg = p.fg_alt, ctermfg = 254 },
+	["@string.regexp"] = { fg = p.regex.string },
+	["@character.special"] = { fg = t.special },
+	["@operator.regex"] = { fg = p.warn },
+	["@keyword.operator.regex"] = { fg = p.warn },
+	["@punctuation.bracket.regex"] = { fg = p.dim },
+	["@punctuation.delimiter.regex"] = { fg = p.regex.delimiter },
+	["@property.regex"] = { fg = p.regex.property, italic = true },
+	["@variable.builtin.regex"] = { fg = p.fg_alt },
 }
 
 -- Diagnostics and LSP
 local diagnostics = {
-	DiagnosticError = { fg = p.error, ctermfg = 131 },
-	DiagnosticWarn = { fg = p.warn, ctermfg = 137 },
-	DiagnosticInfo = { fg = p.fg_alt, ctermfg = 254 },
-	DiagnosticHint = { fg = p.comment, ctermfg = 241 },
-	DiagnosticOk = { fg = p.ok, ctermfg = 65 },
-	DiagnosticUnnecessary = { fg = p.comment, ctermfg = 241 },
+	DiagnosticError = { fg = p.error },
+	DiagnosticWarn = { fg = p.warn },
+	DiagnosticInfo = { fg = p.fg_alt },
+	DiagnosticHint = { fg = p.comment },
+	DiagnosticOk = { fg = p.ok },
+	DiagnosticUnnecessary = { fg = p.comment },
 
-	DiagnosticUnderlineError = { sp = p.error, undercurl = true, cterm = { underline = true } },
-	DiagnosticUnderlineWarn = { sp = p.warn, undercurl = true, cterm = { underline = true } },
-	DiagnosticUnderlineInfo = { sp = p.fg_alt, undercurl = true, cterm = { underline = true } },
-	DiagnosticUnderlineHint = { sp = p.comment, undercurl = true, cterm = { underline = true } },
+	DiagnosticUnderlineError = { sp = p.error, undercurl = true },
+	DiagnosticUnderlineWarn = { sp = p.warn, undercurl = true },
+	DiagnosticUnderlineInfo = { sp = p.fg_alt, undercurl = true },
+	DiagnosticUnderlineHint = { sp = p.comment, undercurl = true },
 
-	LspInlayHint = { fg = p.comment, bg = p.inlay_bg, italic = true, ctermfg = 241, ctermbg = 233 },
-	LspReferenceText = { bg = p.surface, ctermbg = 234 },
-	LspReferenceRead = { bg = p.surface, ctermbg = 234 },
-	LspReferenceWrite = { bg = p.surface, underline = true, ctermbg = 234 },
+	LspInlayHint = { fg = p.comment, bg = p.inlay_bg, italic = true },
+	LspReferenceText = { bg = p.surface },
+	LspReferenceRead = { bg = p.surface },
+	LspReferenceWrite = { bg = p.surface, underline = true },
 }
 
 -- Diff
 local diff = {
 	-- Lines
-	DiffAdd = { fg = p.fg, bg = p.diff.add_bg, ctermfg = 254, ctermbg = 22 },
-	DiffChange = { fg = p.fg, bg = p.diff.change_bg, ctermfg = 254, ctermbg = 17 },
-	DiffDelete = { fg = p.diff.removed, bg = p.diff.delete_bg, ctermfg = 138, ctermbg = 52 },
+	DiffAdd = { fg = p.fg, bg = p.diff.add_bg },
+	DiffChange = { fg = p.fg, bg = p.diff.change_bg },
+	DiffDelete = { fg = p.diff.removed, bg = p.diff.delete_bg },
 
 	-- Text inside a line
-	DiffText = { fg = p.white, bg = p.diff.text_bg, bold = true, ctermfg = 231, ctermbg = 24 },
-	DiffAddText = { fg = p.white, bg = p.diff.add_text_bg, bold = true, ctermfg = 231, ctermbg = 29 },
-	DiffDeleteText = { fg = p.white, bg = p.diff.delete_text_bg, bold = true, ctermfg = 231, ctermbg = 88 },
+	DiffText = { fg = p.white, bg = p.diff.text_bg, bold = true },
+	DiffAddText = { fg = p.white, bg = p.diff.add_text_bg, bold = true },
+	DiffDeleteText = { fg = p.white, bg = p.diff.delete_text_bg, bold = true },
 
 	-- Signs and diff syntax
-	Added = { fg = p.diff.added, ctermfg = 108 },
-	Changed = { fg = p.diff.changed, ctermfg = 110 },
-	Removed = { fg = p.diff.removed, ctermfg = 138 },
-	diffFile = { fg = p.fg, bold = true, ctermfg = 254 },
-	diffLine = { fg = p.diff.line, ctermfg = 110 },
+	Added = { fg = p.diff.added },
+	Changed = { fg = p.diff.changed },
+	Removed = { fg = p.diff.removed },
+	diffFile = { fg = p.fg, bold = true },
+	diffLine = { fg = p.diff.line },
 }
 
 -- Markdown
 
 local markdown = {
 	-- Frontmatter fences (---)
-	["@keyword.directive.markdown"] = { fg = md.accent, ctermfg = 139 },
+	["@keyword.directive.markdown"] = { fg = md.accent },
 
 	-- Structural punctuation
-	["@punctuation.special.markdown"] = { fg = p.fg, ctermfg = 254 },
-	["@punctuation.delimiter.markdown"] = { fg = p.fg, ctermfg = 254 },
+	["@punctuation.special.markdown"] = { fg = p.fg },
+	["@punctuation.delimiter.markdown"] = { fg = p.fg },
 
 	-- Lists and task items
-	["@markup.list.markdown"] = { fg = md.accent, bold = true, ctermfg = 139 },
-	["@markup.list.checked.markdown"] = { fg = md.accent, bold = true, ctermfg = 139 },
-	["@markup.list.unchecked.markdown"] = { fg = md.accent, bold = true, ctermfg = 139 },
+	["@markup.list.markdown"] = { fg = md.accent, bold = true },
+	["@markup.list.checked.markdown"] = { fg = md.accent, bold = true },
+	["@markup.list.unchecked.markdown"] = { fg = md.accent, bold = true },
 
 	-- Blockquote
-	["@markup.quote.markdown"] = { fg = md.italic, italic = true, ctermfg = 248 },
+	["@markup.quote.markdown"] = { fg = md.italic, italic = true },
 
 	-- Code blocks
-	["@markup.raw.block.markdown"] = { fg = md.block, ctermfg = 249 },
-	["@markup.raw.delimiter.markdown"] = { fg = md.accent, ctermfg = 139 },
-	["@label.markdown"] = { fg = md.accent, italic = true, ctermfg = 139 },
+	["@markup.raw.block.markdown"] = { fg = md.block },
+	["@markup.raw.delimiter.markdown"] = { fg = md.accent },
+	["@label.markdown"] = { fg = md.accent, italic = true },
 
 	-- Inline emphasis
-	["@markup.strong.markdown_inline"] = { fg = p.white, bold = true, ctermfg = 231 },
-	["@markup.italic.markdown_inline"] = { fg = md.italic, italic = true, ctermfg = 248 },
-	["@markup.strikethrough.markdown_inline"] = {
-		fg = md.strike,
-		strikethrough = true,
-		ctermfg = 242,
-		cterm = {},
-	},
+	["@markup.strong.markdown_inline"] = { fg = p.white, bold = true },
+	["@markup.italic.markdown_inline"] = { fg = md.italic, italic = true },
+	["@markup.strikethrough.markdown_inline"] = { fg = md.strike, strikethrough = true },
 
 	-- Inline code and math
-	["@markup.raw.markdown_inline"] = { fg = md.code, ctermfg = 111 },
-	["@markup.math.markdown_inline"] = { fg = md.code, ctermfg = 111 },
-	["@markup.math.markdown"] = { fg = md.code, ctermfg = 111 },
-	["@markup.math.latex"] = { fg = md.code, ctermfg = 111 }, -- injected latex inside math (also affects .tex)
-	["@punctuation.special.markdown_inline"] = { fg = md.code, ctermfg = 111 }, -- $ delimiters
+	["@markup.raw.markdown_inline"] = { fg = md.code },
+	["@markup.math.markdown_inline"] = { fg = md.code },
+	["@markup.math.markdown"] = { fg = md.code },
+	["@markup.math.latex"] = { fg = md.code }, -- injected latex inside math (also affects .tex)
+	["@punctuation.special.markdown_inline"] = { fg = md.code }, -- $ delimiters
 
 	-- Inline links
-	["@markup.link.markdown_inline"] = { fg = md.marker, ctermfg = 240 },
-	["@markup.link.label.markdown_inline"] = { fg = md.code, underline = true, ctermfg = 111 },
-	["@markup.link.url.markdown_inline"] = { fg = p.accent, underline = true, ctermfg = 62 },
+	["@markup.link.markdown_inline"] = { fg = md.marker },
+	["@markup.link.label.markdown_inline"] = { fg = md.code, underline = true },
+	["@markup.link.url.markdown_inline"] = { fg = p.accent, underline = true },
 
 	-- Inline escapes and conceal
-	["@string.escape.markdown_inline"] = { fg = md.accent, ctermfg = 139 },
-	["@conceal.markdown_inline"] = { fg = md.marker, ctermfg = 240 },
+	["@string.escape.markdown_inline"] = { fg = md.accent },
+	["@conceal.markdown_inline"] = { fg = md.marker },
 }
 
 -- Headings (generated from the gradient table)
 do
 	local levels = {
-		{ p.white, 231 },
-		{ p.fg, 254 },
-		{ p.fg_alt, 254 },
-		{ p.string, 254 },
-		{ p.string, 254 },
-		{ p.string, 254 },
+		p.white,
+		p.fg,
+		p.fg_alt,
+		p.string,
+		p.string,
+		p.string,
 	}
 
-	local first = levels[1]
-	markdown["@markup.heading.markdown"] = { fg = first[1], bold = true, ctermfg = first[2] }
-	markdown["@markup.heading.marker.markdown"] = { fg = first[1], ctermfg = first[2] }
+	markdown["@markup.heading.markdown"] = { fg = levels[1], bold = true }
+	markdown["@markup.heading.marker.markdown"] = { fg = levels[1] }
 
-	for i, level in ipairs(levels) do
-		markdown[("@markup.heading.%d.markdown"):format(i)] = { fg = level[1], bold = true, ctermfg = level[2] }
-		markdown[("@markup.heading.%d.marker.markdown"):format(i)] = { fg = level[1], ctermfg = level[2] }
+	for i, color in ipairs(levels) do
+		markdown[("@markup.heading.%d.markdown"):format(i)] = { fg = color, bold = true }
+		markdown[("@markup.heading.%d.marker.markdown"):format(i)] = { fg = color }
 	end
 end
 
 -- Frontmatter (YAML injected into markdown), applied through its own namespace
 local frontmatter = {
-	["@property.yaml"] = { fg = md.accent, ctermfg = 139 }, -- keys
-	["@string.yaml"] = { fg = md.string, ctermfg = 252 }, -- string values
-	["@number.yaml"] = { fg = md.accent, ctermfg = 139 },
-	["@number.float.yaml"] = { fg = md.accent, ctermfg = 139 },
-	["@boolean.yaml"] = { fg = md.accent, ctermfg = 139 },
-	["@constant.builtin.yaml"] = { fg = md.accent, ctermfg = 139 }, -- null
-	["@label.yaml"] = { fg = md.accent, ctermfg = 139 }, -- anchors / aliases
-	["@type.yaml"] = { fg = md.accent, ctermfg = 139 }, -- tags
-	["@punctuation.delimiter.yaml"] = { fg = md.marker, ctermfg = 240 }, -- : - ,
-	["@punctuation.bracket.yaml"] = { fg = md.marker, ctermfg = 240 }, -- [ ] { }
+	["@property.yaml"] = { fg = md.accent }, -- keys
+	["@string.yaml"] = { fg = md.string }, -- string values
+	["@number.yaml"] = { fg = md.accent },
+	["@number.float.yaml"] = { fg = md.accent },
+	["@boolean.yaml"] = { fg = md.accent },
+	["@constant.builtin.yaml"] = { fg = md.accent }, -- null
+	["@label.yaml"] = { fg = md.accent }, -- anchors / aliases
+	["@type.yaml"] = { fg = md.accent }, -- tags
+	["@punctuation.delimiter.yaml"] = { fg = md.marker }, -- : - ,
+	["@punctuation.bracket.yaml"] = { fg = md.marker }, -- [ ] { }
 }
 
 -- Links (hi! link)
@@ -555,9 +630,7 @@ apply(markdown)
 
 local frontmatter_ns = vim.api.nvim_create_namespace("hollow_markdown")
 
-for name, spec in pairs(frontmatter) do
-	set_hl(frontmatter_ns, name, spec)
-end
+apply(frontmatter, frontmatter_ns)
 
 local function sync_frontmatter_ns()
 	for _, win in ipairs(vim.api.nvim_list_wins()) do
