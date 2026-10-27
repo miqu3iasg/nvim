@@ -96,6 +96,16 @@ local p = {
 		delim = "#989898", -- , ; . :
 	},
 
+	-- Constrast version
+	-- t = {
+	-- 	op = "#f6f6f6", -- + - = == => && ||
+	-- 	special = "#ffffff", -- ${}, escapes, special regex chars
+	-- 	const = "#ededed", -- numbers, booleans, nil
+	-- 	prop = "#b4b4b4", -- fields and properties (obj.field)
+	-- 	bracket = "#9a9a9a", -- ( ) [ ] { }
+	-- 	delim = "#808080", -- , ; . :
+	-- },
+
 	terminal = {
 		"#000000",
 		"#913939",
@@ -340,7 +350,7 @@ local treesitter = {
 	["@property"] = { fg = t.prop },
 
 	-- Literals
-	["@boolean"] = { fg = t.const },
+	["@boolean"] = { fg = p.fg },
 	["@constant.builtin"] = { fg = t.const },
 	["@string.escape"] = { fg = t.special },
 	["@string.special"] = { fg = t.special },
