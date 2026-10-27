@@ -42,6 +42,10 @@
       "rev": "b23c76a8c874fe7ac5ad95255efc66173b049088",
       "src": "https://github.com/Olical/conjure"
     },
+    "cosec-twilight.nvim": {
+      "rev": "4c628c71260da6bbc9d532f25272f6a7bda12ff6",
+      "src": "https://github.com/CosecSecCot/cosec-twilight.nvim"
+    },
     "eyes.nvim": {
       "rev": "2b06d219787cfe2cbbcf8857598f81434ff2bcb1",
       "src": "https://github.com/amedoeyes/eyes.nvim"
@@ -61,6 +65,10 @@
     "goyo.vim": {
       "rev": "9c72fdf2d202914318581f9f0dd09fd102f8504d",
       "src": "https://github.com/junegunn/goyo.vim"
+    },
+    "gruber-darker.nvim": {
+      "rev": "35cb97959ef01f7193c94c404c13ddb3d4346654",
+      "src": "https://github.com/blazkowolf/gruber-darker.nvim"
     },
     "img-clip.nvim": {
       "rev": "99848daf801789dbebe2192b475eb887d375002c",
@@ -144,6 +152,10 @@
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
+    "soda.vim": {
+      "rev": "37b03a8003ebf9c23b2735c1bd0364844e67f0b6",
+      "src": "https://github.com/DAddYE/soda.vim"
+    },
     "springboot-nvim": {
       "rev": "105fb2a0b54fbd819200b244e8079c4c9f1a8415",
       "src": "https://github.com/elmcgill/springboot-nvim"
@@ -163,6 +175,10 @@
     "vim-rhubarb": {
       "rev": "5496d7c94581c4c9ad7430357449bb57fc59f501",
       "src": "https://github.com/tpope/vim-rhubarb"
+    },
+    "vim-simplicity": {
+      "rev": "3913c2a1d7e1cfd1d318ebc458700e48db4f9412",
+      "src": "https://github.com/smallwat3r/vim-simplicity"
     },
     "vim-tmux-navigator": {
       "rev": "e41c431a0c7b7388ae7ba341f01a0d217eb3a432",

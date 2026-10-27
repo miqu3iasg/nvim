@@ -4,6 +4,7 @@ vim.pack.add({
 	"https://github.com/jaredgorski/fogbell.vim",
 	"https://github.com/amedoeyes/eyes.nvim",
 	"https://github.com/metalelf0/black-metal-theme-neovim",
+	"https://github.com/DAddYE/soda.vim",
 })
 
 -- Color palettes used for colorscheme overrides
@@ -21,17 +22,8 @@ local black_metal_pallet = {
 
 -- Black Metal
 require("black-metal").setup({
-	theme = "darkthrone",
-	variant = "dark",
-	alt_bg = true,
-	colored_docstrings = true,
-	cursorline_gutter = false,
-	dark_gutter = false,
-	favor_treesitter_hl = false,
-	plain_float = false,
-	show_eob = true,
-	term_colors = true,
 	transparent = true,
+	trve = true, -- switch this to false if you want light variants
 
 	-- Custom highlights, override default colors
 	colors = {},

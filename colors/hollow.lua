@@ -105,25 +105,6 @@ local p = {
 	-- 	bracket = "#9a9a9a", -- ( ) [ ] { }
 	-- 	delim = "#808080", -- , ; . :
 	-- },
-
-	terminal = {
-		"#000000",
-		"#913939",
-		"#00af5f",
-		"#221cd6",
-		"#0087d7",
-		"#d787d7",
-		"#00afaf",
-		"#dadada",
-		"#707070",
-		"#9c3b3b",
-		"#00d75f",
-		"#221cd6",
-		"#5fafff",
-		"#ff87ff",
-		"#00d7d7",
-		"#ffffff",
-	},
 }
 
 local md = p.markdown
@@ -533,7 +514,6 @@ local links = {
 	PopupNotification = "Todo",
 	StatusLineTerm = "StatusLine",
 	StatusLineTermNC = "StatusLineNC",
-	Terminal = "Normal",
 	TermCursor = "Cursor",
 	lCursor = "Cursor",
 	debugBreakpoint = "ModeMsg",
@@ -622,10 +602,6 @@ local links = {
 -- Apply
 
 vim.o.background = "dark"
-
-for i, color in ipairs(p.terminal) do
-	vim.g["terminal_color_" .. (i - 1)] = color
-end
 
 apply(links)
 apply(editor)
