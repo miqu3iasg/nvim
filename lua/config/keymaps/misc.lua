@@ -66,8 +66,10 @@ end, "Toggle relative numbers")
 -- Files
 edit_file("<leader>zg", "~/.gitconfig", "Edit .gitconfig")
 edit_file("<leader>zi", "~/.config/i3/config", "Edit i3 config")
-edit_file("<leader>zs", "~/.zshrc", "Edit .zshrc")
+edit_file("<leader>zz", "~/.zshrc", "Edit .zshrc")
 edit_file("<leader>zt", "~/.config/tmux/tmux.conf", "Edit tmux.conf")
+edit_file("<leader>zk", "~/.config/kitty/kitty.conf", "Edit kitty.conf")
+edit_file("<leader>zs", "~/.config/starship.toml", "Edit starship.toml")
 
 -- Directories
 open_dir("<leader>zn", "~/.config/nvim", "Open nvim config dir")
@@ -85,4 +87,5 @@ map("ZX", "<cmd>w<cr>", "Save file")
 -- Reload, restart and run
 map("<leader>rl", "<cmd>source $MYVIMRC<cr>", "Reload nvim config")
 map("<leader>re", "<cmd>restart<cr>", "Restart Neovim")
-map("<leader>rs", "<cmd>source %<cr>", "Source current file")
+map("<leader>rs", "<cmd>luafile %<cr>", "Source lua files")
+map("<leader>ru", "<cmd>update<bar>source %<cr>", "Save and source current file")

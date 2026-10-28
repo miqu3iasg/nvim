@@ -16,23 +16,23 @@ local SESSION_DIR = vim.fn.stdpath("state") .. "/sessions/"
 -- used as `git commit` editor inside a project that has a stored session.
 local IGNORED_FILETYPES = { gitcommit = true, gitrebase = true }
 
---- Whether session handling is active (only inside tmux).
----@return boolean
+-- Whether session handling is active (only inside tmux).
+-- @return boolean
 function M.enabled()
 	return vim.env.TMUX ~= nil
 end
 
---- Absolute path of the session file for the current working directory.
----@return string
+-- Absolute path of the session file for the current working directory.
+-- @return string
 function M.path()
 	local name = vim.fn.getcwd():gsub("/", "__"):gsub("[^%w%-%._]", "_")
 	return SESSION_DIR .. name
 end
 
---- Number of buffers that represent real files on disk.
---- Excludes special buffers (netrw, help, terminals, ...), unnamed buffers and
---- IGNORED_FILETYPES.
----@return integer
+-- Number of buffers that represent real files on disk.
+-- Excludes special buffers (netrw, help, terminals, ...), unnamed buffers and
+-- IGNORED_FILETYPES.
+-- @return integer
 local function count_file_buffers()
 	local count = 0
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -44,7 +44,7 @@ local function count_file_buffers()
 	return count
 end
 
---- Delete netrw buffers so they are not written into the session file.
+-- Delete netrw buffers so they are not written into the session file.
 local function remove_netrw_buffers()
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.bo[buf].filetype == "netrw" then
@@ -53,10 +53,10 @@ local function remove_netrw_buffers()
 	end
 end
 
---- Restore the session of the current directory, if one exists.
---- Errors raised while sourcing are suppressed so that a partially outdated
---- session (e.g. a deleted file) still opens.
----@return boolean restored true if a session file was found and sourced
+-- Restore the session of the current directory, if one exists.
+-- Errors raised while sourcing are suppressed so that a partially outdated
+-- session (e.g. a deleted file) still opens.
+-- @return boolean restored true if a session file was found and sourced
 function M.load()
 	local path = M.path()
 	if not vim.uv.fs_stat(path) then
@@ -66,10 +66,10 @@ function M.load()
 	return true
 end
 
---- Save the session of the current directory.
---- Does nothing unless at least one real file buffer is open, so that
---- opening and closing Neovim on the file explorer alone never overwrites
---- an existing session.
+-- Save the session of the current directory.
+-- Does nothing unless at least one real file buffer is open, so that
+-- opening and closing Neovim on the file explorer alone never overwrites
+-- an existing session.
 function M.save()
 	if count_file_buffers() < 1 then
 		return

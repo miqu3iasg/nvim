@@ -5,10 +5,6 @@
       "src": "https://github.com/L3MON4D3/LuaSnip",
       "version": "2.0.0 - 3.0.0"
     },
-    "atlas.vim": {
-      "rev": "f254465adbcae565d9cf8c987f5a797c1f9cf922",
-      "src": "https://github.com/huyvohcmc/atlas.vim"
-    },
     "black-metal-theme-neovim": {
       "rev": "227a4cb11980928274c74cdc6e3f4b9b5e329512",
       "src": "https://github.com/metalelf0/black-metal-theme-neovim"
@@ -42,10 +38,6 @@
       "rev": "b23c76a8c874fe7ac5ad95255efc66173b049088",
       "src": "https://github.com/Olical/conjure"
     },
-    "cosec-twilight.nvim": {
-      "rev": "4c628c71260da6bbc9d532f25272f6a7bda12ff6",
-      "src": "https://github.com/CosecSecCot/cosec-twilight.nvim"
-    },
     "eyes.nvim": {
       "rev": "2b06d219787cfe2cbbcf8857598f81434ff2bcb1",
       "src": "https://github.com/amedoeyes/eyes.nvim"
@@ -61,14 +53,6 @@
     "gitsigns.nvim": {
       "rev": "683137003522aebd6948358334164a6ba2ca7cd5",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
-    },
-    "goyo.vim": {
-      "rev": "9c72fdf2d202914318581f9f0dd09fd102f8504d",
-      "src": "https://github.com/junegunn/goyo.vim"
-    },
-    "gruber-darker.nvim": {
-      "rev": "35cb97959ef01f7193c94c404c13ddb3d4346654",
-      "src": "https://github.com/blazkowolf/gruber-darker.nvim"
     },
     "img-clip.nvim": {
       "rev": "99848daf801789dbebe2192b475eb887d375002c",
@@ -93,10 +77,6 @@
     "mason.nvim": {
       "rev": "2a6940af80375532e5e9e7c1f2fc6319a1b7a69d",
       "src": "https://github.com/mason-org/mason.nvim"
-    },
-    "mfd.nvim": {
-      "rev": "72ae627792960a7e490cb5242a78c570d02ba775",
-      "src": "https://github.com/kungfusheep/mfd.nvim"
     },
     "mini.nvim": {
       "rev": "a6e23131010b800ecbab85fa6adc0ff38eae2c2d",
@@ -152,10 +132,6 @@
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
-    "soda.vim": {
-      "rev": "37b03a8003ebf9c23b2735c1bd0364844e67f0b6",
-      "src": "https://github.com/DAddYE/soda.vim"
-    },
     "springboot-nvim": {
       "rev": "105fb2a0b54fbd819200b244e8079c4c9f1a8415",
       "src": "https://github.com/elmcgill/springboot-nvim"
@@ -168,25 +144,13 @@
       "rev": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0",
       "src": "https://github.com/tpope/vim-fugitive"
     },
-    "vim-monotone": {
-      "rev": "5393343ff2d639519e4bcebdb54572dfe5c35686",
-      "src": "https://github.com/Lokaltog/vim-monotone"
-    },
     "vim-rhubarb": {
       "rev": "5496d7c94581c4c9ad7430357449bb57fc59f501",
       "src": "https://github.com/tpope/vim-rhubarb"
     },
-    "vim-simplicity": {
-      "rev": "3913c2a1d7e1cfd1d318ebc458700e48db4f9412",
-      "src": "https://github.com/smallwat3r/vim-simplicity"
-    },
     "vim-tmux-navigator": {
       "rev": "e41c431a0c7b7388ae7ba341f01a0d217eb3a432",
       "src": "https://github.com/christoomey/vim-tmux-navigator"
-    },
-    "vim-yami": {
-      "rev": "15e0c45d4375438cf1fb513050570e43ae4f2aef",
-      "src": "https://github.com/danishprakash/vim-yami"
     },
     "vimtex": {
       "rev": "79a5fb444147f94a5284b6800030e17eecd18a06",

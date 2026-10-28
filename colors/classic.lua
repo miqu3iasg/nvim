@@ -18,9 +18,9 @@ local set_hl = vim.api.nvim_set_hl
 -- Pallete
 local p = {
 	-- Neutrals
-	black = "#000000",
+	black = "#000000", -- background
 	white = "#ffffff",
-	fg = "#c8c8c8", -- default text (darker so bold and titles stand out)
+	fg = "#EFF0F0", -- default text (main, argc, *path, braces), cursor
 	bright = "#ffffff", -- bold, titles
 	gray = "#8a8a8a",
 	ws = "#333333", -- whitespace chars
@@ -40,14 +40,13 @@ local p = {
 	statusline_nc_fg = "#636262",
 
 	-- Syntax
-	comment = "#80a1b2", -- soft light blue, easy on the eyes
-	blue = "#65bfd9", -- classic vim blue (directories, preproc)
-	type = "#83d699", -- desaturated green
-	cyan = "#65bfd9", -- special, escapes, info
-	magenta = "#e04ae6", -- only numbers and strings
-	yellow = "#cdcf6e", -- only if/for/return/sizeof etc.
+	comment = "#9292E0", -- comments
+	blue = "#9292E0", -- comments, "~" empty lines, directories
+	type = "#8dd6a1", -- int, const, char
+	pink = "#d975d8", -- #include, special chars like %s
+	yellow = "#E4B57F", -- return, if, for...
+	orange = "#CD8E7B", -- <stdio.h>, strings
 	red = "#d70000",
-	orange = "#ffa657",
 
 	-- Diagnostics
 	error = "#d06060",
@@ -194,6 +193,11 @@ local editor = {
 	VertSplit = { fg = p.gray, bg = p.black },
 	WinSeparator = { fg = p.gray, bg = p.black },
 
+	-- Cursor (same color as the default text)
+	Cursor = { fg = p.black, bg = p.fg },
+	lCursor = { fg = p.black, bg = p.fg },
+	TermCursor = { fg = p.black, bg = p.fg },
+
 	-- Selection and search
 	Visual = { fg = p.select_fg, bg = p.select_bg },
 	Search = { fg = p.search_fg, bg = p.search_bg },
@@ -226,11 +230,11 @@ local popup = {
 local syntax = {
 	Comment = { fg = p.comment },
 	Constant = { fg = p.fg },
-	String = { fg = p.magenta },
-	Character = { fg = p.magenta },
-	Number = { fg = p.magenta },
+	String = { fg = p.orange },
+	Character = { fg = p.orange },
+	Number = { fg = p.pink },
 	Boolean = { fg = p.fg },
-	Float = { fg = p.magenta },
+	Float = { fg = p.orange },
 	Identifier = { fg = p.fg },
 	Function = { fg = p.fg },
 	Statement = { fg = p.yellow }, -- return, break, continue...
@@ -239,17 +243,17 @@ local syntax = {
 	Label = { fg = p.yellow }, -- case, default
 	Operator = { fg = p.yellow }, -- sizeof (symbols use fg via treesitter)
 	Exception = { fg = p.yellow }, -- try, catch, throw
-	Keyword = { fg = p.fg }, -- public, class, static, const...
-	PreProc = { fg = p.blue },
-	Include = { fg = p.blue },
-	Define = { fg = p.blue },
-	Macro = { fg = p.blue },
-	Type = { fg = p.type },
+	Keyword = { fg = p.fg }, -- public, class, static...
+	PreProc = { fg = p.pink }, -- #include, #define
+	Include = { fg = p.pink },
+	Define = { fg = p.pink },
+	Macro = { fg = p.pink },
+	Type = { fg = p.type }, -- int, char
 	StorageClass = { fg = p.fg },
 	Structure = { fg = p.fg },
 	Typedef = { fg = p.fg },
-	Special = { fg = p.cyan },
-	SpecialChar = { fg = p.cyan },
+	Special = { fg = p.pink },
+	SpecialChar = { fg = p.pink }, -- %s, \n...
 	Delimiter = { fg = p.fg },
 	Title = { fg = p.blue, bold = true },
 }
@@ -259,7 +263,7 @@ local treesitter = {
 	-- Keywords
 	["@keyword"] = { fg = p.fg },
 	["@keyword.function"] = { fg = p.fg },
-	["@keyword.modifier"] = { fg = p.fg },
+	["@keyword.modifier"] = { fg = p.type }, -- const
 	["@keyword.type"] = { fg = p.fg },
 	["@keyword.storage"] = { fg = p.fg },
 	["@keyword.return"] = { fg = p.yellow },
@@ -267,16 +271,17 @@ local treesitter = {
 	["@keyword.repeat"] = { fg = p.yellow },
 	["@keyword.exception"] = { fg = p.yellow },
 	["@keyword.operator"] = { fg = p.yellow }, -- sizeof
-	["@keyword.directive"] = { fg = p.blue },
-	["@keyword.import"] = { fg = p.blue },
+	["@keyword.directive"] = { fg = p.pink }, -- #include
+	["@keyword.import"] = { fg = p.pink },
 	["@conditional"] = { fg = p.yellow },
 	["@repeat"] = { fg = p.yellow },
 	["@exception"] = { fg = p.yellow },
-	["@preproc"] = { fg = p.blue },
+	["@preproc"] = { fg = p.pink },
 
 	-- Types
 	["@type"] = { fg = p.type },
-	["@type.builtin"] = { fg = p.type },
+	["@type.builtin"] = { fg = p.type }, -- int, char
+	["@type.qualifier"] = { fg = p.type }, -- const (older parsers)
 	["@storageclass"] = { fg = p.fg },
 
 	-- Functions
@@ -285,7 +290,7 @@ local treesitter = {
 	["@function.builtin"] = { fg = p.fg },
 
 	-- LSP semantic tokens
-	["@lsp.type.macro"] = { fg = p.blue },
+	["@lsp.type.macro"] = { fg = p.pink },
 
 	-- Variables
 	["@variable"] = { fg = p.fg },
@@ -297,14 +302,17 @@ local treesitter = {
 
 	-- Literals
 	["@boolean"] = { fg = p.fg },
-	["@number"] = { fg = p.magenta },
-	["@number.float"] = { fg = p.magenta },
-	["@string"] = { fg = p.magenta },
-	["@string.escape"] = { fg = p.cyan },
-	["@character"] = { fg = p.magenta },
+	["@number"] = { fg = p.pink },
+	["@number.float"] = { fg = p.pink },
+	["@string"] = { fg = p.orange },
+	["@string.special"] = { fg = p.orange },
+	["@string.special.path"] = { fg = p.orange }, -- <stdio.h>
+	["@string.escape"] = { fg = p.pink }, -- %s, \n
+	["@character"] = { fg = p.orange },
+	["@character.special"] = { fg = p.pink },
 
-	-- Punctuation and operators (no cyan: Neovim links @constructor,
-	-- @punctuation.special... to Special by default)
+	-- Punctuation and operators (Neovim links @constructor,
+	-- @punctuation.special... to Special by default, so set them explicitly)
 	["@operator"] = { fg = p.fg },
 	["@punctuation"] = { fg = p.fg },
 	["@punctuation.bracket"] = { fg = p.fg },
@@ -339,7 +347,7 @@ local treesitter = {
 local diagnostics = {
 	DiagnosticError = { fg = p.error },
 	DiagnosticWarn = { fg = p.yellow },
-	DiagnosticInfo = { fg = p.cyan },
+	DiagnosticInfo = { fg = p.blue },
 	DiagnosticHint = { fg = p.gray },
 
 	DiagnosticUnderlineError = { sp = p.error, undercurl = true },

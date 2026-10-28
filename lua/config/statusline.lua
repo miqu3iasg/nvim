@@ -120,17 +120,16 @@ function M.setup()
 	vim.opt.showmode = true
 
 	vim.opt.statusline = table.concat({
-		-- "-- %{g:sl_mode} --",
+		"%#StlBuf#%n%* ",
+		"%#StlFmt#%{&fileformat}%*",
+		"%#StlFt#%{&filetype !=# '' ? '[' . &filetype . ']' : ''}%* ",
 		"%{&diff && winnr('$') > 2 ? '  [' . bufnr() . ']' : ''}",
-		-- " [%n] ",
 		"%<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')}%r%m",
-		-- " %{get(b:, 'git_branch', '')}",
 		"%=",
 		"%{get(t:, 'zoom', 0) ? '[Z]  ' : ''}",
-		-- "%{&filetype}   ",
 		"  %{get(b:, 'sl_file_size', '')}",
 		"  %-8.(%l,%c%)",
-		"  %P ",
+		"  0x%04B",
 	})
 
 	update_mode()

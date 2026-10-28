@@ -27,7 +27,7 @@ local p = {
 	punct = "#e2e2e2",
 	tailwind = "#e2e2e2",
 	dim = "#707070",
-	comment = "#6a6a6a",
+	comment = "#787470",
 	doc = "#7a7a7a",
 	line_nr = "#585858",
 

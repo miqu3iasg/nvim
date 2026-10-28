@@ -14,4 +14,4 @@ require("config.statusline").setup()
 require("config.pack")
 require("plugins")
 
-vim.cmd.colorscheme("classic")
+vim.cmd.colorscheme("hollow")

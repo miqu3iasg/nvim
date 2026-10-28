@@ -33,15 +33,10 @@ km("n", "-", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
 
 -- Maximize window (toggle between maximized and original size)
 km("n", "<leader>sm", function()
-	if vim.fn.winnr("$") == 1 then
-		return
-	end
-	if vim.t.zoom then
-		vim.cmd(vim.t.zoom)
-		vim.t.zoom = nil
-	else
-		vim.t.zoom = vim.fn.winrestcmd()
-		vim.cmd("resize")
-		vim.cmd("vertical resize")
+	if vim.fn.tabpagenr("$") > 1 and vim.t.zoomed then
+		vim.cmd("tabclose")
+	elseif vim.fn.winnr("$") > 1 then
+		vim.cmd("tab split")
+		vim.t.zoomed = true
 	end
 end, { desc = "Toggle window zoom" })
