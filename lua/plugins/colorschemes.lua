@@ -4,6 +4,10 @@ vim.pack.add({
 	"https://github.com/jaredgorski/fogbell.vim",
 	"https://github.com/amedoeyes/eyes.nvim",
 	"https://github.com/metalelf0/black-metal-theme-neovim",
+	"https://github.com/bruth/vim-newsprint-theme",
+	"https://github.com/nickkadutskyi/jb.nvim",
+	"https://github.com/kkga/vim-envy",
+	"https://github.com/kryptamine/gruber-darker-renaissance",
 })
 
 -- Color palettes used for colorscheme overrides
@@ -71,5 +75,29 @@ require("black-metal").setup({
 		["@markup.heading.6.markdown"] = { fg = black_metal_pallet.mid, fmt = "bold" },
 	},
 })
-
 require("black-metal").load()
+
+-- Gruber Darker
+require("gruber-darker-renaissance").setup({
+	bold = true,
+	italic = {
+		strings = false,
+		comments = false,
+		operators = false,
+		folds = false,
+	},
+	undercurl = false,
+	underline = false,
+	transparent = true, -- leave the window background to the terminal; floats stay opaque
+	terminal_colors = true, -- set `g:terminal_color_*`
+	sidebars = { "qf", "help" }, -- filetypes with the darker sidebar background
+	plugins = {}, -- every integration is on; set one to false, e.g. `snacks = false`
+	on_colors = function(c)
+		c.syntax.func = "#b0b0b0"
+	end,
+	on_highlights = function(hl, c)
+		hl.Underlined = { fg = "#b0b0b0", underline = true }
+		hl.Directory = { fg = "#b0b0b0" }
+		hl["@string.special.url"] = { fg = "#b0b0b0" }
+	end,
+})

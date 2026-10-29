@@ -41,6 +41,7 @@ vim.opt.formatoptions:remove("o")
 vim.opt.clipboard = "unnamedplus"
 vim.opt.virtualedit = "block"
 vim.opt.jumpoptions = "view"
+vim.opt.iskeyword:append("-")
 
 -- Indentation
 vim.opt.tabstop = 4

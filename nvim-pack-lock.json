@@ -54,9 +54,17 @@
       "rev": "683137003522aebd6948358334164a6ba2ca7cd5",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
+    "gruber-darker-renaissance": {
+      "rev": "96b5c5f7cba9b5be4bb50fa999745d47b76d445a",
+      "src": "https://github.com/kryptamine/gruber-darker-renaissance"
+    },
     "img-clip.nvim": {
       "rev": "99848daf801789dbebe2192b475eb887d375002c",
       "src": "https://github.com/HakonHarnes/img-clip.nvim"
+    },
+    "jb.nvim": {
+      "rev": "232ec924860c80fd599910730587d240c29746ee",
+      "src": "https://github.com/nickkadutskyi/jb.nvim"
     },
     "lazydev.nvim": {
       "rev": "ff2cbcba459b637ec3fd165a2be59b7bbaeedf0d",
@@ -140,9 +148,17 @@
       "rev": "1c2e19486397be1c580b560fc50ee36abe329c46",
       "src": "https://github.com/chomosuke/typst-preview.nvim"
     },
+    "vim-envy": {
+      "rev": "e1afb0cd542fc4afeb779f1c894abf5527d965ea",
+      "src": "https://github.com/kkga/vim-envy"
+    },
     "vim-fugitive": {
       "rev": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0",
       "src": "https://github.com/tpope/vim-fugitive"
+    },
+    "vim-newsprint-theme": {
+      "rev": "e15c4a016a848494adc0abd4cb88620e386ff737",
+      "src": "https://github.com/bruth/vim-newsprint-theme"
     },
     "vim-rhubarb": {
       "rev": "5496d7c94581c4c9ad7430357449bb57fc59f501",

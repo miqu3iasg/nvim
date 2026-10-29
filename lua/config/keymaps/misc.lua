@@ -41,6 +41,10 @@ map("<leader>vg", function()
 	vim.wo.signcolumn = vim.wo.signcolumn == "no" and "yes" or "no"
 end, "Toggle sign column")
 
+map("<leader>vb", function()
+	vim.o.background = (vim.o.background == "dark") and "light" or "dark"
+end, "Toggle light/dark")
+
 map("<leader>vd", function()
 	local enabled = not vim.diagnostic.is_enabled()
 	vim.diagnostic.enable(enabled)
