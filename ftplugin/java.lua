@@ -1,5 +1,16 @@
 -- ftplugin/java.lua
 
+-- Configures jdtls for the current Java buffer, including project detection,
+-- runtime selection, workspace isolation, Java-specific LSP settings and
+-- project task mappings.
+
+---@class JavaJdk
+---@field name string Java execution environment identifier advertised to jdtls.
+---@field path string Filesystem path to the JDK installation.
+---@field default? boolean Whether this runtime is marked as the default.
+
+---@alias JavaTask "run"|"test"|"build"
+
 local jdtls = require("jdtls")
 local mason = vim.fn.stdpath("data") .. "/mason"
 local pkg = mason .. "/packages"
@@ -9,17 +20,21 @@ if vim.fn.isdirectory(pkg .. "/jdtls") == 0 then
 	return
 end
 
+---@type JavaJdk[]
 local jdks = {
 	{ name = "JavaSE-17", path = "/usr/lib/jvm/java-17-openjdk" },
 	{ name = "JavaSE-21", path = "/usr/lib/jvm/java-21-openjdk", default = true },
 }
 
+---@type JavaJdk[]
 local runtimes = vim.tbl_filter(function(j)
 	return vim.fn.isdirectory(j.path) == 1
 end, jdks)
 
+---@type string
 local server_jdk = "/usr/lib/jvm/java-21-openjdk"
 
+---@type string
 local root = vim.fs.root(0, {
 	{ "mvnw", "gradlew", "settings.gradle", "settings.gradle.kts" },
 	".git",
@@ -29,7 +44,14 @@ local root = vim.fs.root(0, {
 local ecc = vim.deepcopy(jdtls.extendedClientCapabilities)
 ecc.resolveAdditionalTextEditsSupport = true
 
+---Open a terminal split and run a project task from the detected project root.
+---The build tool and task are selected from the project files found at `root`.
+---@param action JavaTask Task to execute: application run, tests, or build.
+---@return nil
 local function build(action)
+	---Check whether a project file exists at the project root.
+	---@param f string File name relative to the project root.
+	---@return boolean `true` when the file exists.
 	local function has(f)
 		return vim.uv.fs_stat(root .. "/" .. f) ~= nil
 	end
@@ -46,6 +68,11 @@ local function build(action)
 	vim.cmd(("botright vnew | lcd %s | terminal %s %s"):format(vim.fn.fnameescape(root), tool, tasks[action]))
 end
 
+---Create a normal-mode keymap for the current buffer.
+---@param lhs string Key sequence to map.
+---@param rhs string|fun() Mapping target, either a command or a callback.
+---@param desc string Human-readable description shown by Neovim.
+---@return nil
 local function bmap(lhs, rhs, desc)
 	vim.keymap.set("n", lhs, rhs, { buffer = 0, silent = true, desc = desc })
 end
@@ -56,11 +83,21 @@ bmap("<leader>jL", function()
 	end
 end, "Java: stop LSP")
 
+---Configure a jdtls client after it attaches to a Java buffer.
+---Disables semantic tokens and installs the Java import-organization mapping.
+---@param client vim.lsp.Client LSP client attaching to the buffer.
+---@param bufnr integer Buffer number the client has attached to.
+---@return nil
 local function on_attach(client, bufnr)
 	client.server_capabilities.semanticTokensProvider = nil
 
 	-- client.server_capabilities.completionProvider = nil
 
+	---Create a normal-mode keymap scoped to the attached buffer.
+	---@param lhs string Key sequence to map.
+	---@param rhs string|fun() Mapping target, either a command or a callback.
+	---@param desc string Human-readable description shown by Neovim.
+	---@return nil
 	local function map(lhs, rhs, desc)
 		vim.keymap.set("n", lhs, rhs, { buffer = bufnr, silent = true, desc = desc })
 	end
@@ -68,12 +105,14 @@ local function on_attach(client, bufnr)
 	map("<leader>jo", jdtls.organize_imports, "Java: organize imports")
 end
 
+---@type string
 local workspace = vim.fn.stdpath("cache")
 	.. "/jdtls-workspace/"
 	.. vim.fn.sha256(root):sub(1, 8)
 	.. "-"
 	.. vim.fs.basename(root)
 
+---@type string[]
 local cmd = {
 	mason .. "/bin/jdtls",
 	"--jvm-arg=-Xms256m",
@@ -85,11 +124,13 @@ local cmd = {
 	workspace,
 }
 
+---@type string
 local lombok = pkg .. "/jdtls/lombok.jar"
 if vim.uv.fs_stat(lombok) then
 	table.insert(cmd, 2, "--jvm-arg=-javaagent:" .. lombok)
 end
 
+---@type table
 local config = {
 	cmd = cmd,
 	cmd_env = { JAVA_HOME = server_jdk },

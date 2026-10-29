@@ -81,6 +81,10 @@ ts.install({
 	"dockerfile",
 	"terraform",
 	"cmake",
+	"luadoc",
+	"doxygen",
+	"comment",
+	"rst",
 }, {
 	max_jobs = 4,
 })
