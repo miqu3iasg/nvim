@@ -38,6 +38,18 @@
 
 local exports = require("shared.exports")
 
+---@class SharedPandoc
+---@field formats string[] Supported export formats.
+---@field viewers table<string, string> External application used to open each format.
+---@field config_dir string Path to the Pandoc configuration directory.
+---@field last table<integer, string> Last exported file, indexed by buffer number.
+
+---@class PandocBuildOptions
+---@field fmt? string Export format. Defaults to `"pdf"`.
+---@field profile? string Name of a profile in `pandoc/profiles/`.
+---@field buf? integer Buffer number to export. Defaults to the current buffer.
+
+---@type SharedPandoc
 local M = {}
 
 M.formats = { "pdf", "epub", "docx", "html" }
@@ -49,15 +61,20 @@ M.last = {}
 
 local home = vim.uv.os_homedir()
 
+---@param msg string Error message to display.
 local function notify_error(msg)
 	vim.notify("pandoc: " .. vim.trim(msg), vim.log.levels.ERROR)
 end
 
+---@param path string File path to check.
+---@return boolean # Whether the file exists and is readable.
 local function readable(path)
 	return vim.fn.filereadable(path) == 1
 end
 
 -- Folder of the note, or the cwd for an unnamed buffer
+---@param buf integer Buffer number.
+---@return string # Directory containing the buffer's file, or the current working directory for an unnamed buffer.
 local function note_dir(buf)
 	local name = vim.api.nvim_buf_get_name(buf)
 	if name == "" then
@@ -67,6 +84,9 @@ local function note_dir(buf)
 end
 
 -- True when the YAML header of the note defines `key`
+---@param buf integer Buffer number containing the Markdown note.
+---@param key string YAML frontmatter key to look for.
+---@return boolean # Whether the key is defined in the note's YAML frontmatter.
 local function frontmatter_has(buf, key)
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, 300, false)
 	if not (lines[1] and lines[1]:match("^%-%-%-%s*$")) then
@@ -83,6 +103,7 @@ local function frontmatter_has(buf, key)
 	return false
 end
 
+---@return string[] # Available profile names, without the `.yaml` extension.
 local function list_profiles()
 	local names = {}
 	for _, f in ipairs(vim.fn.glob(M.config_dir .. "/profiles/*.yaml", false, true)) do
@@ -98,6 +119,8 @@ local image_exts = { png = true, jpg = true, jpeg = true, pdf = true, svg = true
 --   ![[img.png|300]]    ->  ![](img.png){width=300px}
 --   ![[img.png|a cap]]  ->  ![a cap](img.png)
 --   ![[Other note]]     ->  Other note
+---@param text string Markdown source to preprocess.
+---@return string # Markdown with Obsidian embeds converted to Pandoc-compatible syntax.
 local function preprocess(text)
 	return (
 		text:gsub("!%[%[([^%]\n]-)%]%]", function(inner)
@@ -125,6 +148,8 @@ local function preprocess(text)
 end
 
 -- Folders named `attachments` in the note's folder and in every parent up to $HOME
+---@param indir string Directory containing the note.
+---@return string # Colon-separated resource path containing the note directory and discovered `attachments/` directories.
 local function resource_path(indir)
 	local dirs = { "." }
 	for dir in vim.fs.parents(indir .. "/x") do
@@ -138,7 +163,9 @@ local function resource_path(indir)
 	return table.concat(dirs, ":")
 end
 
--- opts: { fmt = "pdf", profile = "abnt", buf = <bufnr> }
+---@param opts? PandocBuildOptions Export options.
+---@param on_done? fun(output_path: string) Callback invoked after a successful export, receiving the output file path.
+---@return nil
 function M.build(opts, on_done)
 	opts = opts or {}
 	local fmt = (opts.fmt and opts.fmt ~= "") and opts.fmt or "pdf"
@@ -231,6 +258,8 @@ function M.build(opts, on_done)
 	end
 end
 
+---@param file string Path to the exported document to open.
+---@return nil
 function M.open(file)
 	local viewer = M.viewers[file:match("%.(%w+)$")] or "xdg-open"
 	local ok, err = pcall(vim.system, { viewer, file }, { detach = true })
@@ -240,6 +269,8 @@ function M.open(file)
 end
 
 -- preview: build and open once; rebuild on every :w (zathura reloads by itself)
+---@param opts? PandocBuildOptions Export options used for the initial build and subsequent rebuilds.
+---@return nil
 function M.preview(opts)
 	opts = vim.deepcopy(opts or {})
 	local buf = vim.api.nvim_get_current_buf()
@@ -265,12 +296,18 @@ function M.preview(opts)
 	M.build(opts, M.open)
 end
 
+---@return nil
 function M.setup()
+	---@param a { fargs: string[] } Command arguments received by the user command.
+	---@return PandocBuildOptions # Export options parsed from the command arguments.
 	local function parse(a)
 		return { fmt = a.fargs[1], profile = a.fargs[2] }
 	end
 
 	-- :Pandoc [format] [profile]
+	---@param lead string Current argument prefix being completed.
+	---@param line string Full command line entered by the user.
+	---@return string[] # Completion candidates matching the current prefix.
 	local function complete(lead, line)
 		local args = vim.split(line, "%s+", { trimempty = true })
 		local index = #args + (line:match("%s$") and 1 or 0)
@@ -288,6 +325,9 @@ function M.setup()
 		M.preview(parse(a))
 	end, { nargs = "*", complete = complete })
 
+	---@param lhs string Local keymap suffix, appended to `<localleader>`.
+	---@param rhs string|fun() Mapping action.
+	---@param desc string Human-readable description of the mapping.
 	local map = function(lhs, rhs, desc)
 		vim.keymap.set("n", "<localleader>" .. lhs, rhs, { buffer = true, desc = "Pandoc: " .. desc })
 	end

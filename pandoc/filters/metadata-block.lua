@@ -1,17 +1,28 @@
--- filters/metadata-block.lua
+-- pandoc/filters/metadata-block.lua
 
--- Inserts a block with the note's reference fields (authors, source, links...)
--- right below the title. Only fields that exist and are not empty are shown.
+-- Inserts a definition-list block containing the note's reference metadata
+-- (authors, source, links, etc.) immediately below the document title.
+-- Only fields that are present and contain at least one non-empty item are
+-- rendered.
 --
--- Labels follow the document language (`lang`, set in metadata.yaml and
--- overridable in each note). A language without a table falls back to
--- `default_lang`.
+-- Labels are selected from the primary language subtag in `lang` (for
+-- example, `pt-BR` uses the `pt` labels). If that language is not defined,
+-- the filter falls back to `default_lang`.
 --
--- To turn the block off in a note: `show-metadata: false`
+-- Disable the block for an individual note with:
+--
+-- # show-metadata: false
 --
 -- See: https://pandoc.org/lua-filters.html
 
--- Labels per language (primary code of `lang`: pt, en, ...)
+---@alias MetadataMode "inline"|"list"
+---@alias MetadataItem pandoc.Inline[]
+
+---@class MetadataField
+---@field key string Metadata key to read from the document's YAML metadata.
+---@field mode MetadataMode How the field's items are displayed.
+
+---@type table<string, table<string, string>>
 local labels = {
 	en = {
 		file_name = "File",
@@ -38,10 +49,13 @@ local labels = {
 		modified_at = "Modificado em",
 	},
 }
+
+---@type string
 local default_lang = "en"
 
--- Order and display mode of each field
--- inline is items separated by comma and list is a bullet list, one item per line
+-- Fields are rendered in this order. `inline` joins items with commas,
+-- while `list` creates a bullet list with one item per line.
+---@type MetadataField[]
 local fields = {
 	{ key = "file_name", mode = "inline" },
 	{ key = "authors", mode = "inline" },
@@ -55,19 +69,29 @@ local fields = {
 	-- { key = "modified_at", mode = "inline" },
 }
 
--- Parse language
+---Select the label table matching the document language.
+---Uses the primary language subtag and falls back to `default_lang`.
+---@param meta table<string, any> Pandoc document metadata.
+---@return table<string, string> Labels for the selected language.
 local function labels_for(meta)
 	local lang = meta.lang and pandoc.utils.stringify(meta.lang) or ""
 	local primary = lang:match("^(%a+)")
 	return labels[primary and primary:lower() or default_lang] or labels[default_lang]
 end
 
+---Check whether a string is an HTTP or HTTPS URL.
+---@param s string Candidate URL.
+---@return boolean `true` when the entire string is an HTTP(S) URL.
 local function is_url(s)
 	return s:match("^https?://%S+$") ~= nil
 end
 
--- Flattens a value (string, list, nested list) into a list of Inlines,
--- skipping empty items and turning URLs into links
+---Flatten a metadata value into a list of Pandoc inline elements.
+---Nested lists are recursively flattened; empty values are skipped and URL
+---strings are converted into clickable links.
+---@param v any Metadata value: a string, Pandoc inline value, or nested list.
+---@param out? MetadataItem Accumulator used during recursive calls.
+---@return MetadataItem Flattened inline items.
 local function items_of(v, out)
 	out = out or {}
 	local t = pandoc.utils.type(v)
@@ -91,6 +115,12 @@ local function items_of(v, out)
 	return out
 end
 
+---Build Pandoc blocks from flattened metadata items.
+---In `list` mode, each item becomes a bullet; otherwise, items are joined
+---into a single paragraph separated by commas.
+---@param items MetadataItem Items to render.
+---@param mode MetadataMode Display mode for the field.
+---@return pandoc.Block[] One block containing the rendered items.
 local function render(items, mode)
 	if mode == "list" then
 		local bullets = {}
@@ -110,6 +140,12 @@ local function render(items, mode)
 	return { pandoc.Plain(joined) }
 end
 
+---Transform the document by inserting its reference metadata below the title.
+---If `show-metadata` is false, no metadata block is inserted. When the
+---document has `file_name` but no `title`, the file name (without extension)
+---is also used as the document title.
+---@param doc pandoc.Pandoc Document being processed by Pandoc.
+---@return pandoc.Pandoc Transformed document.
 function Pandoc(doc)
 	if doc.meta["show-metadata"] == false then
 		return nil

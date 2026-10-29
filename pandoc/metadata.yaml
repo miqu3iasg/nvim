@@ -1,23 +1,28 @@
 # pandoc/metadata.yaml
 #
-# Default look of every exported document. These are *metadata*, so any of
-# them can be overridden from the YAML header of a note:
+# Default metadata for the appearance of every exported document. These
+# values are passed to Pandoc as document metadata, not as command-line
+# defaults, so a note's YAML front matter can override them.
+#
+# Example front matter:
 #
 #   ---
 #   lang: en-US
 #   geometry: margin=3cm
 #   ---
-# Language: hyphenation, quotes and labels ("Contents", "Sumário", ...)
-# Needs texlive-langportuguese on Arch Linux for pt-BR hyphenation.
+#
+# Language controls hyphenation, quotation marks and translated labels such
+# as "Contents" and "Sumário". On Arch Linux, pt-BR hyphenation requires
+# texlive-langportuguese.
 lang: pt-BR
 # Page layout
 documentclass: article
 fontsize: 12pt
 geometry: margin=2.5cm
 linestretch: 1.5
-indent: true # first-line indent instead of space between paragraphs
-booktabs: true # nicer tables
-# Colored (not boxed) links
+indent: true # Indent the first line of paragraphs instead of adding paragraph spacing.
+booktabs: true # Use improved horizontal rules in tables.
+# Render links with colored text rather than boxed borders.
 colorlinks: true
 linkcolor: blue
 urlcolor: blue

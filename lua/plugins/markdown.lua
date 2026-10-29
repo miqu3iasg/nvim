@@ -1,5 +1,3 @@
--- lua/plugins/markdown.lua
-
 -- This configuration groups the plugins used for writing Markdown notes: image
 -- pasting with img-clip.nvim and integration with the Obsidian desktop application
 -- through obsidian.nvim.
@@ -152,27 +150,44 @@ local opts = {
 		date_format = "YYYY-MM-DD",
 		time_format = "HH:mm",
 		substitutions = {
+			["DATE:YYYYMMDD-HHmmss"] = function()
+				return os.date("%Y%m%d-%H%M%S")
+			end,
+			-- Also handles the variant with a space after the colon.
+			["DATE: YYYYMMDD-HHmmss"] = function()
+				return os.date("%Y%m%d-%H%M%S")
+			end,
+			-- Legacy format, kept for older templates.
 			["DATE:YYYYMMDDHHmm"] = function()
 				return os.date("%Y%m%d%H%M")
 			end,
-			-- Also handles the variant with a space after the colon.
 			["DATE: YYYYMMDDHHmm"] = function()
 				return os.date("%Y%m%d%H%M")
 			end,
 		},
 	},
 
-	-- Generate filenames from note titles instead of random IDs.
+	-- Generate filenames as CAP-YYYYMMDD-HHmmss[-slug], matching the `on` script.
+	-- See: ~/.local/bin/on
 	note_id_func = function(title)
-		if title == nil or title == "" then
-			return tostring(os.time())
-		end
-
-		if title:match("^CAP%-%d+%-%d+$") then
+		-- Title already carries the prefix (e.g. from new_inbox_capture).
+		if title and title:match("^CAP%-%d+%-%d+") then
 			return title
 		end
 
-		return title:gsub(" ", "-"):gsub("[^%w-]", ""):lower()
+		local prefix = "CAP-" .. os.date("%Y%m%d-%H%M%S")
+
+		if title == nil or title == "" then
+			return prefix
+		end
+
+		local slug = title:gsub(" ", "-"):gsub("[^%w-]", ""):lower()
+
+		if slug == "" then
+			return prefix
+		end
+
+		return prefix .. "-" .. slug
 	end,
 }
 

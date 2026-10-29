@@ -1,22 +1,25 @@
 # pandoc/defaults.yaml
 #
-# Global pandoc defaults, always loaded by lua/shared/pandoc.lua. This file
-# only describes the pipeline. Everything about the look of the document
-# (language, margins, font size...) lives in metadata.yaml, where a document
-# can override it from its own YAML header.
+# Global Pandoc defaults, always loaded by lua/shared/pandoc.lua. This file
+# defines the conversion pipeline; document appearance (language, margins,
+# font size, etc.) belongs in metadata.yaml.
 #
-# A file called `defaults.yaml` in the note's folder (or in any parent folder,
-# up to $HOME) is loaded right after this one and wins over it. Relative
-# paths inside it are relative to the folder of the note being exported.
+# A defaults.yaml found in the note's directory or one of its parent
+# directories (up to $HOME) is loaded after this file and can override it.
+# Relative paths in that project-level file are resolved from the note's
+# directory.
 #
 # See: https://pandoc.org/MANUAL.html#default-files
 #
-# Plain markdown plus the things that matter when writing notes:
+# Markdown extensions enabled for notes:
 #
-# - citations: "@john" stays plain text (no bibliography support)
-# - wikilinks_title_after_pipe: [[Note]] and [[Note|alias]] (Obsidian)
-# - lists_without_preceding_blankline: a list may follow a paragraph directly
-# - autolink_bare_uris: https://example.org becomes a link
+# - citations: "@john" remains ordinary text; citation processing is disabled.
+# - wikilinks_title_after_pipe: supports Obsidian [[Note]] and [[Note|alias]].
+# - lists_without_preceding_blankline: allows a list to follow a paragraph
+#   without an intervening blank line.
+# - autolink_bare_uris: turns bare URLs such as https://example.org into links.
 from: markdown-citations+wikilinks_title_after_pipe+lists_without_preceding_blankline+autolink_bare_uris
+# Produce a standalone document rather than a fragment.
 standalone: true
+# Use XeLaTeX as the PDF engine.
 pdf-engine: xelatex

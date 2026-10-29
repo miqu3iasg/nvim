@@ -1,6 +1,7 @@
 -- lua/autocmds.lua
 
 -- Keep splits evenly sized after resizing
+-- (skipped while no-neck-pain is active, which manages its own window widths)
 vim.api.nvim_create_autocmd("VimResized", {
 	callback = function()
 		if not vim.g.no_neck_pain_enabled then
@@ -17,14 +18,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- No auto continue comments on new line
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("no_auto_comment", {}),
-	callback = function()
-		vim.opt_local.formatoptions:remove({ "c", "r", "o" })
-	end,
-})
-
 -- syntax highlighting for dotenv files
 vim.api.nvim_create_autocmd("BufRead", {
 	group = vim.api.nvim_create_augroup("dotenv_ft", { clear = true }),
@@ -34,7 +27,10 @@ vim.api.nvim_create_autocmd("BufRead", {
 	end,
 })
 
--- On startup without file args, restore the tmux session, or open Oil
+-- On startup without file args, restore the tmux session, or open Oil.
+-- "Without file args" means no arguments, or a single directory argument.
+-- `nested` lets the restored session fire its own autocmds (filetype, etc.)
+-- and the work is scheduled so it runs after startup has finished.
 vim.api.nvim_create_augroup("StartupBehavior", { clear = true })
 vim.api.nvim_create_autocmd("VimEnter", {
 	group = "StartupBehavior",
@@ -66,6 +62,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 -- Save the session of the current directory on exit (inside tmux only).
 -- Oil buffers are removed by sessions.save() before writing the session.
+-- `pcall` so a failing save never blocks quitting.
 vim.api.nvim_create_autocmd("VimLeavePre", {
 	group = vim.api.nvim_create_augroup("SessionSave", { clear = true }),
 	callback = function()
@@ -93,6 +90,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- Jump to last cursor position when opening a file
+-- (only if the '" mark is inside the buffer, and not in a commit message)
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "Jump to last cursor position when opening a file",
 	callback = function(args)
@@ -105,6 +103,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 })
 
 -- Keymap 'q' to close help/quickfix/netrw/etc windows
+-- (buffer-local; currently only for the help, qf and man filetypes)
 vim.api.nvim_create_autocmd("FileType", {
 	desc = "keymap 'q' to close help/quickfix/netrw/etc windows",
 	pattern = "help,qf,man",

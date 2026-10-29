@@ -96,7 +96,7 @@ require("gruber-darker-renaissance").setup({
 		c.syntax.func = "#b0b0b0"
 	end,
 	on_highlights = function(hl, c)
-		hl.Underlined = { fg = "#b0b0b0", underline = true }
+		hl.Underlined = { fg = "#b0b0b0", underline = false }
 		hl.Directory = { fg = "#b0b0b0" }
 		hl["@string.special.url"] = { fg = "#b0b0b0" }
 	end,

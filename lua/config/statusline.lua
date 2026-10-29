@@ -1,5 +1,27 @@
+-- lua/config/statusline.lua
+
+-- Statusline, built on the native 'statusline' option (no plugin).
+--
+-- Inactive windows get a reduced version (lead, path, position).
+--
+-- The segments are plain Lua functions called through `v:lua.StlLine`, plus
+-- three pieces of state that are refreshed by autocmds instead of on every
+-- redraw, because they are costly or asynchronous:
+--
+--   vim.g.sl_mode       label of the current mode (see MODES)
+--   vim.b.git_branch    "Git-<branch> ", "Git-@<sha> " (detached) or ""
+--   vim.b.sl_file_size  " 12.3K " or "" (size of the file on disk)
+--
+-- It also reads `vim.t.zoomed`, which is expected to be set by a window-zoom
+-- feature elsewhere in the config (shows `[Z]` while a window is zoomed).
+--
+-- `M.setup()` installs the statusline and the autocmds (group
+-- `StatuslineBranch`).
+
 local M = {}
 
+---Mode codes from `nvim_get_mode().mode` mapped to the label shown in the line.
+---@type table<string, string>
 local MODES = {
 	n = "NORMAL",
 	no = "O-PENDING",
@@ -20,9 +42,16 @@ local MODES = {
 	t = "TERMINAL",
 }
 
+-- Statusline of windows that are not focused: lead, path and position only.
+-- Set window-locally on WinLeave and cleared on WinEnter (see `M.setup`).
 local INACTIVE =
 	"  %{v:lua.StlLine.lead()}  %<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')}   %P L%l C%c %="
 
+---Store the branch label in `b:git_branch` and redraw the statusline.
+---Scheduled, so it is safe to call from a `vim.system` callback. Does nothing
+---if the buffer was wiped in the meantime.
+---@param buf integer
+---@param branch string branch name (or "@<sha>"); empty clears the label
 local function set_branch(buf, branch)
 	vim.schedule(function()
 		if vim.api.nvim_buf_is_valid(buf) then
@@ -32,11 +61,23 @@ local function set_branch(buf, branch)
 	end)
 end
 
+---Run `git <args>` asynchronously in `dir`.
+---@param args string[] git arguments, without the leading "git"
+---@param dir string working directory
+---@param cb fun(res: vim.SystemCompleted) called when the process exits
+---@return boolean ok false if the process could not be started (e.g. git is not installed)
+---@return vim.SystemObj|string result the process handle, or the error message
 local function git(args, dir, cb)
 	local cmd = vim.list_extend({ "git" }, args)
 	return pcall(vim.system, cmd, { cwd = dir, text = true }, cb)
 end
 
+---Refresh `b:git_branch` for `buf` without blocking the editor.
+---Looks for the repository from the folder of the file; special buffers
+---(`buftype ~= ""`) and unnamed ones use the cwd. On a detached HEAD the short
+---commit hash is shown instead (`@abc1234`). The label is empty outside a
+---repository, or when git is missing.
+---@param buf? integer buffer number; `nil` or `0` for the current buffer
 local function update_branch(buf)
 	buf = (buf and buf > 0) and buf or vim.api.nvim_get_current_buf()
 	if not vim.api.nvim_buf_is_valid(buf) then
@@ -70,12 +111,21 @@ local function update_branch(buf)
 	end
 end
 
+---Store the formatted size in `b:sl_file_size`, if the buffer still exists.
+---@param buf integer
+---@param size_str string
 local function set_file_size(buf, size_str)
 	if vim.api.nvim_buf_is_valid(buf) then
 		vim.b[buf].sl_file_size = size_str
 	end
 end
 
+---Refresh `b:sl_file_size` with the size of the file on disk, padded with
+---spaces and in the largest unit below 1024 (`" 512B "`, `" 1.5K "`, `" 3.2M "`;
+---bytes are shown as integers, the rest with one decimal). Empty for unnamed
+---buffers, special buffers, empty files and files that do not exist yet.
+---Reads the disk, not the buffer, so it is stale until the file is saved.
+---@param buf? integer buffer number; `nil` or `0` for the current buffer
 local function update_file_size(buf)
 	buf = (buf and buf > 0) and buf or vim.api.nvim_get_current_buf()
 	if not vim.api.nvim_buf_is_valid(buf) then
@@ -111,11 +161,19 @@ local function update_file_size(buf)
 	set_file_size(buf, " " .. formatted .. " ")
 end
 
+---Store the label of the current mode in `g:sl_mode`. Looks the mode up in
+---MODES by its full code, then by its first two characters, then by the first
+---one (so e.g. `niI` resolves to NORMAL); an unknown mode is shown as its raw code.
 local function update_mode()
 	local m = vim.api.nvim_get_mode().mode
 	vim.g.sl_mode = MODES[m] or MODES[m:sub(1, 2)] or MODES[m:sub(1, 1)] or m
 end
 
+---Leading indicator: `<enc><eol><status>-`.
+---  * enc:    `U` for UTF-*, `1` for latin*, `-` for anything else
+---  * eol:    `:` unix, `\` dos, `/` mac
+---  * status: `%%` read-only or not modifiable, `**` modified, `--` otherwise
+---@return string
 function M.lead()
 	local enc = vim.bo.fileencoding ~= "" and vim.bo.fileencoding or vim.o.encoding
 	local c = enc:match("^utf") and "U" or (enc:match("^latin") and "1" or "-")
@@ -129,6 +187,9 @@ function M.lead()
 	return c .. eol .. st .. "-"
 end
 
+---Major mode: the capitalized filetype in parentheses
+---(`(Lua)`), or `(Fundamental)` when there is no filetype.
+---@return string
 function M.major()
 	local ft = vim.bo.filetype
 	if ft == "" then
@@ -137,6 +198,9 @@ function M.major()
 	return "(" .. ft:sub(1, 1):upper() .. ft:sub(2) .. ")"
 end
 
+---Diagnostic counts of the current buffer as `[E<errors> W<warnings>] `, or
+---an empty string when there are neither errors nor warnings.
+---@return string
 function M.diag()
 	local c = vim.diagnostic.count(0)
 	local e = c[vim.diagnostic.severity.ERROR] or 0
@@ -147,6 +211,19 @@ function M.diag()
 	return string.format("[E%d W%d] ", e, w)
 end
 
+---Install the statusline and the autocmds that keep it up to date.
+---
+--- * Exposes the module as the global `StlLine`, which the statusline string
+---   needs to call `lead`, `major` and `diag` through `v:lua`.
+--- * Uses `laststatus=2` (one statusline per window) and turns `showmode` off,
+---   since the mode is already in the line.
+--- * `b:git_branch` and `b:sl_file_size`: refreshed on BufEnter, BufWritePost,
+---   FocusGained and DirChanged (the size also on FileChangedShellPost and
+---   WinEnter/BufWinEnter).
+--- * `g:sl_mode`: refreshed on ModeChanged.
+--- * Redraws on mode, diagnostic and macro recording changes.
+--- * Inactive windows use INACTIVE through a window-local 'statusline', which is
+---   cleared again (falling back to the global one) when the window is entered.
 function M.setup()
 	_G.StlLine = M
 

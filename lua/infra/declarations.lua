@@ -29,11 +29,24 @@ local JAVA_TYPE_MODS = [=[(?:(?:abstract|final|sealed|non-sealed|static|strictfp
 local JAVA_TYPE_REF = [=[[\w.<>\[\],? ]+]=]
 local JAVA_PUBLIC_TYPE = [=[^\s*public\s+]=] .. JAVA_TYPE_MODS
 
+---One entry of the search menu.
+---@class Declarations.Pattern
+---@field label string text shown in the menu
+---@field re string ripgrep regex that matches the declaration
+---@field globs? string overrides the language's default `globs` for this entry
+
+---Search settings for one language.
+---@class Declarations.Language
+---@field curbuf boolean search only the current buffer (ignored in an Oil view)
+---@field globs? string default file filters (space separated, `!` excludes), applied to every pattern
+---@field patterns Declarations.Pattern[] menu entries, in menu order
+
 -- Per-language regexes (ripgrep syntax) used to find declarations.
 -- Each language has a `curbuf` flag (search only the current buffer), a default
 -- `globs` string applied to every pattern, and an ordered `patterns` list whose
 -- order is the order of the menu. A pattern may set its own `globs` to override
 -- the language default.
+---@type table<string, Declarations.Language>
 local languages = {
 	C = {
 		curbuf = false,
@@ -127,7 +140,10 @@ local languages = {
 
 -- Detection
 
--- Returns the key of `languages` for a path or file name, or nil if unknown
+---Return the key of `languages` for a path or file name, judged by the file
+---name only (extension or a well-known project file such as `pom.xml`).
+---@param path? string
+---@return string? lang_name `nil` if the language is unknown
 local function detect_language(path)
 	if not path or path == "" then
 		return nil
@@ -144,7 +160,11 @@ local function detect_language(path)
 	end
 end
 
--- Returns the most frequent recognized language among the files in `dir`
+---Return the most frequent recognized language among the files in `dir`.
+---Not recursive, and only regular files are counted. Ties are broken
+---alphabetically by language name.
+---@param dir string
+---@return string? lang_name `nil` if `dir` is unreadable or has no recognized file
 local function detect_language_in_dir(dir)
 	local handle = vim.uv.fs_scandir(dir)
 	if not handle then
@@ -174,7 +194,9 @@ end
 
 -- Search
 
--- Returns the directory to search: the one oil is showing, otherwise the nvim cwd
+---Return the directory to search: the one Oil is showing, otherwise the nvim cwd.
+---@param in_oil boolean whether the current buffer is an Oil view
+---@return string
 local function get_search_dir(in_oil)
 	if in_oil then
 		local ok, oil = pcall(require, "oil")
@@ -186,8 +208,14 @@ local function get_search_dir(in_oil)
 	return vim.uv.cwd()
 end
 
--- Runs the grep for one menu entry, either on the current buffer or on the
--- files of `dir` filtered by the entry's globs (or the language default)
+---Run the grep for one menu entry, either on the current buffer or on the
+---files of `dir` filtered by the entry's globs (or the language default).
+---The globs are appended to the search as `<regex> -- <globs>`, fzf-lua's
+---syntax for passing file filters; they are not used for a current-buffer search.
+---@param entry Declarations.Pattern
+---@param lang Declarations.Language
+---@param dir string directory to search
+---@param use_curbuf boolean search only the current buffer
 local function run_search(entry, lang, dir, use_curbuf)
 	local fzf = require("fzf-lua")
 	local search = entry.re
@@ -207,7 +235,11 @@ local function run_search(entry, lang, dir, use_curbuf)
 	operation({ search = search, no_esc = true, silent = true, cwd = dir })
 end
 
--- Searches for pending comments in the current directory.
+---Search for pending comments (TODO, FIXME, HACK, BUG, XXX) in the current
+---directory. Always uses the nvim cwd, even from an Oil view. Skips common
+---dependency/build directories (`.git`, `node_modules`, `build`, `dist`,
+---`target`, `vendor`, `.venv`, `__pycache__`), minified/lock/map files and
+---files above 1 MB. Smart-case.
 function M.search_pending_comments()
 	local fzf = require("fzf-lua")
 
@@ -223,7 +255,14 @@ function M.search_pending_comments()
 	})
 end
 
--- Picks a category for the current language and greps it. Falls back to live_grep
+---Pick a declaration category for the current language and grep it.
+---
+--- * In a regular buffer the language comes from the file name; in an Oil view
+---   it is the most frequent language among the files of the shown directory.
+--- * The menu lists "Any" (plain live grep) followed by the language's patterns.
+--- * Languages with `curbuf` search only the current buffer, except in Oil,
+---   where the whole directory is searched.
+--- * Falls back to `live_grep` when the language is not recognized.
 function M.search()
 	local fzf = require("fzf-lua")
 	local path = vim.api.nvim_buf_get_name(0)
@@ -274,7 +313,8 @@ function M.search()
 	})
 end
 
--- Registers the :Declarations command
+---Register the `:Declarations` (see `M.search`) and `:Todo` (see
+---`M.search_pending_comments`) commands.
 function M.setup()
 	vim.api.nvim_create_user_command("Declarations", M.search, {
 		desc = "Fzf: search declarations (functions/types/imports) of the current language",

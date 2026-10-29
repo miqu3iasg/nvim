@@ -30,7 +30,7 @@ local p = {
 	comment = "#787470",
 	doc = "#7a7a7a",
 	line_nr = "#585858",
-
+	listchars = "#262626",
 	-- Surfaces
 	line = "#111111", -- cursorline, statusline, code blocks
 	popup_bg = "#0d0d0d",
@@ -217,8 +217,9 @@ local editor = {
 	FoldColumn = { fg = p.dim, bg = p.black },
 	Folded = { fg = p.dim, bg = p.black },
 	EndOfBuffer = { fg = p.dim },
-	NonText = { fg = p.dim },
-	SpecialKey = { fg = p.dim, bold = true },
+	NonText = { fg = p.listchars },
+	Whitespace = { fg = p.listchars },
+	SpecialKey = { fg = p.listchars },
 	Directory = { fg = p.fg },
 	MatchParen = { fg = p.search_fg, bold = true },
 	QuickFixLine = { bg = p.line, bold = true },
@@ -293,7 +294,7 @@ local syntax = {
 	PreProc = { fg = p.fg_alt },
 	Special = { fg = p.fg },
 	Ignore = { fg = p.fg },
-	Underlined = { fg = p.fg, underline = true },
+	Underlined = { fg = p.fg },
 	Title = { fg = p.fg, bold = true },
 
 	Delimiter = { fg = t.delim },
