@@ -1,5 +1,9 @@
 -- lua/options.lua
 
+-- Options viewable by using :options.
+-- Set options viewable by using :set all.
+-- Or help for individual configs can be accessed :help <name>.
+
 -- General behavior
 vim.opt.hidden = true
 vim.opt.history = 10000

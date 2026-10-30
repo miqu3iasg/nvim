@@ -1,5 +1,10 @@
 -- lua/snippets/latex.lua
 
+-- LaTeX snippets for LuaSnip. Most snippets are autosnippets that fire only
+-- inside or only outside math, depending on the zone they were registered
+-- for. Snippets registered for "any" zone are regular snippets, expanded
+-- manually with the completion or expand key.
+
 local ls = require("luasnip")
 local s = ls.snippet
 local sn = ls.snippet_node
@@ -10,8 +15,10 @@ local d = ls.dynamic_node
 local rep = require("luasnip.extras").rep
 local fmta = require("luasnip.extras.fmt").fmta
 
--- Math zone detection, treesitter first, then delimiter check, then vimtex
+-- Math zone detection. Treesitter is tried first, then a text check for
+-- \[ \] and \( \) delimiters, then vimtex when no parser is available.
 
+-- Treesitter node types that count as math.
 local MATH_NODES = {
 	math_environment = true,
 	inline_formula = true,
@@ -19,6 +26,15 @@ local MATH_NODES = {
 	display_formula = true,
 }
 
+---Checks whether the character before the cursor is inside a math node.
+---
+---Returns nil when no latex parser is available, so the caller can fall
+---back to another method. The second return value is true when the cursor
+---is inside `\text{...}` within math, which the caller treats as text.
+---@param row integer 1-based cursor row.
+---@param col integer 0-based cursor column.
+---@return boolean|nil in_math
+---@return boolean? in_text_mode
 local function ts_in_mathzone(row, col)
 	local ok_parser, parser = pcall(vim.treesitter.get_parser, 0, "latex")
 	if not ok_parser or not parser then
@@ -45,6 +61,11 @@ local function ts_in_mathzone(row, col)
 	return false
 end
 
+---Returns the position of the last plain-text occurrence of `needle` in
+---`str` that is not preceded by a backslash, or nil if there is none.
+---@param str string
+---@param needle string
+---@return integer|nil
 local function find_last(str, needle)
 	local last
 	local init = 1
@@ -61,7 +82,9 @@ local function find_last(str, needle)
 	return last
 end
 
--- Text-based fallback check for \[ ... \] and \( ... \)
+-- Text-based fallback check for \[ ... \] and \( ... \). Scans up to 200
+-- lines above the cursor and reports whether the last opener has no closer
+-- after it.
 local function delimiters_in_mathzone(row, col)
 	local lines = vim.api.nvim_buf_get_lines(0, math.max(row - 200, 0), row, false)
 	if #lines == 0 then
@@ -79,9 +102,15 @@ local function delimiters_in_mathzone(row, col)
 	return false
 end
 
--- Per-buffer cache
+-- Last result, keyed by buffer, change tick and cursor position. Many
+-- snippet conditions ask for the same position, so this avoids repeating
+-- the treesitter walk.
 local cache = { buf = -1, tick = -1, row = -1, col = -1, value = false }
 
+-- Returns true when the cursor is in a math zone. If treesitter finds no
+-- parser, vimtex and the delimiter check decide. If treesitter says the
+-- cursor is outside math (and not in `\text`), the delimiter check still
+-- gets a say, which covers text the parser has not caught up with yet.
 local function in_mathzone()
 	local buf = vim.api.nvim_get_current_buf()
 	local tick = vim.api.nvim_buf_get_changedtick(buf)
@@ -107,17 +136,38 @@ end
 -- Snippet builder
 
 local M = {}
+
+-- Condition per zone. "any" is false, meaning no condition at all.
 local WHERE = { math = in_mathzone, text = in_text, any = false }
 
+-- Appends a snippet to the list returned by this module.
 local function add(snippet)
 	M[#M + 1] = snippet
 	return snippet
 end
 
---- Builds and registers a snippet
----@param trig string trigger string (or Lua pattern if opts.regex is true)
----@param nodes table snippet body
----@param opts table|nil  where/word/regex/priority/desc/check
+---Extra condition for a snippet, evaluated after the zone check.
+---@alias SnipCheck fun(captures: string[], line: string, matched: string): boolean
+
+---Options accepted by `snip`.
+---@class SnipOpts
+---@field where? "math"|"text"|"any" Zone where the snippet is active. Defaults to "math".
+---@field word? boolean Require a word boundary before the trigger. Defaults to false for "math" and "text" snippets and true for "any".
+---@field regex? boolean Treat the trigger as a Lua pattern instead of plain text.
+---@field priority? integer LuaSnip priority, 1000 by default. Higher values win over other triggers matching the same text, negative values make the snippet a last resort.
+---@field desc? string Description shown in the completion menu.
+---@field check? SnipCheck Extra condition. Receives the regex captures, the line up to the cursor and the matched trigger.
+
+---Builds a snippet and registers it in the module's list.
+---
+---Snippets for "math" and "text" zones are autosnippets and are hidden from
+---the completion menu. Snippets for "any" zone are regular snippets.
+---Plain alphanumeric triggers never fire right after a backslash, so
+---typing `\sum` does not trigger a snippet named `sum`.
+---@param trig string Trigger string, or a Lua pattern when `opts.regex` is set.
+---@param nodes table Snippet body.
+---@param opts? SnipOpts
+---@return table snippet The registered snippet.
 local function snip(trig, nodes, opts)
 	opts = opts or {}
 	local where = opts.where or "math"
@@ -160,21 +210,24 @@ local function snip(trig, nodes, opts)
 	}, nodes, { condition = cond, show_condition = base }))
 end
 
---- Function node returning capture group `n` of a regex-triggered snippet.
+-- Function node returning capture group `n` of a regex-triggered snippet.
 local function cap(n)
 	return f(function(_, parent)
 		return parent.captures[n]
 	end)
 end
 
---- Registers a batch of fixed-text snippets from {trigger, text} pairs.
+---Registers a batch of fixed-text snippets.
+---@param list string[][] Pairs of { trigger, text }.
+---@param opts? SnipOpts Options applied to every snippet in the list.
 local function simple(list, opts)
 	for _, pair in ipairs(list) do
 		snip(pair[1], t(pair[2]), opts)
 	end
 end
 
---- Dynamic node resolving to the visual selection (or an empty placeholder).
+-- Dynamic node function that resolves to the visual selection, or to an
+-- empty placeholder when nothing was selected.
 local function get_visual(_, parent)
 	local sel = parent.snippet.env.LS_SELECT_RAW
 	if sel and #sel > 0 then
@@ -187,35 +240,45 @@ local function visual()
 	return d(1, get_visual)
 end
 
--- check() helpers
+-- Ready-made `check` functions. They follow the `SnipCheck` signature. The
+-- character just before the trigger sits at `#line - #matched`.
+
+-- Rejects a trigger glued to a letter or a backslash.
 local function on_boundary(_, line, matched)
 	local before = line:sub(#line - #matched, #line - #matched)
 	return not before:match("[%a\\]")
 end
 
+-- Rejects a trigger right after "^" or "_".
 local function not_script(_, line, matched)
 	local before = line:sub(#line - #matched, #line - #matched)
 	return before ~= "^" and before ~= "_"
 end
 
+-- Accepts a trigger only at the start of a line, ignoring indentation.
 local function line_start(_, line, matched)
 	return line:sub(1, #line - #matched):match("^%s*$") ~= nil
 end
 
+-- Rejects a trigger right after "\math", as in "\mathbf".
 local function not_after_math(_, line, matched)
 	return not line:sub(1, #line - #matched):match("\\math$")
 end
 
---- Renders "[" or "]" only when insert node 1 has text in it.
+-- Function node that renders "[" (open) or "]" (close) only when insert
+-- node 1 has text in it. Used to make optional theorem titles.
 local function bracket(open)
 	return f(function(args)
 		return args[1][1] ~= "" and (open and "[" or "]") or ""
 	end, { 1 })
 end
 
--- Global snippets (expanded with <Tab>)
+-- Global snippets (regular snippets, expanded manually)
 
--- Theorem-like environments: { trigger, environment, Portuguese name, style }.
+-- Theorem-like environments, as { trigger, environment, Portuguese name,
+-- theorem style }. Entries with the same style must stay grouped, because
+-- the preamble emits one \theoremstyle line per run of equal styles. The
+-- first entry owns the counter and the others share it.
 local THEOREMS = {
 	{ "thm", "theorem", "Teorema", "plain" },
 	{ "lma", "lemma", "Lema", "plain" },
@@ -232,6 +295,8 @@ local THEOREMS = {
 	{ "rmk", "remark", "Observação", "remark" },
 }
 
+---Builds the \theoremstyle and \newtheorem lines for the preamble.
+---@return string[]
 local function theorem_preamble()
 	local lines = {}
 	local last_style
@@ -289,10 +354,12 @@ snip("lb", fmta("\\label{<>}", { i(1) }), { where = "any", desc = "label" })
 
 -- Text snippets (automatic, only outside math)
 
+-- Environment snippets. They fire only at the start of a line.
 local function block(trig, nodes, desc)
 	return snip(trig, nodes, { where = "text", word = true, check = line_start, desc = desc })
 end
 
+-- Inline snippets. They fire anywhere in text, after a word boundary.
 local function inline(trig, nodes, desc)
 	return snip(trig, nodes, { where = "text", word = true, desc = desc })
 end
@@ -342,8 +409,11 @@ inline("emph", fmta("\\emph{<>}", { visual() }), "emphasis")
 inline("tb", fmta("\\textbf{<>}", { visual() }), "bold")
 inline("itl", fmta("\\textit{<>}", { visual() }), "italic")
 
--- Twins: same trigger in math and in text, different output
+-- Twins: the same trigger is registered for math and for text, with a
+-- different output in each.
 
+-- Double-letter triggers for calligraphic and blackboard bold letters. In
+-- text the result is wrapped in $...$.
 local SPECIAL_LETTERS = {
 	{ "LL", [[\mathcal{L}]] },
 	{ "HH", [[\mathcal{H}]] },
@@ -361,6 +431,7 @@ for _, p in ipairs(SPECIAL_LETTERS) do
 	snip(p[1], t("$" .. p[2] .. "$"), { where = "text", word = true })
 end
 
+-- "bbR" -> \mathbb{R}, "clA" -> \mathcal{A}, "fkg" -> \mathfrak{g}.
 for trig, cmd in pairs({ bb = "mathbb", cl = "mathcal", fk = "mathfrak" }) do
 	snip(
 		trig .. "(%a)",
@@ -420,7 +491,8 @@ simple({
 })
 
 -- Automatic backslash: typing a Greek letter or function name in full
--- ("alpha", "sin", ...) prepends the backslash.
+-- ("alpha", "sin", ...) prepends the backslash. The words are collected in
+-- a set and checked by the `check` function of a single regex snippet.
 local BACKSLASH_WORDS = {}
 for _, w in ipairs({
 	"alpha",
@@ -561,7 +633,8 @@ snip(
 	{ regex = true, desc = "fraction from parenthesized expression" }
 )
 
--- Fixes "_{1}0" into "_{10}".
+-- Fixes "_{1}0" into "_{10}", the result of typing a second digit after
+-- the automatic subscript below.
 snip(
 	[[_{(%d+)}(%d)]],
 	f(function(_, p)
@@ -570,7 +643,8 @@ snip(
 	{ regex = true, desc = "x_{1}0 -> x_{10}" }
 )
 
--- Automatic subscripting: "x1" -> "x_{1}".
+-- Automatic subscripting: "x1" -> "x_{1}". The low priority lets more
+-- specific snippets, such as the accent and Greek rules, win first.
 snip("([A-Za-z])(%d)", { cap(1), t("_{"), cap(2), t("}") }, {
 	regex = true,
 	priority = -1,
@@ -604,7 +678,8 @@ simple({
 	{ "yjj", [[y_{j}]] },
 })
 
--- Accents: "xhat" -> \hat{x}, "ybar" -> \bar{y}, ...
+-- Accents: "xhat" -> \hat{x}, "ybar" -> \bar{y}, ... Maps the typed suffix
+-- to the LaTeX command.
 local ACCENTS = {
 	hat = "hat",
 	bar = "bar",
@@ -631,6 +706,7 @@ snip(
 				return false
 			end
 			local run = letter .. name
+			-- "cdot" and "ddot" are commands on their own, not a letter plus an accent
 			if run == "cdot" or run == "ddot" then
 				return false
 			end
@@ -639,6 +715,7 @@ snip(
 	}
 )
 
+-- Typing an accent name alone opens the accent with an empty argument.
 for name, cmd in pairs(ACCENTS) do
 	snip(name, fmta("\\" .. cmd .. "{<>}<>", { i(1), i(0) }), { word = true })
 end
@@ -687,6 +764,9 @@ simple({
 	{ "curl", [[\nabla \times ]] },
 	{ "lap", [[\nabla^{2} ]] },
 })
+
+-- The priority of 1100 here and in the snippets below lets a longer
+-- trigger win over a shorter one that ends with the same characters.
 snip("<->", t([[\leftrightarrow ]]), { priority = 1100 })
 
 -- Word-boundary triggers
@@ -709,6 +789,7 @@ snip("lim", fmta([[\lim_{ <> \to <> } <>]], { i(1, "n"), i(2, [[\infty]]), i(0) 
 snip("apl", fmta([[\left. <> \right|_{<>}^{<>} <>]], { i(1), i(2, "a"), i(3, "b"), i(0) }))
 snip("ev", fmta([[\left. <> \right|_{<> = <>}]], { i(1, "f"), i(2, "x"), i(3, "a") }))
 snip("pd", fmta([[\frac{ \partial <> }{ \partial <> } <>]], { i(1, "y"), i(2, "x"), i(0) }))
+-- "pafx" -> \frac{ \partial f }{ \partial x }
 snip(
 	"pa([A-Za-z])([A-Za-z])",
 	{ t([[\frac{ \partial ]]), cap(1), t([[ }{ \partial ]]), cap(2), t(" } ") },
@@ -732,6 +813,9 @@ snip(
 	{ priority = 1100, desc = "mixed partial derivative" }
 )
 
+-- "int" after anything but a letter or a backslash. The first capture
+-- keeps the preceding character, and the low priority leaves the more
+-- specific integral snippets below ahead of it.
 snip(
 	"([^%a\\])int",
 	{ cap(1), t([[\int ]]), i(1), t([[ \, d]]), i(2, "x"), t(" "), i(0) },
@@ -754,7 +838,7 @@ snip("ust", fmta([[\underset{ <> }{ <> }]], { i(2), visual() }), { desc = "under
 snip("cnc", fmta([[\cancel{ <> }]], { visual() }), { desc = "cancel" })
 snip("cto", fmta([[\cancelto{ <> }{ <> }]], { i(2), visual() }), { desc = "cancelto" })
 
--- Math environments
+-- Math environments, as { trigger, environment name }
 local MATH_ENVS = {
 	{ "pmat", "pmatrix" },
 	{ "bmat", "bmatrix" },
@@ -769,7 +853,8 @@ for _, e in ipairs(MATH_ENVS) do
 	snip(e[1], fmta("\\begin{" .. e[2] .. "}\n<>\n\\end{" .. e[2] .. "}", { i(1) }), { word = true })
 end
 
--- Identity matrix generator: "iden3" -> 3x3 identity matrix.
+-- Identity matrix generator: "iden3" -> 3x3 identity matrix. Falls back to
+-- 2x2 if the digit cannot be read.
 snip(
 	"iden(%d)",
 	f(function(_, parent)
@@ -799,6 +884,7 @@ snip("lr(", fmta([[\left( <> \right) <>]], { i(1), i(0) }))
 snip("lr{", fmta([[\left\{ <> \right\} <>]], { i(1), i(0) }))
 snip("lr[", fmta([[\left[ <> \right] <>]], { i(1), i(0) }))
 snip("lr|", fmta([[\left| <> \right| <>]], { i(1), i(0) }))
+-- In fmta, "<<" and ">>" are escapes for literal "<" and ">".
 snip("lra", fmta([[\left<< <> \right>> <>]], { i(1), i(0) }))
 
 -- Linear algebra and combinatorics

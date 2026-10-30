@@ -8,9 +8,9 @@
 -- three pieces of state that are refreshed by autocmds instead of on every
 -- redraw, because they are costly or asynchronous:
 --
---   vim.g.sl_mode       label of the current mode (see MODES)
---   vim.b.git_branch    "Git-<branch> ", "Git-@<sha> " (detached) or ""
---   vim.b.sl_file_size  " 12.3K " or "" (size of the file on disk)
+-- vim.g.sl_mode       label of the current mode (see MODES)
+-- vim.b.git_branch    "Git-<branch> ", "Git-@<sha> " (detached) or ""
+-- vim.b.sl_file_size  " 12.3K " or "" (size of the file on disk)
 --
 -- It also reads `vim.t.zoomed`, which is expected to be set by a window-zoom
 -- feature elsewhere in the config (shows `[Z]` while a window is zoomed).

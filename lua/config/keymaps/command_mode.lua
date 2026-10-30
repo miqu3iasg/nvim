@@ -1,4 +1,4 @@
--- keymaps/command_mode.lua
+-- lua/config/keymaps/command_mode.lua
 
 local km = vim.keymap.set
 

@@ -1,4 +1,4 @@
--- lua/autocmds.lua
+-- lua/config/autocmds.lua
 
 -- Keep splits evenly sized after resizing
 -- (skipped while no-neck-pain is active, which manages its own window widths)
@@ -15,6 +15,15 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "Highlight yanked text",
 	callback = function()
 		vim.hl.on_yank()
+	end,
+})
+
+-- No auto continue comments on new line
+-- (ftplugins reset 'formatoptions', so this runs on every FileType)
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("no_auto_comment", {}),
+	callback = function()
+		vim.opt_local.formatoptions:remove({ "c", "r", "o" })
 	end,
 })
 

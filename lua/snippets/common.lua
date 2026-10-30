@@ -1,4 +1,9 @@
--- snippets/common.lua
+-- lua/snippets/common.lua
+
+-- Language-agnostic LuaSnip snippets: file headers, license headers,
+-- function doc comments, marker comments (TODO, FIXME, ...) and small
+-- one-line helpers. Every snippet is a dynamic node that reads the current
+-- filetype and adapts its comment syntax to it.
 
 local ls = require("luasnip")
 local s = ls.snippet
@@ -16,27 +21,48 @@ local function get_year()
 	return os.date("%Y")
 end
 
+-- The helpers below fall back to "untitled" for unnamed buffers.
 local function get_filename()
 	local name = vim.fn.expand("%:t")
 	return name ~= "" and name or "untitled"
 end
 
+-- Path relative to the working directory.
+local function get_relpath()
+	local path = vim.fn.expand("%:.")
+	if path == "" then
+		return "untitled"
+	end
+	return path
+end
+
+-- File name without its extension.
 local function get_basename()
 	local name = vim.fn.expand("%:t:r")
 	return name ~= "" and name or "untitled"
 end
 
+---Describes how a header or inline comment is written for a filetype.
+---A "line" style prefixes every line with `sym`. A "block" style wraps the
+---content in `open` and `close`. A "docstring" style (Python only) is a
+---list of opening lines followed by a closing delimiter.
+---@class CommentStyle
+---@field kind "line"|"block"|"docstring"
+---@field sym? string Line comment symbol, for "line" styles.
+---@field open? string|string[] Opener of a block or docstring style.
+---@field close? string Closer of a block or docstring style.
+---@field mid? string Prefix of each content line in a block style. Defaults to " * ".
+---@field close_indent? string Whitespace before the block closer. Defaults to " ".
+
 local C_BLOCK = { kind = "block", open = "/*", close = "*/" }
 local HTML_BLOCK = { kind = "block", open = "<!--", close = "-->" }
 
--- File header comment style per filetype. A line style starts every line
--- with a symbol, a block style wraps the content in an opener and a closer,
--- and the docstring style (Python only) is a shebang, an encoding line and
--- an opening triple quote. Block styles can also set `mid`, the prefix of
--- each content line (default " * "), and `close_indent`, the whitespace
--- before the closer (default " "). Filetypes without a real block comment
--- stay on line comments, and lisp and scheme keep ";;;" because it is the
--- community convention for file metadata
+-- File header comment style per filetype. Filetypes without a real block
+-- comment stay on line comments, and lisp and scheme keep ";;;" because it
+-- is the community convention for file metadata. The Lua opener and closer
+-- are built by concatenation so this file does not contain a literal
+-- long-bracket delimiter.
+---@type table<string, CommentStyle>
 local comment_styles = {
 	lua = { kind = "block", open = "-" .. "-[" .. "[", close = "]" .. "]", mid = "  ", close_indent = "" },
 	sh = { kind = "line", sym = "#" },
@@ -75,6 +101,7 @@ local comment_styles = {
 	},
 }
 
+---@type CommentStyle
 local DEFAULT_STYLE = { kind = "line", sym = "#" }
 
 -- Single-line comment symbol, for inline snippets that must stay on one
@@ -115,8 +142,8 @@ local function line_comment_sym(ft)
 	return line_comment_by_ft[ft] or DEFAULT_LINE_COMMENT
 end
 
--- Filetypes whose multi-line inline snippets (refs, drefs, cblock) use a
--- block comment. All others use consecutive line comments.
+-- Filetypes whose multi-line inline snippets (refs, drefs) use a block
+-- comment. All others use consecutive line comments.
 local inline_block_fts = {
 	c = true,
 	cpp = true,
@@ -144,7 +171,11 @@ local function label(text)
 	return text .. string.rep(" ", math.max(1, FIELD_WIDTH - #text))
 end
 
--- Applies a comment style to one line of header content.
+---Applies a comment style to one line of header content. An empty line
+---becomes a bare comment prefix with no trailing whitespace.
+---@param style CommentStyle
+---@param line string
+---@return string
 local function wrap(style, line)
 	if style.kind == "line" then
 		if line == "" then
@@ -173,7 +204,9 @@ local function line_prefix(style)
 	end
 end
 
--- Compile/run instructions for the `ehead` and `shead` headers.
+-- Compile/run instructions for the `ehead` and `shead` headers. Each entry
+-- takes a comment style and returns the nodes for the lines that follow the
+-- usage title.
 local usage_by_ft = {
 	c = function(style)
 		return {
@@ -348,10 +381,17 @@ usage_by_ft.zsh = usage_by_ft.sh
 -- title is skipped.
 local inline_usage_fts = { java = true }
 
--- Blank line, then the usage block. Falls back to a placeholder when the
--- filetype has no entry in `usage_by_ft`. LuaSnip needs contiguous insert
--- indices, so this takes the next free index and returns the next one
--- still free (it only consumes an index in the fallback case).
+---Adds a blank line and the usage block to a header. Falls back to a
+---placeholder when the filetype has no entry in `usage_by_ft`.
+---
+---LuaSnip needs contiguous insert indices, so the caller passes the next
+---free index and gets back the next one still free. An index is only
+---consumed in the fallback case.
+---@param add fun(...: table) Appends nodes to the snippet being built.
+---@param style CommentStyle
+---@param ft string
+---@param idx integer Next free insert node index.
+---@return integer idx Next free insert node index after this call.
 local function add_usage(add, style, ft, idx)
 	local usage_fn = usage_by_ft[ft]
 	add(t({ "", wrap(style, "") }))
@@ -369,148 +409,6 @@ local function add_usage(add, style, ft, idx)
 	add(i(idx, "how to compile/run this file"))
 	return idx + 1
 end
-
--- Test-suite commands for the `thead` header. Unlike `usage_by_ft`, these
--- run the tests, not just the file.
-local test_usage_by_ft = {
-	c = function(style)
-		return {
-			t({ "", wrap(style, "    Plain, compiled test binary:") }),
-			t({ "", wrap(style, "    $ gcc -Wall -Wextra -Wpedantic -std=c23 ") }),
-			f(get_filename, {}),
-			t(" -o "),
-			f(get_basename, {}),
-			t({ "", wrap(style, "    $ ./") }),
-			f(get_basename, {}),
-			t({
-				"",
-				wrap(style, ""),
-				wrap(style, "    If using a framework (Unity, Criterion, cmocka), use its runner instead."),
-			}),
-		}
-	end,
-	cpp = function(style)
-		return {
-			t({ "", wrap(style, "    With CTest (GoogleTest/Catch2 registered via CMake):") }),
-			t({ "", wrap(style, "    $ ctest --test-dir build") }),
-			t({ "", wrap(style, ""), wrap(style, "    Or compiled directly against GoogleTest:") }),
-			t({ "", wrap(style, "    $ g++ -std=c++23 ") }),
-			f(get_filename, {}),
-			t(" -lgtest -lgtest_main -pthread -o "),
-			f(get_basename, {}),
-			t({ "", wrap(style, "    $ ./") }),
-			f(get_basename, {}),
-		}
-	end,
-	java = function(style)
-		return {
-			t({ "", wrap(style, "    Maven:") }),
-			t({ "", wrap(style, "    $ mvn test") }),
-			t({ "", wrap(style, ""), wrap(style, "    Gradle:") }),
-			t({ "", wrap(style, "    $ gradle test") }),
-		}
-	end,
-	python = function(style)
-		return {
-			t({ "", wrap(style, "    $ pytest ") }),
-			f(get_filename, {}),
-			t({ "", wrap(style, "    $ pytest -v ") }),
-			f(get_filename, {}),
-		}
-	end,
-	javascript = function(style)
-		return {
-			t({ "", wrap(style, "    $ npx jest ") }),
-			f(get_filename, {}),
-			t({ "", wrap(style, ""), wrap(style, "    Or, if configured as the project's test script:") }),
-			t({ "", wrap(style, "    $ npm test") }),
-		}
-	end,
-	typescript = function(style)
-		return {
-			t({ "", wrap(style, "    $ npx jest ") }),
-			f(get_filename, {}),
-			t({ "", wrap(style, ""), wrap(style, "    Or, if configured as the project's test script:") }),
-			t({ "", wrap(style, "    $ npm test") }),
-		}
-	end,
-	rust = function(style)
-		return {
-			t({ "", wrap(style, "    $ cargo test") }),
-		}
-	end,
-	go = function(style)
-		return {
-			t({ "", wrap(style, "    $ go test ./...") }),
-		}
-	end,
-	php = function(style)
-		return {
-			t({ "", wrap(style, "    $ vendor/bin/phpunit ") }),
-			f(get_filename, {}),
-		}
-	end,
-	cs = function(style)
-		return {
-			t({ "", wrap(style, "    $ dotnet test") }),
-		}
-	end,
-	haskell = function(style)
-		return {
-			t({ "", wrap(style, "    Stack:") }),
-			t({ "", wrap(style, "    $ stack test") }),
-			t({ "", wrap(style, ""), wrap(style, "    Cabal:") }),
-			t({ "", wrap(style, "    $ cabal test") }),
-		}
-	end,
-	zig = function(style)
-		return {
-			t({ "", wrap(style, "    $ zig test ") }),
-			f(get_filename, {}),
-		}
-	end,
-	sh = function(style)
-		return {
-			t({ "", wrap(style, "    With bats-core:") }),
-			t({ "", wrap(style, "    $ bats ") }),
-			f(get_filename, {}),
-		}
-	end,
-	ruby = function(style)
-		return {
-			t({ "", wrap(style, "    RSpec:") }),
-			t({ "", wrap(style, "    $ bundle exec rspec ") }),
-			f(get_filename, {}),
-			t({ "", wrap(style, ""), wrap(style, "    Minitest:") }),
-			t({ "", wrap(style, "    $ ruby -Itest ") }),
-			f(get_filename, {}),
-		}
-	end,
-	kotlin = function(style)
-		return {
-			t({ "", wrap(style, "    Gradle:") }),
-			t({ "", wrap(style, "    $ gradle test") }),
-			t({ "", wrap(style, ""), wrap(style, "    Maven:") }),
-			t({ "", wrap(style, "    $ mvn test") }),
-		}
-	end,
-	perl = function(style)
-		return {
-			t({ "", wrap(style, "    With Test::More, via prove:") }),
-			t({ "", wrap(style, "    $ prove ") }),
-			f(get_filename, {}),
-		}
-	end,
-	ps1 = function(style)
-		return {
-			t({ "", wrap(style, "    Pester:") }),
-			t({ "", wrap(style, "    $ Invoke-Pester ") }),
-			f(get_filename, {}),
-		}
-	end,
-}
-test_usage_by_ft.bash = test_usage_by_ft.sh
-test_usage_by_ft.zsh = test_usage_by_ft.sh
 
 -- Doc comments for `fnhead`, in each language's idiomatic format. These
 -- build their own delimiters because the doc format dictates the syntax.
@@ -664,6 +562,7 @@ doc_by_ft.ruby = function()
 	}
 end
 
+-- `fnhead`: doc comment in the idiomatic format of the current filetype.
 -- Falls back to a one-line comment for filetypes without a doc format.
 local function build_fnhead(_, _)
 	local doc = doc_by_ft[vim.bo.filetype]
@@ -700,6 +599,10 @@ local function close_header(add, style)
 		add(t({ "", "" }))
 	end
 end
+
+-- The `build_*` functions below are dynamic node functions: LuaSnip passes
+-- two arguments, which they ignore, and each returns a snippet node. Every
+-- one defines a local `add` that appends nodes to its own list.
 
 -- `head`: File, Author, Created, Modified, Description. No license.
 local function build_head(_, _)
@@ -782,7 +685,10 @@ local licenses = {
 	mpl2 = "MPL-2.0",
 }
 
--- Same as `head`, plus an SPDX line and a copyright notice.
+---Returns a dynamic node function for a `<prefix>head` snippet: the same
+---fields as `head`, plus an SPDX line and a copyright notice.
+---@param spdx string SPDX license identifier.
+---@return fun(args: table, parent: table): table
 local function build_licensed_head(spdx)
 	return function(_, _)
 		local ft = vim.bo.filetype
@@ -851,8 +757,8 @@ local function build_allhead(_, _)
 	return sn(nil, nodes)
 end
 
--- `ehead`: exercise header. `shead` fields plus a problem statement, with
--- compile/run commands from `usage_by_ft`.
+-- `ehead`: exercise header. `shead` fields plus a problem statement and a
+-- reference list, with compile/run commands from `usage_by_ft`.
 local function build_exs(_, _)
 	local ft = vim.bo.filetype
 	local style = comment_styles[ft] or DEFAULT_STYLE
@@ -899,48 +805,10 @@ local function build_exs(_, _)
 	return sn(nil, nodes)
 end
 
--- `thead`: test-file header with what is under test and the commands from
--- `test_usage_by_ft`.
-local function build_testhead(_, _)
-	local ft = vim.bo.filetype
-	local style = comment_styles[ft] or DEFAULT_STYLE
-	local usage_fn = test_usage_by_ft[ft]
-	local nodes = {}
-	local function add(...)
-		for _, n in ipairs({ ... }) do
-			table.insert(nodes, n)
-		end
-	end
-
-	open_and_first_line(add, style, label("File:"))
-	add(f(get_filename, {}))
-	add(t({ "", wrap(style, label("Author:")) }))
-	add(i(1, "Miquéias Alves Medeiros <https://github.com/miqu3iasg>"))
-	add(t({ "", wrap(style, label("Created:")) }))
-	add(f(get_date, {}))
-	add(t({ "", wrap(style, label("Modified:")) }))
-	add(f(get_date, {}))
-	add(t({ "", wrap(style, label("Testing:")) }))
-	add(i(2, "module / function / behavior under test"))
-	add(t({ "", wrap(style, ""), line_prefix(style) }))
-	add(i(3, "setup notes, mocks, fixtures, etc."))
-	add(t({ "", wrap(style, ""), wrap(style, label("Run:")) }))
-
-	if usage_fn then
-		for _, n in ipairs(usage_fn(style)) do
-			add(n)
-		end
-	else
-		add(t({ "", wrap(style, "    ") }))
-		add(i(4, "how to run this test file"))
-	end
-
-	close_header(add, style)
-	add(i(0))
-
-	return sn(nil, nodes)
-end
-
+---Returns the style for multi-line inline snippets: the block style for
+---filetypes in `inline_block_fts`, line comments for all others.
+---@param ft string
+---@return CommentStyle
 local function inline_style(ft)
 	local raw = comment_styles[ft]
 	if raw and raw.kind == "block" and inline_block_fts[ft] then
@@ -964,8 +832,12 @@ local function close_inline(add, style)
 	end
 end
 
--- Opener and closer for a one-line comment. Languages with only a block
--- form (html, xml, markdown) get `<!-- ... -->`.
+---Returns the opener and closer for a one-line comment. Languages with
+---only a block form (html, xml, markdown) get `<!-- ... -->`. The closer
+---is empty for line comments.
+---@param ft string
+---@return string opener
+---@return string closer
 local function oneline_delims(ft)
 	local sym = line_comment_by_ft[ft]
 	if sym then
@@ -978,7 +850,10 @@ local function oneline_delims(ft)
 	return DEFAULT_LINE_COMMENT .. " ", ""
 end
 
--- Bare marker comment (`// TODO: `) with the cursor after the colon.
+---Returns a dynamic node function for a bare marker comment such as
+---`// TODO: `, with the cursor after the colon.
+---@param text string Marker keyword, for example "TODO".
+---@return fun(args: table, parent: table): table
 local function build_marker(text)
 	return function(_, _)
 		local pre, post = oneline_delims(vim.bo.filetype)
@@ -1025,6 +900,7 @@ local function build_scratch(_, _)
 	return sn(nil, nodes)
 end
 
+-- `shebang`: interpreter line for the current filetype, `sh` by default.
 local function build_shebang(_, _)
 	local ft = vim.bo.filetype
 	local line = shebang_by_ft[ft] or "#!/usr/bin/env sh"
@@ -1038,6 +914,18 @@ local function build_see(_, _)
 		t(sym .. " See: "),
 		i(1),
 	})
+end
+
+-- `file`: one-line comment with the file path relative to the cwd,
+-- e.g. `-- lua/options.lua`.
+local function build_filepath(_, _)
+	local pre, post = oneline_delims(vim.bo.filetype)
+	local nodes = { t(pre), f(get_relpath, {}) }
+	if post ~= "" then
+		table.insert(nodes, t(post))
+	end
+	table.insert(nodes, i(0))
+	return sn(nil, nodes)
 end
 
 local function build_mail(_, _)
@@ -1094,12 +982,12 @@ local snippets = {
 	s("head", { d(1, build_head, {}) }),
 	s("shead", { d(1, build_study, {}) }),
 	s("ahead", { d(1, build_allhead, {}) }),
-	s("thead", { d(1, build_testhead, {}) }),
 	s("chead", { d(1, build_scratch, {}) }),
 	s("ehead", { d(1, build_exs, {}) }),
 	s("fnhead", { d(1, build_fnhead, {}) }),
 	s("shebang", { d(1, build_shebang, {}) }),
 	s("see", { d(1, build_see, {}) }),
+	s("file", { d(1, build_filepath, {}) }),
 	s("refs", { d(1, build_refs, {}) }),
 	s("drefs", { d(1, build_snip, {}) }),
 	s("spdx", { d(1, build_spdx, {}) }),
@@ -1108,6 +996,7 @@ local snippets = {
 	s("author", { i(1, "Miquéias Alves Medeiros <https://github.com/miqu3iasg>") }),
 }
 
+-- Trigger -> keyword for the marker comment snippets.
 local markers = {
 	todo = "TODO",
 	fixme = "FIXME",

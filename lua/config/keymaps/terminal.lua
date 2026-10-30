@@ -1,4 +1,4 @@
--- lua/keymaps/terminal.lua
+-- lua/config/keymaps/terminal.lua
 
 local km = vim.keymap.set
 

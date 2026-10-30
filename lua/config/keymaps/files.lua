@@ -1,4 +1,4 @@
--- lua/keymaps/files.lua
+-- lua/config/keymaps/files.lua
 
 -- Helpers
 

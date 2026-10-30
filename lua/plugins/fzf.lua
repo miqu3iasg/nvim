@@ -61,8 +61,8 @@ local function make_opts()
 				end
 			end,
 
-			-- split       = "botright 10new",
-			-- border      = "none",
+			-- split = "botright 15new",
+			-- border = "none",
 			height = 0.95,
 			width = 0.90,
 			row = 0.35,

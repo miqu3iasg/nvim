@@ -241,7 +241,7 @@ local editor = {
 	WarningMsg = { fg = p.warn, bg = p.black },
 	ErrorMsg = { fg = p.error, bg = p.black, bold = true },
 	Error = { fg = p.error, bg = p.black, bold = true, reverse = true },
-	Todo = { fg = p.black, bg = p.warn, bold = true },
+	Todo = { fg = p.warn, bold = true },
 
 	-- Statusline, tabline, titlebar, toolbar
 	StatusLine = { fg = p.statusline_fg, bg = p.line },

@@ -1,4 +1,4 @@
--- lua/keymaps/windows.lua
+-- lua/config/keymaps/windows.lua
 
 local km = vim.keymap.set
 

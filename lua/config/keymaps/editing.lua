@@ -1,4 +1,4 @@
--- lua/keymaps/editing.lua
+-- lua/config/keymaps/editing.lua
 
 local km = vim.keymap.set
 local substitute = require("utils.substitute")

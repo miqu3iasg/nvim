@@ -1,4 +1,4 @@
--- lua/keymaps/misc.lua
+-- lua/config/keymaps/misc.lua
 
 -- Helpers
 
@@ -50,6 +50,10 @@ map("<leader>vd", function()
 	vim.diagnostic.enable(enabled)
 	vim.notify("Diagnostics " .. (enabled and "enabled" or "disabled"))
 end, "Toggle diagnostics")
+
+map("<leader>vh", function()
+	vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
+end, "Toggle tabline")
 
 -- Line numbers
 

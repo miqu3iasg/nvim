@@ -1,4 +1,4 @@
--- lua/keymaps/search.lua
+-- lua/config/keymaps/search.lua
 
 local km = vim.keymap.set
 

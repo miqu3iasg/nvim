@@ -1,4 +1,4 @@
--- lua/commands.lua
+-- lua/config/commands.lua
 
 -- Change the working directory to the current file's directory.
 vim.api.nvim_create_user_command("Setwd", function()

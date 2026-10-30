@@ -1,4 +1,4 @@
--- lua/sessions.lua
+-- lua/config/sessions.lua
 
 -- Minimal, fully automatic, per-directory session management built on
 -- :mksession and :source.

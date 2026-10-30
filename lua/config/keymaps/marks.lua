@@ -1,4 +1,4 @@
--- lua/keymaps/marks.lua
+-- lua/config/keymaps/marks.lua
 
 local km = vim.keymap.set
 

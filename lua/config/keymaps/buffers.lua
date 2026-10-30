@@ -1,4 +1,4 @@
--- lua/keymaps/buffers.lua
+-- lua/config/keymaps/buffers.lua
 
 local utils = require("utils.buffers")
 
