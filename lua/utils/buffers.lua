@@ -85,7 +85,7 @@ end
 
 ---Save and delete every listed buffer that passes `filter`. A buffer that could
 ---not be saved is kept on purpose; a single warning reports how many.
----Note: unlike `delete_keep_layout`, this does not preserve the window layout.
+---NOTE: unlike `delete_keep_layout`, this does not preserve the window layout.
 ---@param filter? fun(info: table): boolean receives a `getbufinfo()` entry; `nil` matches every listed buffer
 function M.delete_where(filter)
 	local kept = 0

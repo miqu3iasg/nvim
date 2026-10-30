@@ -1,5 +1,7 @@
 -- lua/config/keymaps/misc.lua
 
+-- TODO: add here that oil is a required dependency for this file works
+
 -- Helpers
 
 local km = vim.keymap.set

@@ -3,10 +3,9 @@
 -- Minimal, fully automatic, per-directory session management built on
 -- :mksession and :source.
 --
--- See:
---     - https://github.com/mhinz/vim-startify/blob/81e36c352a8deea54df5ec1e2f4348685569bed2/autoload/startify.vim#L27
---     - https://github.com/tpope/vim-obsession/blob/master/plugin/obsession.vim
---     - https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/possession.vim
+-- See: https://github.com/mhinz/vim-startify/blob/81e36c352a8deea54df5ec1e2f4348685569bed2/autoload/startify.vim#L27
+-- See: https://github.com/tpope/vim-obsession/blob/master/plugin/obsession.vim
+-- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/possession.vim
 
 local M = {}
 

@@ -40,13 +40,12 @@ local p = {
 	statusline_nc_fg = "#636262",
 
 	-- Syntax
-	comment = "#9292E0", -- comments
-	blue = "#9292E0", -- comments, "~" empty lines, directories
-	type = "#8dd6a1", -- int, const, char
-	pink = "#d975d8", -- #include, special chars like %s
-	yellow = "#E4B57F", -- return, if, for...
-	orange = "#CD8E7B", -- <stdio.h>, strings
-	red = "#d70000",
+	comment = "#9696e0", -- comments
+	blue = "#9696e0", -- "~" empty lines, directories
+	type = "#80d098", -- int, const, char
+	pink = "#f070f0", -- #include, special chars like %s
+	yellow = "#dccf80", -- return, if, for...
+	orange = "#f0a080", -- <stdio.h>, strings
 
 	-- Diagnostics
 	error = "#d06060",

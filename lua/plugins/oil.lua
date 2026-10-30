@@ -121,6 +121,10 @@ oil.setup({
 -- require("oil-git-status").setup()
 
 -- Open parent directory
+vim.keymap.set("n", "<leader>e", "<CMD>Oil<CR>", {
+	desc = "Open parent directory",
+})
+-- Alternative
 vim.keymap.set("n", "go", "<CMD>Oil<CR>", {
 	desc = "Open parent directory",
 })

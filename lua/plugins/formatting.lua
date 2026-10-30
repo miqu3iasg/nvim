@@ -10,7 +10,7 @@
 -- latexindent (LaTeX), typstyle (Typst), shfmt (shell), taplo (TOML), Elixir,
 -- nixfmt, perltidy, scalafmt and buf (Protobuf):
 --
--- $ sudo pacman -S nodejs npm clang go texlive-basic texlive-bin texlive-latexextra texlive-fontsextra typstyle shfmt taplo-cli elixir nixfmt perltidy scalafmt buf
+-- $ sudo pacman -S nodejs npm clang go texlive-basic texlive-bin texlive-latexextra texlive-fontsextra typstyle shfmt taplo-cli astyle nixfmt perltidy scalafmt buf
 --
 -- JavaScript, TypeScript, HTML, CSS, JSON, Markdown, GraphQL and Vue use
 -- Prettier. Prettierd is preferred when available, and Conform falls back to
@@ -55,7 +55,8 @@ require("conform").setup({
 		go = { "goimports-reviser", "golines" },
 		c = { "clang_format" },
 		cpp = { "clang_format" },
-		java = { "google-java-format" },
+		-- java = { "google-java-format" },
+		java = { "astyle" },
 		python = { "ruff_organize_imports", "ruff_format" },
 		sh = { "shfmt" },
 		bash = { "shfmt" },
@@ -85,6 +86,9 @@ require("conform").setup({
 	formatters = {
 		["google-java-format"] = {
 			prepend_args = { "--aosp", "--skip-javadoc-formatting" },
+		},
+		astyle = {
+			prepend_args = { "--style=allman", "--indent=spaces=4" },
 		},
 		clang_format = {
 			-- this file must be located in `~/.clang-format`. We have an example

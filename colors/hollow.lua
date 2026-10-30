@@ -40,7 +40,7 @@ local p = {
 	border = "#444444",
 
 	-- Statusline
-	statusline_fg = "#e2e2e2",
+	statusline_fg = "#c2c0c0",
 	statusline_nc_fg = "#636262",
 
 	-- Accent and status
@@ -87,24 +87,25 @@ local p = {
 
 	-- Micro-palette for tiny luminance steps so structure, operations and
 	-- values separate without ever reading as "color"
-	t = {
-		op = "#ebebeb", -- + - = == => && ||
-		special = "#f6f6f6", -- ${}, escapes, special regex chars
-		const = "#e3e3e3", -- numbers, booleans, nil
-		prop = "#c9c9c9", -- fields and properties (obj.field)
-		bracket = "#bcbcbc", -- ( ) [ ] { }
-		delim = "#989898", -- , ; . :
-	},
+	-- Default version
+	-- t = {
+	-- 	op = "#ebebeb", -- + - = == => && ||
+	-- 	special = "#f6f6f6", -- ${}, escapes, special regex chars
+	-- 	const = "#e3e3e3", -- numbers, booleans, nil
+	-- 	prop = "#c9c9c9", -- fields and properties (obj.field)
+	-- 	bracket = "#bcbcbc", -- ( ) [ ] { }
+	-- 	delim = "#989898", -- , ; . :
+	-- },
 
 	-- Constrast version
-	-- t = {
-	-- 	op = "#f6f6f6", -- + - = == => && ||
-	-- 	special = "#ffffff", -- ${}, escapes, special regex chars
-	-- 	const = "#ededed", -- numbers, booleans, nil
-	-- 	prop = "#b4b4b4", -- fields and properties (obj.field)
-	-- 	bracket = "#9a9a9a", -- ( ) [ ] { }
-	-- 	delim = "#808080", -- , ; . :
-	-- },
+	t = {
+		op = "#f6f6f6", -- + - = == => && ||
+		special = "#ffffff", -- ${}, escapes, special regex chars
+		const = "#ededed", -- numbers, booleans, nil
+		prop = "#b4b4b4", -- fields and properties (obj.field)
+		bracket = "#9a9a9a", -- ( ) [ ] { }
+		delim = "#808080", -- , ; . :
+	},
 }
 
 local md = p.markdown

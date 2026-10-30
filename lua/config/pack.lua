@@ -184,6 +184,11 @@ vim.pack.add({
 	-- Extended Java LSP support for Eclipse JDT Language Server (refactors, test running, debugging).
 	{ src = "https://github.com/mfussenegger/nvim-jdtls" },
 
+	-- vim-sleuth
+	-- https://github.com/tpope/vim-sleuth
+	-- Check if the document uses tabs or spaces for indentation and automatically adjusts
+	{ src = "https://github.com/tpope/vim-sleuth" },
+
 	-- img-clip.nvim
 	-- https://github.com/HakonHarnes/img-clip.nvim
 	-- Pastes images from the clipboard into files (Markdown, LaTeX, etc.) and inserts the link. Useful

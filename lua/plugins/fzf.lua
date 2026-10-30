@@ -46,6 +46,38 @@ local declarations = require("infra.declarations")
 
 declarations.setup()
 
+-- Directories that are never worth searching. Skipping them keeps the file
+-- and grep pickers fast.
+local ignored_dirs = {
+	".git",
+	"node_modules",
+	".venv",
+	"venv",
+	"__pycache__",
+	".mypy_cache",
+	".pytest_cache",
+	".cache",
+	".gradle",
+	".idea",
+	".next",
+	"target",
+	"dist",
+}
+
+-- ripgrep: -g "!name" excludes a directory at any depth
+local rg_globs = {}
+
+-- fd: --exclude name (only used if you install fd later)
+local fd_excludes = {}
+
+for _, dir in ipairs(ignored_dirs) do
+	table.insert(rg_globs, string.format('-g "!%s"', dir))
+	table.insert(fd_excludes, string.format("--exclude %s", dir))
+end
+
+rg_globs = table.concat(rg_globs, " ")
+fd_excludes = table.concat(fd_excludes, " ")
+
 -- Plugin options and setup
 local function make_opts()
 	local actions = fzf.actions
@@ -60,7 +92,6 @@ local function make_opts()
 					vim.api.nvim_win_set_config(e.winid, { title = "" })
 				end
 			end,
-
 			-- split = "botright 15new",
 			-- border = "none",
 			height = 0.95,
@@ -77,6 +108,7 @@ local function make_opts()
 				default = "bat",
 				hidden = true,
 				layout = "horizontal",
+				title = false,
 				horizontal = "right:50%",
 				wrap = true,
 				scrollbar = false,
@@ -101,6 +133,7 @@ local function make_opts()
 
 		previewers = {
 			builtin = {
+				title = false,
 				treesitter = { enabled = true },
 			},
 		},
@@ -128,8 +161,17 @@ local function make_opts()
 			},
 		},
 
+		files = {
+			-- fzf-lua defaults plus the extra ignores
+			rg_opts = "--color=never --files --hidden --follow " .. rg_globs,
+			fd_opts = "--color=never --hidden --type f --type l " .. fd_excludes,
+		},
+
 		-- Hide the line and column fields from grep results
 		grep = {
+			rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 "
+				.. rg_globs
+				.. " -e",
 			fzf_opts = {
 				["--delimiter"] = ":",
 				["--with-nth"] = "1,4..",
@@ -144,6 +186,8 @@ fzf.setup(make_opts())
 local function set_fzf_hl()
 	vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
 	vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })
+	vim.api.nvim_set_hl(0, "FzfLuaSearch", { fg = "#D6C17A", bg = "#3D3525" })
+	vim.api.nvim_set_hl(0, "FzfLuaCursorLine", { bg = "#1c1c1c" })
 end
 
 set_fzf_hl()
@@ -157,6 +201,14 @@ km("n", "<leader>fu", "<cmd>FzfLua files cwd=%:p:h<cr>", { desc = "Fzf: find fil
 km("n", "<leader>fb", "<cmd>FzfLua buffers<cr>", { desc = "Fzf: switch between open buffers" })
 km("n", "<leader>fo", "<cmd>FzfLua oldfiles<cr>", { desc = "Fzf: reopen recently edited files" })
 km("n", "<leader>fp", "<cmd>FzfLua zoxide<cr>", { desc = "Fzf: jump to a frequent directory (zoxide)" })
+
+km("n", "<leader>fr", function()
+	fzf.files({ cwd = vim.fn.expand("~/repos") })
+end, { desc = "Fzf: find files in ~/repos" })
+
+km("n", "<leader>fn", function()
+	fzf.files({ cwd = vim.fn.expand("~/.config/nvim") })
+end, { desc = "Fzf: find files in ~/.config/nvim" })
 
 -- Searching text
 km("n", "<leader>fg", "<cmd>FzfLua live_grep<cr>", { desc = "Fzf: live grep across all files in cwd" })

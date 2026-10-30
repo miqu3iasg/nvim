@@ -11,19 +11,17 @@ vim.opt.timeoutlen = 500
 vim.opt.showtabline = 0
 vim.opt.ttimeoutlen = 30
 vim.opt.switchbuf = "uselast"
-vim.opt.exrc = true
 vim.opt.showcmd = false
 vim.opt.mouse = ""
 vim.opt.wrap = false
 vim.opt.startofline = false
-vim.opt.list = false
+vim.opt.list = true
 vim.opt.listchars = { tab = "¬·", trail = "•", nbsp = "·", space = "·" }
 vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:60" })
 
 -- Search and completion
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
--- vim.opt.inccommand = "split"
 vim.opt.wildignorecase = true
 vim.opt.wildignore:append({ "*/.git/*", "*/node_modules/*", "*/target/*", "*/dist/*" })
 vim.opt.completeopt = "menuone,noselect"
@@ -55,7 +53,7 @@ vim.opt.softtabstop = 4
 
 -- Window layout
 vim.opt.splitright = true
-vim.opt.splitbelow = true
+vim.opt.splitbelow = false
 vim.opt.laststatus = 2
 vim.opt.winborder = "single"
 
@@ -69,7 +67,7 @@ vim.opt.signcolumn = "no"
 vim.opt.termguicolors = true
 vim.opt.title = false
 vim.opt.titlestring = "%t"
--- vim.opt.background = "dark"
+vim.opt.background = "dark"
 vim.opt.display:append("lastline")
 vim.opt.more = true
 
