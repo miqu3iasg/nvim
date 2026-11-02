@@ -1,18 +1,16 @@
 -- lua/plugins/git.lua
 
 -- Git must be installed and configured for the commands in this file to work.
--- These commands also require the current directory to belong to a Git repository
--- that has already been initialized with `git init` or cloned from a remote.
+-- The current directory must belong to a Git repository (`git init` or a clone).
 --
 -- On Arch Linux, install Git with:
 --
 -- $ sudo pacman -S git
 --
--- My global Git configuration is stored in ~/.gitconfig. Make sure it contains
--- the necessary settings, such as your user name and email. You can inspect it
--- with:
+-- Global configuration lives in ~/.gitconfig (user.name, user.email, ...):
 --
 -- $ git config --global --list
+--
 -- $ cat ~/.gitconfig
 --
 -- The keymaps below use vim-fugitive, gitsigns.nvim and, optionally, fzf-lua.
@@ -23,8 +21,39 @@
 -- See: https://github.com/lewis6991/gitsigns.nvim
 -- See: https://github.com/ibhagwan/fzf-lua
 
+local map = vim.keymap.set
+
+-- Helpers
+
+-- Registers a keymap whose description is prefixed by its plugin.
+local function gmap(mode, lhs, rhs, desc)
+	map(mode, lhs, rhs, { desc = desc })
+end
+
+-- Prompts for a branch name and creates + switches to it.
+local function git_new_branch()
+	vim.ui.input({ prompt = "New branch: " }, function(name)
+		name = name and vim.trim(name) or ""
+		if name ~= "" then
+			vim.cmd("Git switch -c " .. name)
+		end
+	end)
+end
+
+-- Asks for confirmation before running a destructive action.
+local function confirm_then(msg, fn)
+	return function()
+		if vim.fn.confirm(msg, "&Yes\n&No", 2) == 1 then
+			fn()
+		end
+	end
+end
+
+-- Fugitive
+
 -- Adjust the default blame view width to fit the author, timestamp and summary.
 vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("GitFugitiveBlame", { clear = true }),
 	pattern = "fugitiveblame",
 	callback = function()
 		vim.cmd("vertical resize 45")
@@ -35,80 +64,41 @@ vim.api.nvim_create_autocmd("FileType", {
 -- Registers the Fugitive close-view keymaps and autocmds
 require("utils.close").setup()
 
-local map = vim.keymap.set
+gmap("n", "<leader>gs", "<cmd>silent tab Git<cr>", "Git status")
 
--- vim-fugitive
-map("n", "<leader>gs", "<cmd>silent tab Git<cr>", { desc = "Git status" })
-map("n", "<leader>ga", "<cmd>silent Gwrite<cr>", { desc = "Stage current file" })
-map("n", "<leader>gd", "<cmd>silent Gvdiffsplit<cr>", { desc = "Diff against index" })
-map("n", "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>", { desc = "Diff against HEAD" })
-map("n", "<leader>gb", "<cmd>silent Git blame<cr>", { desc = "Git blame" })
-map("n", "<leader>ge", "<cmd>.Git blame<cr>", { desc = "Git blame (line)" })
+-- Whole-file staging
+gmap("n", "<leader>ga", "<cmd>silent Gwrite<cr>", "Stage current file")
+gmap("n", "<leader>gA", "<cmd>silent Git reset -q -- %<cr>", "Unstage current file")
+gmap("n", "<leader>gr", "<cmd>Gread<cr>", "Restore file from index (undoable)")
 
--- gitsigns.nvim
-require("gitsigns").setup({
-	signcolumn = false,
-	numhl = false,
-	word_diff = false,
-	current_line_blame = false,
-})
+-- Commit (opens the message buffer; `:wq` confirms, `:q` aborts)
+gmap("n", "<leader>gc", "<cmd>Git commit<cr>", "Commit")
+gmap("n", "<leader>gC", "<cmd>Git commit --amend<cr>", "Amend last commit")
 
-map("n", "<leader>hs", function()
-	require("gitsigns").stage_hunk()
-end, { desc = "Stage/unstage hunk" })
+-- Remote. Anything fancier (force push, rebase, ...) is left to the terminal
+gmap("n", "<leader>gp", "<cmd>Git push<cr>", "Push")
+gmap("n", "<leader>gP", "<cmd>Git pull --rebase<cr>", "Pull (rebase)")
+gmap("n", "<leader>gF", "<cmd>Git fetch --all --prune<cr>", "Fetch all + prune")
 
-map("x", "<leader>hs", function()
-	require("gitsigns").stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-end, { desc = "Stage/unstage selection" })
+-- Branches and stash
+gmap("n", "<leader>gn", git_new_branch, "New branch (switch -c)")
+gmap("n", "<leader>gZ", "<cmd>Git stash push --include-untracked<cr>", "Stash push (incl. untracked)")
 
-map("n", "<leader>hr", function()
-	require("gitsigns").reset_hunk()
-end, { desc = "Reset hunk" })
+-- Diff, blame and merge conflicts
+gmap("n", "<leader>gd", "<cmd>silent Gvdiffsplit<cr>", "Diff against index")
+gmap("n", "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>", "Diff against HEAD")
+gmap("n", "<leader>gb", "<cmd>silent Git blame<cr>", "Git blame")
+gmap("n", "<leader>ge", "<cmd>.Git blame<cr>", "Git blame (line)")
 
-map("n", "<leader>hp", function()
-	require("gitsigns").preview_hunk_inline()
-end, { desc = "Preview hunk" })
+-- Conflict resolution: open the 3-way diff, then pick a side per hunk.
+-- Buffers: //2 = target (ours / HEAD), //3 = merge (theirs / incoming)
+gmap("n", "<leader>gx", "<cmd>Gvdiffsplit!<cr>", "Resolve conflicts (3-way diff)")
+gmap({ "n", "x" }, "<leader>g2", "<cmd>diffget //2<cr>", "Conflict: take ours (target)")
+gmap({ "n", "x" }, "<leader>g3", "<cmd>diffget //3<cr>", "Conflict: take theirs (merge)")
 
-map(
-	"n",
-	"<leader>hd",
-	(function()
-		local on = false
-		return function()
-			on = not on
-			local gs = require("gitsigns")
-			gs.toggle_deleted(on)
-			gs.toggle_linehl(on)
-		end
-	end)(),
-	{ desc = "Toggle diff overlay" }
-)
-
-map("n", "]c", function()
-	require("gitsigns").nav_hunk("next", { navigation_message = false })
-end, { desc = "Next hunk" })
-
-map("n", "[c", function()
-	require("gitsigns").nav_hunk("prev", { navigation_message = false })
-end, { desc = "Prev hunk" })
-
--- Merged into the existing fzf-lua setup; ignored if fzf-lua is absent
-if pcall(require, "fzf-lua") then
-	map("n", "<leader>gw", "<cmd>FzfLua git_branches<cr>", { desc = "Git branches (checkout)" })
-	map("n", "<leader>gi", "<cmd>FzfLua git_commits<cr>", { desc = "Git commits" })
-	map("n", "<leader>gl", "<cmd>FzfLua git_blame<cr>", { desc = "Git log" })
-	map("n", "<leader>gm", "<cmd>FzfLua git_status<cr>", { desc = "Git status (modified files)" })
-	map("n", "<leader>gu", "<cmd>FzfLua git_hunks<cr>", { desc = "Git hunks" })
-	map("n", "<leader>gk", "<cmd>FzfLua git_diff<cr>", { desc = "Git diff" })
-
-	map("n", "<leader>gf", function()
-		require("fzf-lua").git_files({ cmd = "git ls-files --cached --others --exclude-standard" })
-	end, { desc = "Git files" })
-end
-
--- Git log helpers, ported from the Vimscript `enable#fugitive_log` functions
--- from bruhtus <https://github.com/bruhtus> dotfiles. Both open the result
--- in a new tab through vim-fugitive's `:Git` command
+-- Ported from the Vimscript `enable#fugitive_log` functions from bruhtus
+-- <https://github.com/bruhtus> dotfiles. Both open the result in a new tab
+-- through vim-fugitive's `:Git` command
 -- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fugitive_log.vim
 
 local log_format = "--color=never --date=short --pretty=format:'%h %cd  %s (%an)%d'"
@@ -149,5 +139,105 @@ local function git_log_visual()
 	vim.cmd("redraw!")
 end
 
-map("n", "<leader>go", git_log_normal, { desc = "Git log (file/all/function)" })
-map("x", "<leader>go", git_log_visual, { desc = "Git log (selection)" })
+gmap("n", "<leader>go", git_log_normal, "Git log (file/all/function)")
+gmap("x", "<leader>go", git_log_visual, "Git log (selection)")
+
+-- gitsigns.nvim
+
+-- Keymaps are buffer-local (set in `on_attach`) so they exist only in tracked
+-- buffers. This also keeps the native `]c` / `[c` working outside of git
+-- buffers and inside diff mode (e.g. during `Gvdiffsplit`).
+
+-- Shared state for the diff overlay toggle
+local diff_overlay = false
+
+require("gitsigns").setup({
+	signcolumn = false,
+	numhl = false,
+	word_diff = false,
+	current_line_blame = false,
+
+	on_attach = function(bufnr)
+		local gs = require("gitsigns")
+
+		local function bmap(mode, lhs, rhs, desc)
+			map(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+		end
+
+		-- Navigation: falls back to the native diff motions when in diff mode
+		local function nav(direction)
+			return function()
+				if vim.wo.diff then
+					vim.cmd.normal({ direction == "next" and "]c" or "[c", bang = true })
+				else
+					gs.nav_hunk(direction, { navigation_message = false })
+				end
+			end
+		end
+
+		bmap("n", "]c", nav("next"), "Next hunk")
+		bmap("n", "[c", nav("prev"), "Prev hunk")
+
+		-- Visual selection range, ordered, for partial hunk operations
+		local function visual_range()
+			local a, b = vim.fn.line("."), vim.fn.line("v")
+			return { math.min(a, b), math.max(a, b) }
+		end
+
+		-- Stage / reset
+		bmap("n", "<leader>hs", gs.stage_hunk, "Stage/unstage hunk")
+		bmap("x", "<leader>hs", function()
+			gs.stage_hunk(visual_range())
+		end, "Stage/unstage selection")
+
+		bmap("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
+		bmap("x", "<leader>hr", function()
+			gs.reset_hunk(visual_range())
+		end, "Reset selection")
+
+		-- Whole buffer
+		bmap("n", "<leader>hS", gs.stage_buffer, "Stage buffer")
+		bmap("n", "<leader>hU", gs.reset_buffer_index, "Unstage buffer")
+		bmap(
+			"n",
+			"<leader>hR",
+			confirm_then("Discard ALL unstaged changes in this file?", gs.reset_buffer),
+			"Reset buffer (discard changes)"
+		)
+
+		-- Inspect
+		bmap("n", "<leader>hp", gs.preview_hunk_inline, "Preview hunk")
+
+		bmap("n", "<leader>hd", function()
+			diff_overlay = not diff_overlay
+			gs.toggle_deleted(diff_overlay)
+			gs.toggle_linehl(diff_overlay)
+		end, "Toggle diff overlay")
+
+		-- Review every changed hunk of the repository from the quickfix list
+		bmap("n", "<leader>hq", function()
+			gs.setqflist("all")
+		end, "Hunks → quickfix (all files)")
+
+		-- Text object: `vih` selects a hunk, `dih` deletes it, etc.
+		bmap({ "o", "x" }, "ih", "<cmd>Gitsigns select_hunk<cr>", "Select hunk")
+	end,
+})
+
+-- fzf-lua pickers
+
+-- Merged into the existing fzf-lua setup; ignored if fzf-lua is absent
+
+if pcall(require, "fzf-lua") then
+	gmap("n", "<leader>gw", "<cmd>FzfLua git_branches<cr>", "Git branches (checkout)")
+	gmap("n", "<leader>gi", "<cmd>FzfLua git_commits<cr>", "Git commits (project)")
+	gmap("n", "<leader>gl", "<cmd>FzfLua git_bcommits<cr>", "Git commits (current file)")
+	gmap("n", "<leader>gm", "<cmd>FzfLua git_status<cr>", "Git status (modified files)")
+	gmap("n", "<leader>gu", "<cmd>FzfLua git_hunks<cr>", "Git hunks")
+	gmap("n", "<leader>gk", "<cmd>FzfLua git_diff<cr>", "Git diff")
+	gmap("n", "<leader>gz", "<cmd>FzfLua git_stash<cr>", "Git stash (apply/pop/drop)")
+
+	gmap("n", "<leader>gf", function()
+		require("fzf-lua").git_files({ cmd = "git ls-files --cached --others --exclude-standard" })
+	end, "Git files")
+end

@@ -8,12 +8,12 @@
 --
 -- $ sudo pacman -S fzf grep ripgrep
 --
--- The `:DeclarationsSource` command provides interactive, language-aware
--- searches for declarations such as functions, types, methods, imports and
+-- The `:StdSrc` command provides interactive, language-aware
+-- searches for stdsrc such as functions, types, methods, imports and
 -- macros, on the source code of the language itself (standard library / API),
 -- no matter where the current file lives. The language comes from the current
 -- buffer (or, in an Oil directory view, from the files shown) and the
--- directories are defined in the `sources` table of lua/infra/declarations.lua,
+-- directories are defined in the `sources` table of lua/infra/stdsrc.lua,
 -- which also defines the language-specific patterns, categories and file
 -- filters. If the language cannot be detected it asks which one to explore,
 -- and `Any` falls back to live grep. Opening a result jumps to the declaration
@@ -37,9 +37,9 @@
 -- See: https://github.com/james-orcales/james-orcales/blob/main/home/.config/nvim/init.lua
 
 local fzf = require("fzf-lua")
-local declarations = require("infra.declarations")
+local stdsrc = require("infra.stdsrc")
 
-declarations.setup()
+stdsrc.setup()
 
 -- Directories that are never worth searching. Skipping them keeps the file
 -- and grep pickers fast.
@@ -78,10 +78,8 @@ local function make_opts()
 	local actions = fzf.actions
 
 	return {
-		file_icons = false,
-		git_icons = false,
-
 		winopts = {
+			-- Remove window title
 			on_create = function(e)
 				if e.winid and vim.api.nvim_win_is_valid(e.winid) then
 					vim.api.nvim_win_set_config(e.winid, { title = "" })
@@ -89,7 +87,6 @@ local function make_opts()
 			end,
 
 			-- Bottom layout
-
 			height = 0.30,
 			width = 1.0,
 			row = 1.0,
@@ -98,18 +95,14 @@ local function make_opts()
 			backdrop = false,
 
 			-- Popup layout
-
 			-- height = 0.95,
 			-- width = 0.90,
 			-- row = 0.35,
 			-- col = 0.50,
 			-- border = "single",
 
-			fullscreen = false,
 			title = false,
 			title_flags = false,
-			backdrop = 100,
-			scrollbar = false,
 			preview = {
 				default = "bat",
 				hidden = true,
@@ -118,23 +111,14 @@ local function make_opts()
 				horizontal = "right:50%",
 				wrap = true,
 				scrollbar = false,
-				winopts = {
-					number = false,
-					relativenumber = false,
-					cursorline = true,
-					foldenable = false,
-				},
 			},
 		},
 
 		fzf_opts = {
 			["--ansi"] = true,
 			["--layout"] = "reverse",
-			["--info"] = false,
 			["--highlight-line"] = false,
-			["--border"] = "none",
 			["--no-scrollbar"] = true,
-			["--no-footer"] = true,
 		},
 
 		previewers = {
@@ -161,8 +145,6 @@ local function make_opts()
 				["ctrl-g"] = "execute(less -c -i --incsearch --search-options=W -g {})",
 				["ctrl-z"] = "abort",
 				["ctrl-u"] = "unix-line-discard",
-				["ctrl-a"] = "beginning-of-line",
-				["ctrl-e"] = "end-of-line",
 				["ctrl-q"] = "select-all+accept",
 			},
 		},
@@ -197,11 +179,14 @@ end
 set_fzf_hl()
 vim.api.nvim_create_autocmd("ColorScheme", { callback = set_fzf_hl })
 
+-- Keymaps
+
 local km = vim.keymap.set
 
 -- Files and directories
 km("n", "<leader>ff", "<cmd>FzfLua files<cr>", { desc = "Fzf: find files in cwd (respects .gitignore)" })
 km("n", "<leader>fd", "<cmd>FzfLua files cwd=%:p:h<cr>", { desc = "Fzf: find files in the current buffer's directory" })
+km("n", "<leader>fz", "<cmd>FzfLua zoxide<cr>", { desc = "Fzf: jump to a frequent directory (zoxide)" })
 
 km("n", "<leader>fr", function()
 	fzf.files({ cwd = vim.fn.expand("~/repos") })
@@ -211,41 +196,28 @@ km("n", "<leader>fn", function()
 	fzf.files({ cwd = vim.fn.expand("~/.config/nvim") })
 end, { desc = "Fzf: find files in ~/.config/nvim" })
 
-km("n", "<leader>fz", "<cmd>FzfLua zoxide<cr>", { desc = "Fzf: jump to a frequent directory (zoxide)" })
-
 -- Buffers and history
 km("n", "<leader>fb", "<cmd>FzfLua buffers<cr>", { desc = "Fzf: switch between open buffers" })
 km("n", "<leader>fo", "<cmd>FzfLua oldfiles<cr>", { desc = "Fzf: reopen recently edited files" })
-km("n", "<leader>fq", "<cmd>FzfLua quickfix<cr>", { desc = "Fzf: browse the quickfix list" })
 
 -- Text search
 km("n", "<leader>fg", function()
 	fzf.live_grep({ rg_glob = true })
-end, { desc = "Fzf: live grep in cwd (query -- *.lua)" })
+end, { desc = "Fzf: live grep in cwd" })
 
 km("n", "<leader>fw", "<cmd>FzfLua grep_cword<cr>", { desc = "Fzf: grep the word under the cursor in cwd" })
 km("v", "<leader>fw", fzf.grep_visual, { desc = "Fzf: grep the visual selection" })
 km("n", "<leader>fl", "<cmd>FzfLua blines<cr>", { desc = "Fzf: search lines in the current buffer" })
 
 -- Docs and API
-km(
-	"n",
-	"<leader>fa",
-	declarations.search_source,
-	{ desc = "Fzf: search declarations in the language's source repository" }
-)
+km("n", "<leader>fa", stdsrc.search_source, { desc = "Fzf: search declarations in the language's source repository" })
 km("n", "<leader>fh", "<cmd>FzfLua help_tags<cr>", { desc = "Fzf: search Neovim help tags" })
 km("n", "<leader>fm", "<cmd>FzfLua man_pages<cr>", { desc = "Fzf: search man pages" })
 
 -- Tasks
 -- The plugin todo-comments.nvim is a dependecy for this works.
 -- See: lua/plugins/unnacessary-shit.lua
-km(
-	"n",
-	"<leader>ft",
-	"<cmd>TodoFzfLua keywords=TODO,FIX,FIXME,HACK,BUG,XXX<cr>",
-	{ desc = "Fzf: list tasks in current directory" }
-)
+km("n", "<leader>ft", "<cmd>TodoFzfLua keywords=TODO,FIX,FIXME,HACK,BUG,XXX<cr>", { desc = "Fzf: list tasks" })
 
 -- Diagnostics
 km("n", "<leader>fx", "<cmd>FzfLua diagnostics_document<cr>", { desc = "Fzf: list LSP diagnostics in current buffer" })

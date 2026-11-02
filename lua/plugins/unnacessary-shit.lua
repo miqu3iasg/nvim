@@ -5,10 +5,28 @@
 local ai = require("mini.ai")
 local ts = ai.gen_spec.treesitter
 
+-- One liners
 require("mini.align").setup({})
 require("mini.comment").setup({})
-require("mini.splitjoin").setup({})
 
+-- Split Join
+local split_join = require("mini.splitjoin")
+
+split_join.setup({
+	mappings = {
+		toggle = "",
+	},
+})
+
+vim.keymap.set({ "n", "x" }, "sj", function()
+	split_join.join()
+end, { desc = "Join arguments" })
+
+vim.keymap.set({ "n", "x" }, "sk", function()
+	split_join.split()
+end, { desc = "Split arguments" })
+
+-- Text Objects
 local ai_opts = {
 	n_lines = 500,
 	custom_textobjects = {
@@ -32,7 +50,7 @@ local ai_opts = {
 }
 ai.setup(ai_opts)
 
--- vim-tmux-navigator
+-- Tmux Navigator
 vim.keymap.set("n", "<c-h>", "<cmd>TmuxNavigateLeft<cr>")
 vim.keymap.set("n", "<c-j>", "<cmd>TmuxNavigateDown<cr>")
 vim.keymap.set("n", "<c-k>", "<cmd>TmuxNavigateUp<cr>")
@@ -68,6 +86,7 @@ require("colorizer").setup({
 	},
 })
 
+-- Task Comments
 require("todo-comments").setup({
 	signs = false,
 
@@ -76,6 +95,9 @@ require("todo-comments").setup({
 	-- only duplicate (and clash with) it. The plugin is kept just for the
 	-- fzf-lua picker (:TodoFzfLua) and the ]t / [t navigation, which rely on
 	-- the search pattern and not on the highlight.
+	--
+	-- See: lua/plugins/fzf.lua
+	-- See: lua/plugins/treesitter.lua
 	highlight = {
 		before = "",
 		keyword = "",

@@ -200,7 +200,26 @@ vim.lsp.config("tinymist", {
 	},
 })
 
--- LSP keymaps, buffer-local and only set once a server attaches
+-- LSP keymaps, buffer-local and only set once a server attaches.
+--
+-- Native Neovim LSP/diagnostic keybinds, available without any config
+-- once a server attaches. They are intentionally not redefined below:
+--
+--   K            (n)      vim.lsp.buf.hover()
+--   grn          (n)      vim.lsp.buf.rename()
+--   gra          (n, x)   vim.lsp.buf.code_action()          [overridden below with fzf]
+--   grr          (n)      vim.lsp.buf.references()           [overridden below with fzf]
+--   gri          (n)      vim.lsp.buf.implementation()       [overridden below with fzf]
+--   grt          (n)      vim.lsp.buf.type_definition()      [overridden below with fzf]
+--   gO           (n)      vim.lsp.buf.document_symbol()
+--   <C-s>        (i, s)   vim.lsp.buf.signature_help()
+--   <C-]>        (n)      go to definition (via tagfunc)
+--   <C-w>]       (n)      go to definition in split (via tagfunc)
+--   <C-w>d       (n)      open diagnostic float under cursor
+--   ]d / [d      (n)      next / previous diagnostic
+--   ]D / [D      (n)      last / first diagnostic
+--   <C-x><C-o>   (i)      omni-completion (via omnifunc)
+--   gq           (n, x)   format with the server (via formatexpr)
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
 	callback = function(ev)
@@ -211,7 +230,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		end
 
 		km("n", "gd", fzf.lsp_definitions, "Go to definition")
-		km("n", "K", vim.lsp.buf.hover, "Show hover information")
 		km("i", "<C-j>", vim.lsp.buf.signature_help, "Signature help")
 
 		km("n", "grp", vim.lsp.buf.signature_help, "Show signature help")
@@ -224,7 +242,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		km("n", "grf", fzf.lsp_finder, "LSP finder")
 		km("n", "grd", fzf.diagnostics_document, "Document diagnostics")
 		km("n", "grD", fzf.diagnostics_workspace, "Workspace diagnostics")
-		km("n", "grn", vim.lsp.buf.rename, "Rename symbol")
 		km({ "n", "v" }, "gra", fzf.lsp_code_actions, "Code action")
 
 		km("n", "grs", function()

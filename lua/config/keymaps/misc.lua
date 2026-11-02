@@ -1,6 +1,18 @@
 -- lua/config/keymaps/misc.lua
 
--- TODO: add here that oil is a required dependency for this file works
+-- This file holds miscellaneous normal-mode keymaps that do not belong to
+-- a specific plugin or feature area, such as view toggles, shortcuts to
+-- configuration files and directories, and reload, restart and run
+-- commands.
+--
+-- For this file to work, oil.nvim and fzf-lua must be installed. The
+-- directory mappings use `require("oil").open()` and the colorscheme
+-- picker runs `:FzfLua colorschemes`.
+--
+-- See: :h restart
+-- See: lua/plugins/oil.lua
+-- See: lua/plugins/fzf.lua
+-- See: https://forge.barrettruth.com/barrettruth/canola.nvim
 
 -- Helpers
 

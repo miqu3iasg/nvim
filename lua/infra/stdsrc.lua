@@ -1,4 +1,4 @@
--- lua/infra/declarations.lua
+-- lua/infra/stdsrc.lua
 
 -- Declaration search in the source code of a language, built on fzf-lua and
 -- ripgrep.
@@ -17,14 +17,14 @@
 -- `M.search_pending_comments()` (deprecated, use todo-comments.nvim) searches
 -- for TODO, FIXME, HACK, BUG and XXX markers in the current directory.
 --
--- `M.setup()` registers the `:DeclarationsSource` and `:Todo` (deprecated)
--- commands. The module can also be used directly:
+-- `M.setup()` registers the `:StdSrc` and `:Todo` (deprecated) commands. The
+-- module can also be used directly:
 --
 -- Usage:
---   local declarations = require("infra.declarations")
---   declarations.setup()
---   vim.keymap.set("n", "<leader>fa", declarations.search_source)
---   vim.keymap.set("n", "<leader>ft", declarations.search_pending_comments)
+--   local stdsrc = require("infra.stdsrc")
+--   stdsrc.setup()
+--   vim.keymap.set("n", "<leader>fa", stdsrc.search_source)
+--   vim.keymap.set("n", "<leader>ft", stdsrc.search_pending_comments)
 
 local M = {}
 
@@ -36,21 +36,21 @@ local JAVA_TYPE_REF = [=[[\w.<>\[\],? ]+]=]
 local JAVA_PUBLIC_TYPE = [=[^\s*public\s+]=] .. JAVA_TYPE_MODS
 
 ---One entry of the search menu.
----@class Declarations.Pattern
+---@class StdSrc.Pattern
 ---@field label string text shown in the menu
 ---@field re string ripgrep regex that matches the declaration
 ---@field globs? string overrides the language's default `globs` for this entry
 
 ---Search settings for one language.
----@class Declarations.Language
+---@class StdSrc.Language
 ---@field globs? string default file filters (space separated, `!` excludes), applied to every pattern
----@field patterns Declarations.Pattern[] menu entries, in menu order
+---@field patterns StdSrc.Pattern[] menu entries, in menu order
 
 -- Per-language regexes (ripgrep syntax) used to find declarations.
 -- Each language has a default `globs` string applied to every pattern and an
 -- ordered `patterns` list whose order is the order of the menu. A pattern may
 -- set its own `globs` to override the language default.
----@type table<string, Declarations.Language>
+---@type table<string, StdSrc.Language>
 local languages = {
 	C = {
 		globs = "*.h *.c !*test*",
@@ -250,8 +250,8 @@ end
 ---entry's globs (or the language default).
 ---The globs are appended to the search as `<regex> -- <globs>`, fzf-lua's
 ---syntax for passing file filters.
----@param entry Declarations.Pattern
----@param lang Declarations.Language
+---@param entry StdSrc.Pattern
+---@param lang StdSrc.Language
 ---@param dir string directory to search
 local function run_search(entry, lang, dir)
 	local fzf = require("fzf-lua")
@@ -279,7 +279,7 @@ local function show_source_menu(lang_name)
 	if not dir then
 		vim.notify(
 			string.format(
-				"Declarations: no source directory found for %s (tried: %s)",
+				"StdSrc: no source directory found for %s (tried: %s)",
 				lang_name,
 				table.concat(sources[lang_name] or {}, ", ")
 			),
@@ -365,11 +365,11 @@ function M.search_pending_comments()
 	})
 end
 
----Register the `:DeclarationsSource` (see `M.search_source`) and `:Todo` (see
+---Register the `:StdSrc` (see `M.search_source`) and `:Todo` (see
 ---`M.search_pending_comments`) commands.
 function M.setup()
 	-- wrapped so the command's argument table is not forwarded to the functions
-	vim.api.nvim_create_user_command("DeclarationsSource", function()
+	vim.api.nvim_create_user_command("StdSrc", function()
 		M.search_source()
 	end, {
 		desc = "Fzf: search declarations in the source repository of the current language",
