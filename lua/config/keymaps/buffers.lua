@@ -9,7 +9,7 @@ end
 
 -- Buffer Creation and Saving
 km("n", "<leader>bn", "<cmd>enew<CR>", { desc = "New buffer" })
-km("n", "<leader>bw", "<cmd>write<CR>", { desc = "Save buffer" })
+km("n", "<leader>bw", "<cmd>write ++p<CR>", { desc = "Save buffer" })
 km("n", "<leader>bs", "<cmd>noautocmd write<CR>", { desc = "Save buffer without auto-formatting" })
 
 -- Buffer Deletion and Cleanup

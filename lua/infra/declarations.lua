@@ -1,24 +1,30 @@
 -- lua/infra/declarations.lua
 
--- Declaration search for the current language, built on fzf-lua and ripgrep.
+-- Declaration search in the source code of a language, built on fzf-lua and
+-- ripgrep.
 --
--- Provides language-aware declaration and pending-comment searches using
+-- Provides a language-aware declaration search over the source repository of
+-- a language (standard library / API) and a pending-comment search, using
 -- fzf-lua and ripgrep. Supported languages, declaration patterns and file
--- filters are defined in the `languages` table below.
+-- filters are defined in the `languages` table below. The directories that
+-- hold each language's source code are defined in the `sources` table.
 --
--- `M.search()` detects the current language or the language represented in
--- an Oil directory view, then presents the available search categories.
--- `M.search_pending_comments()` searches for TODO, FIXME, HACK, BUG and XXX
--- markers in the current directory.
+-- `M.search_source()` detects the current language or the language
+-- represented in an Oil directory view, then presents the available search
+-- categories and greps the language's source repository, no matter where the
+-- current file lives. This allows the standard library to be explored without
+-- leaving the file being edited.
+-- `M.search_pending_comments()` (deprecated, use todo-comments.nvim) searches
+-- for TODO, FIXME, HACK, BUG and XXX markers in the current directory.
 --
--- `M.setup()` registers the `:Declarations` and `:Todo` commands.
--- The module can also be used directly:
+-- `M.setup()` registers the `:DeclarationsSource` and `:Todo` (deprecated)
+-- commands. The module can also be used directly:
 --
 -- Usage:
 --   local declarations = require("infra.declarations")
 --   declarations.setup()
---   vim.keymap.set("n", "<leader>fs", declarations.search)
---   vim.keymap.set("n", "<leader>fe", declarations.search_pending_comments)
+--   vim.keymap.set("n", "<leader>fa", declarations.search_source)
+--   vim.keymap.set("n", "<leader>ft", declarations.search_pending_comments)
 
 local M = {}
 
@@ -37,19 +43,16 @@ local JAVA_PUBLIC_TYPE = [=[^\s*public\s+]=] .. JAVA_TYPE_MODS
 
 ---Search settings for one language.
 ---@class Declarations.Language
----@field curbuf boolean search only the current buffer (ignored in an Oil view)
 ---@field globs? string default file filters (space separated, `!` excludes), applied to every pattern
 ---@field patterns Declarations.Pattern[] menu entries, in menu order
 
 -- Per-language regexes (ripgrep syntax) used to find declarations.
--- Each language has a `curbuf` flag (search only the current buffer), a default
--- `globs` string applied to every pattern, and an ordered `patterns` list whose
--- order is the order of the menu. A pattern may set its own `globs` to override
--- the language default.
+-- Each language has a default `globs` string applied to every pattern and an
+-- ordered `patterns` list whose order is the order of the menu. A pattern may
+-- set its own `globs` to override the language default.
 ---@type table<string, Declarations.Language>
 local languages = {
 	C = {
-		curbuf = false,
 		globs = "*.h *.c !*test*",
 		patterns = {
 			{ label = "Package (#include)", re = [=[^\s*#\s*include\s+[<"][^>"]+[>"]]=] },
@@ -69,7 +72,6 @@ local languages = {
 	},
 
 	Java = {
-		curbuf = false,
 		globs = "*.java !*Test*",
 		patterns = {
 			{ label = "Package", re = [=[^\s*package\s+[\w.]+\s*;]=] },
@@ -101,8 +103,9 @@ local languages = {
 	},
 
 	Python = {
-		curbuf = true,
-		globs = "*.py !*test*",
+		-- `test`/`tests`/`test_*` instead of `*test*`, which would also drop the
+		-- `unittest` package of the standard library
+		globs = "*.py !test !tests !test_*",
 		patterns = {
 			{ label = "Package (all imports)", re = [=[^\s*(from\s+[\w.]+\s+)?import\s+[\w.*, ()]+]=] },
 			{ label = "Import", re = [=[^\s*import\s+[\w.*, ()]+]=] },
@@ -119,7 +122,6 @@ local languages = {
 	},
 
 	Lua = {
-		curbuf = true,
 		globs = "*.lua",
 		patterns = {
 			{ label = "Package (require)", re = [=[\brequire\s*\(?\s*["'][^"']+["']]=] },
@@ -136,6 +138,27 @@ local languages = {
 			},
 		},
 	},
+}
+
+-- Sources
+
+-- Candidate directories holding the source code (standard library / API) of
+-- each language. The first candidate that exists wins, so list the preferred
+-- one first. Entries accept `~`, `$VARS` and glob wildcards (when several
+-- directories match, the last one in alphabetical order is used, which is the
+-- newest version for `python3.*`).
+-- Adjust these to the paths of your machine.
+---@type table<string, string[]>
+local sources = {
+	-- stdc (glibc clone) and stdch (headers only)
+	C = { "~/.local/share/stdsrc/glibc", "/usr/include" },
+	-- stdjava (src.zip extracted per JDK, e.g. ~/.cache/jdk-src/java-21-openjdk)
+	Java = { "~/.cache/jdk-src/*" },
+	-- stdpy (sysconfig stdlib, e.g. /usr/lib/python3.13)
+	Python = { "/usr/lib/python3.*" },
+	-- The Lua stdlib (~/.local/share/stdsrc/lua) is C code, so it does not fit
+	-- the Lua patterns; the Neovim runtime is the Lua API worth exploring
+	Lua = { "$VIMRUNTIME/lua" },
 }
 
 -- Detection
@@ -192,47 +215,131 @@ local function detect_language_in_dir(dir)
 	return best
 end
 
--- Search
-
----Return the directory to search: the one Oil is showing, otherwise the nvim cwd.
----@param in_oil boolean whether the current buffer is an Oil view
----@return string
-local function get_search_dir(in_oil)
-	if in_oil then
-		local ok, oil = pcall(require, "oil")
-		local oil_dir = ok and oil.get_current_dir() or nil
-		if oil_dir then
-			return oil_dir
-		end
+---Return the language of the current buffer: from the file name, or, in an
+---Oil view, the most frequent language among the files of the shown directory.
+---@return string? lang_name `nil` if the language is unknown
+local function detect_current_language()
+	local path = vim.api.nvim_buf_get_name(0)
+	if not vim.startswith(path, "oil://") then
+		return detect_language(path)
 	end
-	return vim.uv.cwd()
+
+	local ok, oil = pcall(require, "oil")
+	local oil_dir = ok and oil.get_current_dir() or nil
+	return oil_dir and detect_language_in_dir(oil_dir) or nil
 end
 
----Run the grep for one menu entry, either on the current buffer or on the
----files of `dir` filtered by the entry's globs (or the language default).
+---Return the first existing source directory of a language (see `sources`).
+---@param lang_name string
+---@return string? dir `nil` if no candidate exists
+local function get_source_dir(lang_name)
+	for _, candidate in ipairs(sources[lang_name] or {}) do
+		local matches = vim.fn.glob(vim.fs.normalize(candidate), false, true)
+		for i = #matches, 1, -1 do
+			if vim.fn.isdirectory(matches[i]) == 1 then
+				return matches[i]
+			end
+		end
+	end
+	return nil
+end
+
+-- Search
+
+---Run the grep for one menu entry on the files of `dir`, filtered by the
+---entry's globs (or the language default).
 ---The globs are appended to the search as `<regex> -- <globs>`, fzf-lua's
----syntax for passing file filters; they are not used for a current-buffer search.
+---syntax for passing file filters.
 ---@param entry Declarations.Pattern
 ---@param lang Declarations.Language
 ---@param dir string directory to search
----@param use_curbuf boolean search only the current buffer
-local function run_search(entry, lang, dir, use_curbuf)
+local function run_search(entry, lang, dir)
 	local fzf = require("fzf-lua")
 	local search = entry.re
-	local operation = fzf.grep
 
-	if use_curbuf then
-		operation = fzf.grep_curbuf
-	else
-		local globs = entry.globs or lang.globs
-		if globs then
-			search = search .. " -- " .. globs
-		end
+	local globs = entry.globs or lang.globs
+	if globs then
+		search = search .. " -- " .. globs
 	end
 
 	-- silent, the previewer cannot convert every regex to a vim pattern and would
 	-- otherwise report "unable to init vim,regex" (fzf-lua issue 1858)
-	operation({ search = search, no_esc = true, silent = true, cwd = dir })
+	fzf.grep({ search = search, no_esc = true, silent = true, cwd = dir })
+end
+
+---Show the category menu of a language and grep the chosen one in the
+---language's source directory (see `sources`).
+---The menu keeps the order defined in `languages` ("Any" always first).
+---@param lang_name string key of `languages`
+local function show_source_menu(lang_name)
+	local fzf = require("fzf-lua")
+	local lang = languages[lang_name]
+
+	local dir = get_source_dir(lang_name)
+	if not dir then
+		vim.notify(
+			string.format(
+				"Declarations: no source directory found for %s (tried: %s)",
+				lang_name,
+				table.concat(sources[lang_name] or {}, ", ")
+			),
+			vim.log.levels.WARN
+		)
+		return
+	end
+
+	local entries = {}
+	local labels = { "Any" }
+	for _, p in ipairs(lang.patterns) do
+		entries[p.label] = p
+		table.insert(labels, p.label)
+	end
+
+	fzf.fzf_exec(labels, {
+		prompt = string.format("Search Source (%s) > ", lang_name),
+		actions = {
+			default = function(selected)
+				local label = selected and selected[1]
+				if not label then
+					return
+				end
+				if label == "Any" then
+					fzf.live_grep({ cwd = dir })
+					return
+				end
+
+				local entry = entries[label]
+				if entry then
+					run_search(entry, lang, dir)
+				end
+			end,
+		},
+	})
+end
+
+---Pick a declaration category and grep it in the source repository of the
+---current language (see `sources`), from wherever the current file lives.
+---
+--- * In a regular buffer the language comes from the file name; in an Oil view
+---   it is the most frequent language among the files of the shown directory.
+--- * When the language cannot be detected, asks which one to explore.
+--- * The menu lists "Any" (plain live grep) followed by the language's patterns.
+--- * Opening a result edits the file of the source repository; go back with
+---   `<C-o>` or `<C-^>`.
+function M.search_source()
+	local lang_name = detect_current_language()
+	if lang_name then
+		show_source_menu(lang_name)
+		return
+	end
+
+	local names = vim.tbl_keys(sources)
+	table.sort(names)
+	vim.ui.select(names, { prompt = "Source language > " }, function(choice)
+		if choice then
+			show_source_menu(choice)
+		end
+	end)
 end
 
 ---Search for pending comments (TODO, FIXME, HACK, BUG, XXX) in the current
@@ -240,6 +347,9 @@ end
 ---dependency/build directories (`.git`, `node_modules`, `build`, `dist`,
 ---`target`, `vendor`, `.venv`, `__pycache__`), minified/lock/map files and
 ---files above 1 MB. Smart-case.
+---@deprecated Replaced by todo-comments.nvim (`:TodoFzfLua`, see
+---lua/plugins/fzf.lua and lua/plugins/unnacessary-shit.lua). Kept only for
+---reference and slated for removal.
 function M.search_pending_comments()
 	local fzf = require("fzf-lua")
 
@@ -255,72 +365,19 @@ function M.search_pending_comments()
 	})
 end
 
----Pick a declaration category for the current language and grep it.
----
---- * In a regular buffer the language comes from the file name; in an Oil view
----   it is the most frequent language among the files of the shown directory.
---- * The menu lists "Any" (plain live grep) followed by the language's patterns.
---- * Languages with `curbuf` search only the current buffer, except in Oil,
----   where the whole directory is searched.
---- * Falls back to `live_grep` when the language is not recognized.
-function M.search()
-	local fzf = require("fzf-lua")
-	local path = vim.api.nvim_buf_get_name(0)
-	local in_oil = vim.startswith(path, "oil://")
-	local dir = get_search_dir(in_oil)
-
-	local lang_name
-	if in_oil then
-		lang_name = detect_language_in_dir(dir)
-	else
-		lang_name = detect_language(path)
-	end
-	if not lang_name then
-		fzf.live_grep({ cwd = dir })
-		return
-	end
-
-	local lang = languages[lang_name]
-	local use_curbuf = lang.curbuf and not in_oil
-
-	-- Menu keeps the order defined in `languages` ("Any" always first)
-	local entries = {}
-	local labels = { "Any" }
-	for _, p in ipairs(lang.patterns) do
-		entries[p.label] = p
-		table.insert(labels, p.label)
-	end
-
-	fzf.fzf_exec(labels, {
-		prompt = string.format("Search Package (%s) > ", lang_name),
-		actions = {
-			default = function(selected)
-				local label = selected and selected[1]
-				if not label then
-					return
-				end
-				if label == "Any" then
-					fzf.live_grep({ cwd = dir })
-					return
-				end
-
-				local entry = entries[label]
-				if entry then
-					run_search(entry, lang, dir, use_curbuf)
-				end
-			end,
-		},
-	})
-end
-
----Register the `:Declarations` (see `M.search`) and `:Todo` (see
+---Register the `:DeclarationsSource` (see `M.search_source`) and `:Todo` (see
 ---`M.search_pending_comments`) commands.
 function M.setup()
-	vim.api.nvim_create_user_command("Declarations", M.search, {
-		desc = "Fzf: search declarations (functions/types/imports) of the current language",
+	-- wrapped so the command's argument table is not forwarded to the functions
+	vim.api.nvim_create_user_command("DeclarationsSource", function()
+		M.search_source()
+	end, {
+		desc = "Fzf: search declarations in the source repository of the current language",
 	})
 
-	vim.api.nvim_create_user_command("Todo", M.search_pending_comments, {
+	vim.api.nvim_create_user_command("Todo", function()
+		M.search_pending_comments()
+	end, {
 		desc = "Fzf: search TODO/FIXME/HACK/BUG/XXX in the current directory",
 	})
 end

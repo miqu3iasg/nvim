@@ -17,5 +17,6 @@ require("config.keymaps.files")
 require("config.keymaps.misc")
 require("config.keymaps.marks")
 require("config.keymaps.inserts")
+require("config.keymaps.pack")
 
 return M

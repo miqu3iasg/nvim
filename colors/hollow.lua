@@ -88,24 +88,24 @@ local p = {
 	-- Micro-palette for tiny luminance steps so structure, operations and
 	-- values separate without ever reading as "color"
 	-- Default version
-	-- t = {
-	-- 	op = "#ebebeb", -- + - = == => && ||
-	-- 	special = "#f6f6f6", -- ${}, escapes, special regex chars
-	-- 	const = "#e3e3e3", -- numbers, booleans, nil
-	-- 	prop = "#c9c9c9", -- fields and properties (obj.field)
-	-- 	bracket = "#bcbcbc", -- ( ) [ ] { }
-	-- 	delim = "#989898", -- , ; . :
-	-- },
+	t = {
+		op = "#ebebeb", -- + - = == => && ||
+		special = "#f6f6f6", -- ${}, escapes, special regex chars
+		const = "#e3e3e3", -- numbers, booleans, nil
+		prop = "#c9c9c9", -- fields and properties (obj.field)
+		bracket = "#bcbcbc", -- ( ) [ ] { }
+		delim = "#989898", -- , ; . :
+	},
 
 	-- Constrast version
-	t = {
-		op = "#f6f6f6", -- + - = == => && ||
-		special = "#ffffff", -- ${}, escapes, special regex chars
-		const = "#ededed", -- numbers, booleans, nil
-		prop = "#b4b4b4", -- fields and properties (obj.field)
-		bracket = "#9a9a9a", -- ( ) [ ] { }
-		delim = "#808080", -- , ; . :
-	},
+	-- t = {
+	-- 	op = "#f6f6f6", -- + - = == => && ||
+	-- 	special = "#ffffff", -- ${}, escapes, special regex chars
+	-- 	const = "#ededed", -- numbers, booleans, nil
+	-- 	prop = "#b4b4b4", -- fields and properties (obj.field)
+	-- 	bracket = "#9a9a9a", -- ( ) [ ] { }
+	-- 	delim = "#808080", -- , ; . :
+	-- },
 }
 
 local md = p.markdown
@@ -246,7 +246,7 @@ local editor = {
 
 	-- Statusline, tabline, titlebar, toolbar
 	StatusLine = { fg = p.statusline_fg, bg = p.line },
-	StatusLineNC = { fg = p.statusline_nc_fg, bg = p.black },
+	StatusLineNC = { fg = p.statusline_nc_fg, bg = p.popup_bg },
 	TabLine = { fg = p.dim, bg = p.black },
 	TabLineFill = { fg = p.fg, bg = p.black },
 	TabLineSel = { fg = p.fg, bg = p.black, bold = true },

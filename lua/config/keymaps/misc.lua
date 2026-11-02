@@ -30,6 +30,22 @@ local function open_dir(lhs, path, desc)
 	end, desc)
 end
 
+-- Run a shell command in the current file's directory
+local function run_command_in_file_dir()
+	local dir = vim.fn.expand("%:p:h")
+	if vim.fn.isdirectory(dir) == 0 then
+		dir = vim.fn.getcwd() -- terminal/oil buffers etc.
+	end
+
+	vim.ui.input({ prompt = "Command: ", completion = "shellcmd" }, function(command)
+		if not command or command:match("^%s*$") then
+			return
+		end
+		-- escape % # ! so :! doesn't expand them
+		vim.cmd(("!cd %s && %s"):format(vim.fn.shellescape(dir, true), vim.fn.escape(command, "%#!")))
+	end)
+end
+
 -- View and appearance toggles
 
 map("<leader>vt", "<cmd>FzfLua colorschemes<cr>", "Choose colorscheme")
@@ -96,6 +112,7 @@ map("ZX", "<cmd>w<cr>", "Save file")
 
 -- Reload, restart and run
 map("<leader>rl", "<cmd>source $MYVIMRC<cr>", "Reload nvim config")
-map("<leader>re", "<cmd>restart<cr>", "Restart Neovim")
+map("<leader>re", "<cmd>wa | restart<cr>", "Save all changes and restart Neovim")
 map("<leader>rs", "<cmd>luafile %<cr>", "Source lua files")
 map("<leader>ru", "<cmd>update<bar>source %<cr>", "Save and source current file")
+map("<leader>rc", run_command_in_file_dir, "Run command in file's directory")

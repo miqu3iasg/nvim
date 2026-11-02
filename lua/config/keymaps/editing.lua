@@ -141,6 +141,12 @@ km({ "n", "x", "o" }, "<Tab>", "%", {
 	desc = "Jump to matching pair",
 })
 
+-- Open native undotree
+km("n", "<leader>U", function()
+	vim.cmd.packadd("nvim.undotree")
+	vim.cmd.Undotree()
+end, { desc = "Open undotree" })
+
 -- Insert mode
 
 -- Movement

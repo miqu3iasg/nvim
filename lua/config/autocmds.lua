@@ -18,12 +18,30 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- No auto continue comments on new line
--- (ftplugins reset 'formatoptions', so this runs on every FileType)
+-- Don't auto continue comments in new line
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("no_auto_comment", {}),
 	callback = function()
 		vim.opt_local.formatoptions:remove({ "c", "r", "o" })
+	end,
+})
+
+-- Turn off heavy features on big/minified files
+-- See: utils/bigfile.lua
+local bigfile_group = vim.api.nvim_create_augroup("bigfile", { clear = true })
+vim.api.nvim_create_autocmd("FileType", {
+	group = bigfile_group,
+	desc = "Disable heavy features on big files",
+	callback = function(ev)
+		if not require("utils.bigfile").is_big(ev.buf) then
+			return
+		end
+		pcall(vim.treesitter.stop, ev.buf)
+		vim.b[ev.buf].completion = false
+		vim.opt_local.foldmethod = "manual"
+		vim.opt_local.spell = false
+		vim.opt_local.cursorline = false
+		vim.opt_local.relativenumber = false
 	end,
 })
 
@@ -111,18 +129,46 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
--- Keymap 'q' to close help/quickfix/netrw/etc windows
--- (buffer-local; currently only for the help, qf and man filetypes)
+-- Remove whitespace when buffer is written
+vim.api.nvim_create_autocmd("BufWritePre", {
+	group = vim.api.nvim_create_augroup("cg/whitespace", {}),
+	pattern = "*",
+	callback = function(args)
+		if not vim.bo[args.buf].modifiable or vim.bo[args.buf].buftype ~= "" then
+			return
+		end
+
+		local view = vim.fn.winsaveview()
+		vim.cmd([[keepjumps keeppatterns silent! %s/\s\+$//e]])
+		vim.fn.winrestview(view)
+	end,
+})
+
+-- Close utility buffers with q or Esc
 vim.api.nvim_create_autocmd("FileType", {
-	desc = "keymap 'q' to close help/quickfix/netrw/etc windows",
-	pattern = "help,qf,man",
-	callback = function()
-		vim.keymap.set(
-			"n",
-			"q",
-			"<C-w>c",
-			{ buffer = true, desc = "Quit (or Close) help, quickfix, netrw, etc windows" }
-		)
+	group = vim.api.nvim_create_augroup("cg/close_utility_buffers", { clear = true }),
+	pattern = {
+		"checkhealth",
+		"conform-info",
+		"fugitive",
+		"fugitiveblame",
+		"help",
+		"nvim-pack",
+		"lspinfo",
+		"man",
+		"nvim-undotree",
+		"qf",
+	},
+	callback = function(args)
+		vim.bo[args.buf].buflisted = false
+		for _, key in ipairs({ "q", "<Esc>" }) do
+			vim.keymap.set("n", key, "<cmd>close<cr>", {
+				buffer = args.buf,
+				silent = true,
+				nowait = true,
+				desc = "close buffer",
+			})
+		end
 	end,
 })
 
@@ -138,9 +184,11 @@ vim.api.nvim_create_autocmd("TermOpen", {
 	end,
 })
 
--- Open help/man pages in a right-side vertical split
+-- Configuration for builtin undotree
 vim.api.nvim_create_autocmd("FileType", {
-	desc = "Open help/man pages in a right-side vertical split",
-	pattern = { "help", "man" },
-	command = "wincmd L",
+	pattern = "nvim-undotree",
+	callback = function()
+		vim.cmd.wincmd("H")
+		vim.api.nvim_win_set_width(0, 40)
+	end,
 })

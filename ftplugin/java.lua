@@ -84,7 +84,7 @@ opt.tabstop = 4
 opt.shiftwidth = 4
 opt.softtabstop = -1
 opt.textwidth = 120
-opt.colorcolumn = "120"
+-- opt.colorcolumn = "120"
 opt.spell = false
 opt.formatoptions:remove("t")
 opt.formatoptions:append({ "r", "o" })

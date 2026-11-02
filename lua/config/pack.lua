@@ -2,6 +2,7 @@
 
 -- Declares and installs plugins through Neovim's built-in package manager.
 -- Run :lua vim.pack.update() to update plugins.
+-- See: config/keymaps/pack.lua
 
 -- Must be created before plugin installations.
 vim.api.nvim_create_autocmd("PackChanged", {
@@ -194,4 +195,9 @@ vim.pack.add({
 	-- Pastes images from the clipboard into files (Markdown, LaTeX, etc.) and inserts the link. Useful
 	-- for taking notes in markdown.
 	{ src = "https://github.com/HakonHarnes/img-clip.nvim" },
+
+	-- todo-comments.nvim
+	-- https://github.com/folke/todo-comments.nvim
+	-- Highlights and searches TODO, FIXME, HACK, etc. in comments, with fzf-lua integration.
+	{ src = "https://github.com/folke/todo-comments.nvim" },
 })
