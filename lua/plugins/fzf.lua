@@ -1,12 +1,14 @@
 -- lua/plugins/fzf.lua
 
--- This configuration requires fzf, grep and ripgrep to be installed. fzf
--- provides the interactive fuzzy finder, while ripgrep powers the text
--- searches used by fzf-lua, including the declaration search.
+-- This configuration requires fzf, grep, ripgrep and fd to be installed. fzf
+-- provides the interactive fuzzy finder, ripgrep powers the text searches
+-- used by fzf-lua (including the declaration search), and fd powers the
+-- detailed file picker (<leader>fF), which lists permissions, size and
+-- modification date next to each file.
 --
 -- On Arch Linux, install them with:
 --
--- $ sudo pacman -S fzf grep ripgrep
+-- $ sudo pacman -S fzf grep ripgrep fd
 --
 -- The `:StdSrc` command provides interactive, language-aware
 -- searches for stdsrc such as functions, types, methods, imports and
@@ -62,7 +64,7 @@ local ignored_dirs = {
 -- ripgrep: -g "!name" excludes a directory at any depth
 local rg_globs = {}
 
--- fd: --exclude name (only used if you install fd later)
+-- fd: --exclude name (used by the detailed file picker)
 local fd_excludes = {}
 
 for _, dir in ipairs(ignored_dirs) do
@@ -73,7 +75,9 @@ end
 rg_globs = table.concat(rg_globs, " ")
 fd_excludes = table.concat(fd_excludes, " ")
 
--- Plugin options and setup
+--- Builds the options table passed to `fzf.setup()`: window layout, fzf
+--- flags, previewers, actions, keymaps, and the file and grep commands.
+---@return table opts The fzf-lua setup options
 local function make_opts()
 	local actions = fzf.actions
 
@@ -87,7 +91,7 @@ local function make_opts()
 			end,
 
 			-- Bottom layout
-			height = 0.30,
+			height = 0.22,
 			width = 1.0,
 			row = 1.0,
 			col = 0.0,
@@ -117,8 +121,26 @@ local function make_opts()
 		fzf_opts = {
 			["--ansi"] = true,
 			["--layout"] = "reverse",
-			["--highlight-line"] = false,
+			["--highlight-line"] = true, -- background on the whole selected line
+			["--info"] = "inline-right", -- match counter at the right of the prompt
+			["--pointer"] = " ",
 			["--no-scrollbar"] = true,
+			["--no-separator"] = true,
+		},
+
+		fzf_colors = {
+			["bg+"] = { "bg", "CursorLine" },
+			["fg+"] = { "fg", "Normal" },
+			-- Prompt in the default text color
+			["prompt"] = { "fg", "Normal" },
+			-- Gutter of the unselected lines, same color as the editor background
+			["gutter"] = { "bg", "Normal" },
+			-- Same color as the selected line background, so the pointer and
+			-- the multi-select marker column become invisible
+			["pointer"] = { "bg", "CursorLine" },
+			["marker"] = { "bg", "CursorLine" },
+			["hl"] = { "fg", "Special" },
+			["hl+"] = { "fg", "Special" },
 		},
 
 		previewers = {
@@ -170,7 +192,10 @@ end
 
 fzf.setup(make_opts())
 
--- Border highlights, reapplied whenever the colorscheme changes
+--- Sets the border highlight groups of the fzf-lua window and its preview.
+--- It runs once at startup and again whenever the colorscheme changes,
+--- because a colorscheme resets the highlight groups.
+---@return nil
 local function set_fzf_hl()
 	vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
 	vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })

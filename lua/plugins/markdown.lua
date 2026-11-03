@@ -1,3 +1,5 @@
+-- lua/plugins/markdown.lua
+
 -- This configuration groups the plugins used for writing Markdown notes: image
 -- pasting with img-clip.nvim and integration with the Obsidian desktop application
 -- through obsidian.nvim.
