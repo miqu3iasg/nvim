@@ -1,10 +1,10 @@
--- lua/utils/close.lua
+-- lua/features/close_view.lua
 
 -- Close Fugitive views (status, blame, diffs, commit messages, git objects)
 -- with `q`, `gq` and `dq`, without ever quitting Neovim.
 --
 -- Usage:
---   require("utils.close").setup()
+--   require("features.close_view").setup()
 
 local M = {}
 

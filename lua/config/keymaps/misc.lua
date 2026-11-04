@@ -60,8 +60,6 @@ end
 
 -- View and appearance toggles
 
-map("<leader>vt", "<cmd>FzfLua colorschemes<cr>", "Choose colorscheme")
-
 toggle_wo("<leader>vw", "wrap", "Toggle line wrap")
 toggle_wo("<leader>vl", "list", "Toggle whitespace characters")
 toggle_wo("<leader>vs", "spell", "Toggle spell check")

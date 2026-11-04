@@ -1,4 +1,4 @@
--- lua/config/statusline.lua
+-- lua/features/statusline.lua
 
 -- Statusline, built on the native 'statusline' option (no plugin).
 --

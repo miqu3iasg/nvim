@@ -15,7 +15,7 @@
 -- macros, on the source code of the language itself (standard library / API),
 -- no matter where the current file lives. The language comes from the current
 -- buffer (or, in an Oil directory view, from the files shown) and the
--- directories are defined in the `sources` table of lua/infra/stdsrc.lua,
+-- directories are defined in the `sources` table of lua/features/stdsrc.lua,
 -- which also defines the language-specific patterns, categories and file
 -- filters. If the language cannot be detected it asks which one to explore,
 -- and `Any` falls back to live grep. Opening a result jumps to the declaration
@@ -39,7 +39,7 @@
 -- See: https://github.com/james-orcales/james-orcales/blob/main/home/.config/nvim/init.lua
 
 local fzf = require("fzf-lua")
-local stdsrc = require("infra.stdsrc")
+local stdsrc = require("features.stdsrc")
 
 stdsrc.setup()
 

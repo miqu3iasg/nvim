@@ -72,7 +72,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 		vim.schedule(function()
 			-- Inside tmux, try to restore the session for this directory
-			local sessions = require("config.sessions")
+			local sessions = require("features.sessions")
 			if sessions.enabled() and sessions.load() then
 				return
 			end
@@ -93,7 +93,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 vim.api.nvim_create_autocmd("VimLeavePre", {
 	group = vim.api.nvim_create_augroup("SessionSave", { clear = true }),
 	callback = function()
-		local sessions = require("config.sessions")
+		local sessions = require("features.sessions")
 		if sessions.enabled() then
 			pcall(sessions.save)
 		end

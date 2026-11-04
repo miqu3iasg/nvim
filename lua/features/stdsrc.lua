@@ -1,30 +1,26 @@
--- lua/infra/stdsrc.lua
+-- lua/features/stdsrc.lua
 
--- Declaration search in the source code of a language, built on fzf-lua and
--- ripgrep.
+-- Searches for declarations in the source code of a language, built on
+-- fzf-lua and ripgrep.
 --
 -- Provides a language-aware declaration search over the source repository of
--- a language (standard library / API) and a pending-comment search, using
--- fzf-lua and ripgrep. Supported languages, declaration patterns and file
--- filters are defined in the `languages` table below. The directories that
--- hold each language's source code are defined in the `sources` table.
+-- a language (standard library / API), using fzf-lua and ripgrep. Supported languages,
+-- declaration patterns and file filters are defined in the `languages` table below. The directories
+-- that hold each language's source code are defined in the `sources` table.
 --
 -- `M.search_source()` detects the current language or the language
 -- represented in an Oil directory view, then presents the available search
 -- categories and greps the language's source repository, no matter where the
 -- current file lives. This allows the standard library to be explored without
 -- leaving the file being edited.
--- `M.search_pending_comments()` (deprecated, use todo-comments.nvim) searches
--- for TODO, FIXME, HACK, BUG and XXX markers in the current directory.
 --
--- `M.setup()` registers the `:StdSrc` and `:Todo` (deprecated) commands. The
+-- `M.setup()` registers the `:StdSrc` command. The
 -- module can also be used directly:
 --
 -- Usage:
---   local stdsrc = require("infra.stdsrc")
+--   local stdsrc = require("features.stdsrc")
 --   stdsrc.setup()
 --   vim.keymap.set("n", "<leader>fa", stdsrc.search_source)
---   vim.keymap.set("n", "<leader>ft", stdsrc.search_pending_comments)
 
 local M = {}
 
@@ -347,9 +343,9 @@ end
 ---dependency/build directories (`.git`, `node_modules`, `build`, `dist`,
 ---`target`, `vendor`, `.venv`, `__pycache__`), minified/lock/map files and
 ---files above 1 MB. Smart-case.
----@deprecated Replaced by todo-comments.nvim (`:TodoFzfLua`, see
----lua/plugins/fzf.lua and lua/plugins/unnecessary-shit.lua). Kept only for
----reference and slated for removal.
+---
+---@deprecated Superseded by todo-comments.nvim and its `:TodoFzfLua` mapping
+---(see `lua/plugins/fzf.lua`). Kept only for reference.
 function M.search_pending_comments()
 	local fzf = require("fzf-lua")
 
@@ -365,20 +361,13 @@ function M.search_pending_comments()
 	})
 end
 
----Register the `:StdSrc` (see `M.search_source`) and `:Todo` (see
----`M.search_pending_comments`) commands.
+---Register the `:StdSrc` command (see `M.search_source`).
 function M.setup()
 	-- wrapped so the command's argument table is not forwarded to the functions
 	vim.api.nvim_create_user_command("StdSrc", function()
 		M.search_source()
 	end, {
 		desc = "Fzf: search declarations in the source repository of the current language",
-	})
-
-	vim.api.nvim_create_user_command("Todo", function()
-		M.search_pending_comments()
-	end, {
-		desc = "Fzf: search TODO/FIXME/HACK/BUG/XXX in the current directory",
 	})
 end
 

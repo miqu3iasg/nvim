@@ -60,9 +60,9 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- See: lua/utils/close.lua
+-- See: lua/features/close_view.lua
 -- Registers the Fugitive close-view keymaps and autocmds
-require("utils.close").setup()
+require("features.close_view").setup()
 
 gmap("n", "<leader>gs", "<cmd>silent tab Git<cr>", "Git status")
 

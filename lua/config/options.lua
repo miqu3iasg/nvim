@@ -1,4 +1,4 @@
--- lua/options.lua
+-- lua/config/options.lua
 
 -- Options viewable by using :options.
 -- Set options viewable by using :set all.

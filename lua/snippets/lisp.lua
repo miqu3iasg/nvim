@@ -1,4 +1,4 @@
--- lua/snippets/scheme.lua
+-- lua/snippets/lisp.lua
 
 local ls = require("luasnip")
 local s = ls.snippet
