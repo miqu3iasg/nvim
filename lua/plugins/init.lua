@@ -11,7 +11,7 @@ for _, mod in ipairs({
 	"lsp",
 	"fzf",
 	"git",
-	"unnacessary-shit",
+	"unnecessary-shit",
 	"latex",
 	"lisp",
 	"oil",

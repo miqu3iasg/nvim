@@ -348,7 +348,7 @@ end
 ---`target`, `vendor`, `.venv`, `__pycache__`), minified/lock/map files and
 ---files above 1 MB. Smart-case.
 ---@deprecated Replaced by todo-comments.nvim (`:TodoFzfLua`, see
----lua/plugins/fzf.lua and lua/plugins/unnacessary-shit.lua). Kept only for
+---lua/plugins/fzf.lua and lua/plugins/unnecessary-shit.lua). Kept only for
 ---reference and slated for removal.
 function M.search_pending_comments()
 	local fzf = require("fzf-lua")

@@ -1,6 +1,6 @@
--- lua/plugins/unnacessary-shit.lua
+-- lua/plugins/unnecessary-shit.lua
 
--- The most unnecessary shit that I installed intead of coding (newbie edition)
+-- The most unnecessary shit that I installed instead of coding (newbie edition)
 
 local ai = require("mini.ai")
 local ts = ai.gen_spec.treesitter

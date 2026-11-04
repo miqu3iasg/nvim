@@ -241,7 +241,7 @@ km("n", "<leader>fm", "<cmd>FzfLua man_pages<cr>", { desc = "Fzf: search man pag
 
 -- Tasks
 -- The plugin todo-comments.nvim is a dependecy for this works.
--- See: lua/plugins/unnacessary-shit.lua
+-- See: lua/plugins/unnecessary-shit.lua
 km("n", "<leader>ft", "<cmd>TodoFzfLua keywords=TODO,FIX,FIXME,HACK,BUG,XXX<cr>", { desc = "Fzf: list tasks" })
 
 -- Diagnostics
