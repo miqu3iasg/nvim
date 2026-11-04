@@ -44,8 +44,7 @@ vim.keymap.set("n", "<leader>k", function()
 end, { desc = "Format buffer" })
 
 vim.keymap.set("n", "<leader>uf", function()
-	vim.g.disable_autoformat = not vim.g.disable_autoformat
-	vim.notify("Autoformat: " .. (vim.g.disable_autoformat and "OFF" or "ON"))
+	require("shared.autoformat").toggle()
 end, { desc = "Toggle autoformat" })
 
 require("conform").setup({
@@ -111,7 +110,7 @@ require("conform").setup({
 		},
 	},
 	format_on_save = function(bufnr)
-		if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+		if not require("shared.autoformat").enabled(bufnr) then
 			return
 		end
 		return { timeout_ms = 2000, lsp_format = "fallback" }

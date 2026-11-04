@@ -106,6 +106,16 @@ function M.output_path(src, ext)
 	return M.exports_dir(src) .. "/" .. M.reldir(src) .. M.basename(src) .. "." .. (ext or "pdf")
 end
 
+---Output path template for tools that expand file-name variables themselves
+---(tinymist), so the actual layout stays in sync with `M.output_path`. The
+---pattern uses the variables supported by tinymist (`$root`, `$dir`, `$name`),
+---and mirrors `M.output_path`: `<root>/exports/<dir>/<name>`. Use inside an
+---`LspAttach`-less setup via `vim.lsp.config(...)` `settings.outputPath`.
+---@return string
+function M.output_pattern()
+	return ("$root/%s/$dir/$name"):format(M.exports_dirname)
+end
+
 ---Compilation byproducts folder: `<root>/.build/<reldir>/<name>`.
 ---@param src integer|string
 ---@return string

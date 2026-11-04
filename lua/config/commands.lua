@@ -5,14 +5,17 @@ vim.api.nvim_create_user_command("Setwd", function()
 	vim.cmd.cd(vim.fn.expand("%:p:h"))
 end, {})
 
--- Automatic Formatting
+-- Automatic formatting; the state itself lives in shared.autoformat
+-- (see lua/shared/autoformat.lua)
+
+-- Disable formatting
 vim.api.nvim_create_user_command("FormatDisable", function()
-	vim.g.disable_autoformat = true
+	require("shared.autoformat").disable()
 end, { desc = "Disable autoformat-on-save" })
 
+-- Enable formatting
 vim.api.nvim_create_user_command("FormatEnable", function()
-	vim.b.disable_autoformat = false
-	vim.g.disable_autoformat = false
+	require("shared.autoformat").enable()
 end, { desc = "Re-enable autoformat-on-save" })
 
 -- Plugin Management

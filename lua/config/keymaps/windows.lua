@@ -31,12 +31,7 @@ km("n", "_", "<cmd>resize -5<cr>", { desc = "Decrease window height" })
 km("n", "=", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
 km("n", "-", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
 
--- Maximize window (toggle between maximized and original size)
+-- Maximize window through the window_zoom feature (see lua/features/window_zoom.lua)
 km("n", "<leader>sm", function()
-	if vim.fn.tabpagenr("$") > 1 and vim.t.zoomed then
-		vim.cmd("tabclose")
-	elseif vim.fn.winnr("$") > 1 then
-		vim.cmd("tab split")
-		vim.t.zoomed = true
-	end
+	require("features.window_zoom").toggle()
 end, { desc = "Toggle window zoom" })

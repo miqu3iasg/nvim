@@ -158,7 +158,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("EslintFix" .. args.buf, { clear = true }),
 			buffer = args.buf,
 			callback = function()
-				if not (vim.g.disable_autoformat or vim.b[args.buf].disable_autoformat) then
+				if require("shared.autoformat").enabled(args.buf) then
 					vim.cmd("silent! LspEslintFixAll")
 				end
 			end,
@@ -192,8 +192,8 @@ vim.lsp.config("tinymist", {
 	settings = {
 		formatterMode = "typstyle",
 		exportPdf = "onSave",
-		-- Mirrors exports.output_path(): <root>/exports/<reldir>/<name>
-		outputPath = "$root/exports/$dir/$name",
+		-- Built with shared.exports.output_pattern(); mirrors exports.output_path()
+		outputPath = require("shared.exports").output_pattern(),
 		-- Highlighting comes from treesitter only
 		semanticTokens = "disable",
 		lint = { enabled = false },

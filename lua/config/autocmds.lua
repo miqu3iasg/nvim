@@ -1,12 +1,9 @@
 -- lua/config/autocmds.lua
 
 -- Keep splits evenly sized after resizing
--- (skipped while no-neck-pain is active, which manages its own window widths)
 vim.api.nvim_create_autocmd("VimResized", {
 	callback = function()
-		if not vim.g.no_neck_pain_enabled then
-			vim.cmd("wincmd =")
-		end
+		vim.cmd("wincmd =")
 	end,
 })
 
