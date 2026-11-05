@@ -1,8 +1,11 @@
 -- after/ftplugin/markdown.lua
 
 -- Editor surface for writing Markdown/Obsidian notes: soft wrap with
--- breakindent, no list characters and no end-of-buffer filler, and the
--- local/normal writing-keymaps declared below.
+-- breakindent, the <localleader> toolbox for inline formatting and list
+-- editing (see lua/features/markdown_lists.lua), 4-column indentation that
+-- runs as tabs by default (`vim.g.markdown_use_tabs = false` switches to
+-- spaces, for the buffer and for the formatter) and the Pandoc export and
+-- preview wiring (see lua/shared/pandoc.lua).
 
 local opt = vim.opt_local
 
@@ -10,15 +13,17 @@ opt.wrap = true
 opt.linebreak = true
 opt.breakindent = true
 opt.spell = false
-opt.list = false
-opt.fillchars:append({ eob = " " })
 opt.spelllang = { "pt_br", "en_us" }
 opt.textwidth = 100
 opt.formatoptions:remove({ "t", "l" })
 opt.formatoptions:append("n")
 opt.formatoptions:append({ "r", "o" })
 opt.suffixesadd:append(".md")
-opt.expandtab = true
+-- Indentation is 4 columns, written as tabs plus spaces (one tab per 4 columns,
+-- the remainder in spaces). `vim.g.markdown_use_tabs = false` switches to spaces
+-- only, for the buffer and for the formatter
+-- See: lua/plugins/formatting.lua
+opt.expandtab = vim.g.markdown_use_tabs == false
 opt.tabstop = 4
 opt.shiftwidth = 4
 opt.softtabstop = -1
@@ -88,6 +93,22 @@ end, { range = true })
 
 map({ "n", "x" }, "<localleader>lt", ":ToggleCheckbox<CR>", "Toggle checkbox")
 
+-- Lists
+-- See: lua/features/markdown_lists.lua
+-- Normal mode acts on the current line (and accepts a count, e.g. `3<localleader>lb`).
+-- Visual mode acts on the selected lines and keeps the selection, so a mapping can be
+-- repeated, e.g. to cycle the list type
+local lists = require("features.markdown_lists")
+
+map({ "n", "x" }, "<localleader>lb", lists.action(lists.toggle, "bullet"), "Toggle bullet list")
+map({ "n", "x" }, "<localleader>ln", lists.action(lists.toggle, "number"), "Toggle numbered list")
+map({ "n", "x" }, "<localleader>lc", lists.action(lists.toggle_checklist), "Toggle checklist")
+map({ "n", "x" }, "<localleader>ll", lists.action(lists.cycle, 1), "Cycle list type (bullet > check > number > none)")
+map({ "n", "x" }, "<localleader>lL", lists.action(lists.cycle, -1), "Cycle list type (reverse)")
+map({ "n", "x" }, "<localleader>lm", lists.action(lists.cycle_marker), "Cycle marker (- * + / . ))")
+map({ "n", "x" }, "<localleader>lr", lists.action(lists.renumber), "Renumber ordered list")
+map({ "n", "x" }, "<localleader>lx", lists.action(lists.clear), "Remove list formatting")
+
 -- Typing
 map("i", ",", ",<C-g>u", "Break undo sequence at comma")
 map("i", ".", ".<C-g>u", "Break undo sequence at period")
@@ -95,10 +116,18 @@ map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", "Move down by visual line", 
 map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", "Move up by visual line", { expr = true })
 
 -- Editing
+---Keys that append `text` after the cursor and move `back` characters to the left.
+---@param text string
+---@param back integer
+---@return string keys
 local function insert(text, back)
 	return "a" .. text .. ("<Left>"):rep(back)
 end
 
+---Keys that replace the visual selection with itself between `open` and `close`.
+---@param open string
+---@param close string
+---@return string keys
 local function wrap(open, close)
 	return '"zc' .. open .. "<C-r>z" .. close .. "<Esc>"
 end
@@ -115,17 +144,72 @@ map("n", "<localleader>ii", "<cmd>PasteImage<cr>", "Paste image from clipboard")
 map("n", "<localleader>j", "vipJ", "Join paragraph into one line")
 map("x", "<localleader>s", ":sort i<CR>", "Sort lines")
 
-map("n", "<localleader>il", insert("[]()", 3), "Insert markdown link")
-map("n", "<localleader>iw", insert("[[]]", 2), "Insert wiki link")
-map("n", "<localleader>if", insert("^[]", 1), "Insert inline footnote")
-map("n", "<localleader>ib", insert("****", 2), "Insert bold")
-map("n", "<localleader>ie", insert("__", 1), "Insert italic")
-map("n", "<localleader>ic", insert("``", 1), "Insert inline code")
-map("n", "<localleader>is", insert("~~~~", 2), "Insert strikethrough")
+---Normal-mode inline formatting. With the cursor on a word, wraps the word between
+---`open` and `close`; when `toggle` is set and the word is already wrapped, removes
+---them instead. Anywhere else, inserts the empty pair and starts insert mode inside it.
+---@param open string
+---@param close string
+---@param toggle boolean whether applying it again removes the wrapping
+---@param insert_back? integer after wrapping, start insert mode this many characters
+---before the end of `close` (e.g. 1 puts the cursor inside the `()` of a link)
+local function format_word(open, close, toggle, insert_back)
+	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+	local line = vim.api.nvim_get_current_line()
+	local ch = vim.fn.strcharpart(line:sub(col + 1), 0, 1)
+
+	if ch == "" or vim.fn.match(ch, [[\k]]) < 0 then
+		vim.api.nvim_feedkeys(vim.keycode(insert(open .. close, #close)), "ni", false)
+		return
+	end
+
+	-- the word (run of 'iskeyword' characters) that contains the cursor
+	local _, s, e = unpack(vim.fn.matchstrpos(line, [[\k*\%]] .. (col + 1) .. [[c\k*]]))
+	local before = s >= #open and line:sub(s - #open + 1, s) == open
+	local after = line:sub(e + 1, e + #close) == close
+
+	if toggle and before and after then
+		vim.api.nvim_buf_set_text(0, row - 1, e, row - 1, e + #close, { "" })
+		vim.api.nvim_buf_set_text(0, row - 1, s - #open, row - 1, s, { "" })
+		vim.api.nvim_win_set_cursor(0, { row, math.max(col - #open, s - #open) })
+		return
+	end
+
+	vim.api.nvim_buf_set_text(0, row - 1, e, row - 1, e, { close })
+	vim.api.nvim_buf_set_text(0, row - 1, s, row - 1, s, { open })
+	if insert_back then
+		-- e.g. link `[word]()`: insert mode with the cursor inside the `()`
+		vim.api.nvim_win_set_cursor(0, { row, e + #open + #close - insert_back })
+		vim.cmd.startinsert()
+	else
+		vim.api.nvim_win_set_cursor(0, { row, col + #open })
+	end
+end
+
+---Map `lhs` in normal mode to `format_word` with the given pair.
+---@param lhs string
+---@param desc string
+---@param open string
+---@param close string
+---@param toggle boolean
+---@param insert_back? integer
+local function word_map(lhs, desc, open, close, toggle, insert_back)
+	map("n", lhs, function()
+		format_word(open, close, toggle, insert_back)
+	end, desc)
+end
+
+word_map("<localleader>il", "Markdown link (word under cursor)", "[", "]()", false, 1)
+word_map("<localleader>iw", "Wiki link (word under cursor)", "[[", "]]", true)
+word_map("<localleader>if", "Inline footnote (word under cursor)", "^[", "]", false)
+word_map("<localleader>ib", "Bold (word under cursor)", "**", "**", true)
+word_map("<localleader>ie", "Italic (word under cursor)", "_", "_", true)
+word_map("<localleader>ic", "Inline code (word under cursor)", "`", "`", true)
+word_map("<localleader>is", "Strikethrough (word under cursor)", "~~", "~~", true)
 
 map("x", "<localleader>il", '"zc[<C-r>z]()<Left>', "Wrap selection as markdown link")
 map("x", "<localleader>cl", '"zc[<C-r>z](<C-r>+)<Esc>', "Link with clipboard URL")
 map("x", "<localleader>iw", wrap("[[", "]]"), "Wrap selection as wiki link")
+map("x", "<localleader>if", wrap("^[", "]"), "Wrap selection as inline footnote")
 map("x", "<localleader>ib", wrap("**", "**"), "Bold selection")
 map("x", "<localleader>ie", wrap("_", "_"), "Italic selection")
 map("x", "<localleader>ic", wrap("`", "`"), "Inline code selection")
