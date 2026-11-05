@@ -97,6 +97,11 @@ vim.pack.add({
 	-- Git wrapper for running git commands, staging, committing, diffing, and blaming.
 	{ src = "https://github.com/tpope/vim-fugitive" },
 
+	-- vim-rhubarb
+	-- https://github.com/tpope/vim-rhubarb
+	-- Allows open the current git file/selecion/line in GitHub on the browser.
+	{ src = "https://github.com/tpope/vim-rhubarb" },
+
 	-- gitsigns.nvim
 	-- https://github.com/lewis6991/gitsigns.nvim
 	-- Shows git diff markers in the sign column and provides hunk staging, preview, and blame.
