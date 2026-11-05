@@ -6,6 +6,8 @@ opt.wrap = true
 opt.linebreak = true
 opt.breakindent = true
 opt.spell = false
+opt.list = false
+opt.fillchars:append({ eob = " " })
 opt.spelllang = { "pt_br", "en_us" }
 opt.textwidth = 100
 opt.formatoptions:remove({ "t", "l" })
