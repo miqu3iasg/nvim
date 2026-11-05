@@ -1,20 +1,11 @@
 -- after/ftplugin/markdown.lua
 
--- Editor surface for writing Markdown/Obsidian notes: soft wrap with
--- breakindent, the <localleader> toolbox for inline formatting and list
--- editing (see lua/features/markdown_lists.lua), 4-column indentation that
--- runs as tabs by default (`vim.g.markdown_use_tabs = false` switches to
--- spaces, for the buffer and for the formatter) and the Pandoc export and
--- preview wiring (see lua/shared/pandoc.lua).
-
 local opt = vim.opt_local
 
 opt.wrap = true
 opt.linebreak = true
 opt.breakindent = true
 opt.spell = false
--- Hide the list markers and the end-of-buffer filler that the wrap layout
--- exposes
 opt.list = false
 opt.fillchars:append({ eob = " " })
 opt.spelllang = { "pt_br", "en_us" }

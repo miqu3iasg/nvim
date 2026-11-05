@@ -1,5 +1,6 @@
 -- lua/config/commands.lua
--- Side-effect-only file: user commands defined with :command. Plugin
+
+-- Side-effect-only file. User commands defined with :command. Plugin
 -- management commands here ("Pack*") mirror the built-in :vim.pack commands
 -- with friendlier names; the plugin list itself lives in lua/config/pack.lua.
 

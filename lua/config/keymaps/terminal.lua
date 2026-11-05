@@ -1,7 +1,5 @@
 -- lua/config/keymaps/terminal.lua
 
--- Creating terminals (split/tab) and the terminal-mode escape key.
-
 local km = vim.keymap.set
 
 -- Terminal Creation

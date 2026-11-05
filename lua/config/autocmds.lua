@@ -1,6 +1,6 @@
 -- lua/config/autocmds.lua
 
--- Side-effect-only file: global autocommands that run alongside the rest of
+-- Side-effect-only file. Global autocommands that run alongside the rest of
 -- the configuration. Each block names its group explicitly so it can be
 -- inspected or cleared with :augroup.
 

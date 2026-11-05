@@ -1,8 +1,6 @@
 -- lua/plugins/colorschemes.lua
 
--- Extra colorschemes installed on top of the two built-in theme groups (the
--- custom schemes in colors/ and the black-metal family). Loaded directly with
--- `vim.pack.add` so :FzfLua colorschemes can preview every theme.
+-- Extra colorschemes installed on top of the two built-in theme groups
 --
 -- See: colors/ (self-maintained schemes)
 -- See: https://github.com/metalelf0/black-metal-theme-neovim

@@ -1,6 +1,6 @@
 -- after/ftplugin/python.lua
 
--- PEP 8 style: 4-space indentation, comment continuation enabled
+-- PEP 8 style. 4-space indentation, comment continuation enabled
 -- (`croql` without `t`, so wrapping stays with a formatter), indent-based
 -- folding and an 88-column text width (matching the ruff/black defaults
 -- that conform uses for formatting).

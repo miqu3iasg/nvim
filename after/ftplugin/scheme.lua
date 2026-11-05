@@ -1,8 +1,5 @@
 -- after/ftplugin/scheme.lua
 
--- Indentation for Scheme: two spaces, no smart/C indent (they break
--- special forms), and the native `lisp` indentation machinery enabled.
-
 vim.opt_local.shiftwidth = 2
 vim.opt_local.tabstop = 2
 vim.opt_local.softtabstop = 2

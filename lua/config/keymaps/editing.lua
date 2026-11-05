@@ -177,14 +177,3 @@ km("i", "<C-d>", "<Del>", { desc = "Delete char forward" })
 km("i", "<C-k>", function()
 	return vim.fn.col(".") > #vim.fn.getline(".") and "<Del>" or "<C-g>u<C-o>D"
 end, { expr = true, desc = "Kill to end of line" })
-
--- Insertion
--- <C-j>      Insert newline (usually equivalent to Enter)
--- <C-m>      Insert newline (Enter)
-
--- Undo and Completion
--- <C-n>      Find next completion match
--- <C-p>      Find previous completion match
--- <C-x>      Enter CTRL-X completion mode
--- <C-y>      Accept completion (when completion menu is active)
--- <C-e>      Cancel completion (when completion menu is active)

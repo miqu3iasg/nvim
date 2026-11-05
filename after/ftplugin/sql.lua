@@ -1,8 +1,5 @@
 -- after/ftplugin/sql.lua
 
--- SQL buffer look and feel: two-space indentation without smart/C indent
--- (they misindent the CASE/JOIN blocks), no autoindent surprises.
-
 vim.opt_local.autoindent = true
 vim.opt_local.smartindent = false
 vim.opt_local.cindent = false

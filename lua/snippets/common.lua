@@ -1,6 +1,6 @@
 -- lua/snippets/common.lua
 
--- Language-agnostic LuaSnip snippets: file headers, license headers,
+-- Language-agnostic LuaSnip snippets, such as file headers, license headers,
 -- function doc comments, marker comments (TODO, FIXME, ...) and small
 -- one-line helpers. Every snippet is a dynamic node that reads the current
 -- filetype and adapts its comment syntax to it.
