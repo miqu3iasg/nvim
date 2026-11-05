@@ -1,5 +1,11 @@
 -- lua/snippets/lisp.lua
 
+-- Scheme snippets for LuaSnip: comment headers at the three R7RS comment
+-- levels (;;; section, ;; block, #|...|# multi-line), datum comments (#;)
+-- with visual-selection wrapping, and the `; => result` evaluation
+-- convention used when studying a REPL.
+-- Indentation assumes two spaces.
+
 local ls = require("luasnip")
 local s = ls.snippet
 local t = ls.text_node

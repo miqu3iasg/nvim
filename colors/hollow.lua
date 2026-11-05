@@ -1,13 +1,16 @@
 -- colors/hollow.lua
 --
--- A modified version of the quiet colorscheme.
+-- A hollowed-out variant of the `quiet` colorscheme (Maxence Weynans),
+-- reduced to near-monochrome: pale gray text on pure black, with a single
+-- blue accent left for status signals. Meant for distraction-free,
+-- high-contrast editing in true-color terminals or graphical clients
+-- ('termguicolors' required). The original Vimscript scheme was ported
+-- wholesale to Lua for Neovim.
 --
 -- Copyright (c) Maxence Weynans <neutaaaaan@gmail.com>
 -- Copyright (c) Miquéias Alves Medeiros <https://github.com/miqu3iasg>
 --
 -- See: `:help license`
---
--- Original Vimscript colorscheme converted to Lua for Neovim.
 --
 -- SPDX-License-Identifier: Vim
 
@@ -16,7 +19,7 @@ vim.g.colors_name = "hollow"
 
 local set_hl = vim.api.nvim_set_hl
 
--- Pallete
+-- Palette
 local p = {
 	-- Neutrals
 	black = "#000000",
@@ -97,7 +100,7 @@ local p = {
 		delim = "#989898", -- , ; . :
 	},
 
-	-- Constrast version
+	-- Contrast version
 	-- t = {
 	-- 	op = "#f6f6f6", -- + - = == => && ||
 	-- 	special = "#ffffff", -- ${}, escapes, special regex chars

@@ -1,6 +1,7 @@
 -- lua/plugins/unnecessary-shit.lua
 
--- The most unnecessary shit that I installed instead of coding (newbie edition)
+-- Miscellaneous quality-of-life mini.nvim modules (and other small plugins)
+-- that are not essential, but make editing feel nicer.
 
 local ai = require("mini.ai")
 local ts = ai.gen_spec.treesitter

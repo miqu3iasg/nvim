@@ -1,7 +1,18 @@
 -- lua/plugins/oil.lua
 
+-- Oil.nvim as the default file explorer: filesystem editing as a normal
+-- buffer. Column set tuned for study/work directories; `gx` opens entries
+-- with extension-specific viewers (zathura, imv, mpv, ...) falling back to
+-- `xdg-open`.
+--
+-- See: https://github.com/stevearc/oil.nvim
+
 local oil = require("oil")
 
+---Builds the extra data oil keymaps use to hold a description and a callback.
+---@param path_fn fun(): string returns the directory path to open
+---@param desc string which-key description for the entry
+---@return { desc: string, callback: fun() } oil keymap entry
 local function goto_dir(path_fn, desc)
 	return {
 		desc = desc,

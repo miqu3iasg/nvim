@@ -22,7 +22,9 @@
 local M = {}
 
 -- Folder names created under <root>
+---@type string
 M.exports_dirname = "exports"
+---@type string
 M.build_dirname = ".build"
 
 ---Markers that identify the root, searched in order from highest to lowest

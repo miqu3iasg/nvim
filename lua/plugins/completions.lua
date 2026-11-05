@@ -28,7 +28,7 @@
 -- For example, use :Mason to open the Mason interface or :MasonInstall followed
 -- by the relevant package names. The exact tools required depend on the
 -- languages you use and the configurations in lua/plugins/lsp.lua and
--- lua/plugins/conform.lua.
+-- lua/plugins/formatting.lua.
 --
 -- The completion menu also integrates with LazyDev for Lua development and
 -- VimTeX for LaTeX completion. These sources require their corresponding
@@ -42,7 +42,9 @@
 -- See: https://github.com/mason-org/mason.nvim
 
 -- Modules under lua/snippets/, required lazily the first time a buffer of that
--- filetype is opened. `common` is loaded with the first filetype that uses it
+-- filetype is opened. Keys are filetypes, values are Lua module names.
+-- `common` is loaded with the first filetype that inherits it.
+---@type table<string, string>
 local snippet_modules = {
 	tex = "snippets.latex",
 	typst = "snippets.typst",
@@ -55,14 +57,16 @@ local snippet_modules = {
 	common = "snippets.common",
 }
 
--- Filetypes that reuse the snippets of another filetype
+-- Filetypes that reuse the snippets of another filetype.
+---@type table<string, string>
 local aliases = {
 	scheme = "lisp",
 	mysql = "sql",
 	plsql = "sql",
 }
 
--- Filetypes that also inherit the "common" snippets
+-- Filetypes that also inherit the "common" snippets.
+---@type table<string, boolean>
 local common_filetypes = {
 	python = true,
 	c = true,
@@ -83,7 +87,8 @@ local common_filetypes = {
 	css = true,
 }
 
--- Filetypes where the completion menu opens automatically
+-- Filetypes where the completion menu opens automatically.
+---@type table<string, boolean>
 local auto_show_filetypes = {
 	javascript = true,
 	javascriptreact = true,
@@ -100,7 +105,8 @@ local auto_show_filetypes = {
 	toml = true,
 }
 
--- Markdown is prose, so the menu stays closed except while typing a wikilink ([[Note)
+-- Markdown is prose, so the menu stays closed except while typing a wikilink ([[Note).
+---@return boolean True when the text before the cursor starts an uncompleted wikilink.
 local function markdown_auto_show()
 	local col = vim.api.nvim_win_get_cursor(0)[2]
 	local before = vim.api.nvim_get_current_line():sub(1, col)
@@ -130,8 +136,15 @@ end
 
 -- Lazy Snippet Loading
 
+-- Buffers whose filetype already went through the lazy loader, so the
+-- snippets module is required only once per filetype.
+---@type table<string, boolean>
 local loaded = {}
 
+--- Requires one snippet module and registers its snippets for the filetype.
+--- Failures are reported with `vim.notify` instead of raising an error, so a
+--- broken snippet file never blocks completion.
+---@param name string Filetype key into `snippet_modules` (after alias resolution).
 local function load(name)
 	local module = snippet_modules[name]
 
@@ -148,6 +161,9 @@ local function load(name)
 	end
 end
 
+--- Entry point for the lazy snippet loader. Resolves aliases first, then
+--- additionally loads the shared `common` snippets when the filetype opts in.
+---@param ft string Filetype of the buffer that triggered the load.
 local function load_snippets(ft)
 	load(aliases[ft] or ft)
 	if common_filetypes[ft] then
@@ -176,7 +192,13 @@ require("blink.compat").setup({
 
 -- blink.cmp Setup
 
--- Navigate LuaSnip choices through blink.cmp's keymap callback chain
+--- Builds a keymap callback that cycles LuaSnip choices without leaking
+--- `true` (stopping the blink.cmp keymap chain) when no choice is active, so
+--- the next handler in the chain (`select_next`/`select_prev`) still runs.
+--- The mapping keeps this callback above the `"fallback"` entry so the chain
+--- continues to `select_next` / `select_prev` when no choice is active.
+---@param dir integer Direction passed to `luasnip.change_choice` (1 or -1).
+---@return function callback Returns `true` when a LuaSnip choice is active.
 local function choice(dir)
 	return function()
 		if luasnip.choice_active() then
@@ -187,6 +209,9 @@ local function choice(dir)
 		end
 	end
 end
+
+-- Navigate LuaSnip choices through blink.cmp's keymap callback chain (see
+-- `choice()` and the "<C-n>" / "<C-p>" entries below)
 
 require("blink.cmp").setup({
 	-- Preset "none": only the mappings below exist. Each entry is tried in

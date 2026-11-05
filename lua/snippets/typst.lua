@@ -1,5 +1,10 @@
 -- lua/snippets/typst.lua
 
+-- Typst snippets for LuaSnip. Math snippets are autosnippets fired only
+-- inside math zones (detected via the syntax tree, with a plain-text
+-- fallback when the parser is not available), while regular snippets for
+-- sections, figures and code blocks are expanded manually.
+
 local ls = require("luasnip")
 
 local s = ls.snippet

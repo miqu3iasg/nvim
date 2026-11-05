@@ -10,10 +10,12 @@
 local M = {}
 
 -- Session files live in the Neovim state directory, one per working directory
+---@type string
 local SESSION_DIR = vim.fn.stdpath("state") .. "/sessions/"
 
 -- Filetypes that must not trigger a save on their own, e.g. when Neovim is
 -- used as `git commit` editor inside a project that has a stored session.
+---@type table<string, boolean>
 local IGNORED_FILETYPES = { gitcommit = true, gitrebase = true }
 
 ---Whether session handling is active (only inside tmux).

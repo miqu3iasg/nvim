@@ -1,5 +1,12 @@
 -- lua/plugins/colorschemes.lua
 
+-- Extra colorschemes installed on top of the two built-in theme groups (the
+-- custom schemes in colors/ and the black-metal family). Loaded directly with
+-- `vim.pack.add` so :FzfLua colorschemes can preview every theme.
+--
+-- See: colors/ (self-maintained schemes)
+-- See: https://github.com/metalelf0/black-metal-theme-neovim
+
 vim.pack.add({
 	"https://github.com/jaredgorski/fogbell.vim",
 	"https://github.com/amedoeyes/eyes.nvim",
@@ -12,7 +19,10 @@ vim.pack.add({
 
 -- Color palettes used for colorscheme overrides
 
-local black_metal_pallet = {
+-- Palette used for the black-metal overrides below, keyed by its role in
+-- the scheme (line background, foreground levels, comments and accents).
+---@type table<string, string>
+local black_metal_palette = {
 	line = "#111111",
 	bright = "#ffffff",
 	fg = "#e2e2e2",
@@ -21,7 +31,7 @@ local black_metal_pallet = {
 	teal = "#5f8787",
 }
 
--- Colorsheme configurations
+-- Colorscheme configurations
 
 -- Black Metal
 require("black-metal").setup({
@@ -40,39 +50,39 @@ require("black-metal").setup({
 		IncSearch = { fg = "#3D3525", bg = "#D6C17A", fmt = "bold" },
 
 		-- Markdown
-		["@markup.strong"] = { fg = black_metal_pallet.bright, fmt = "bold" },
-		["@markup.italic"] = { fg = black_metal_pallet.fg, fmt = "italic" },
-		["@markup.strikethrough"] = { fg = black_metal_pallet.comment, fmt = "strikethrough" },
-		["@markup.link"] = { fg = black_metal_pallet.bright, fmt = "underline" },
-		["@markup.link.label"] = { fg = black_metal_pallet.bright },
-		["@markup.link.url"] = { fg = black_metal_pallet.teal, fmt = "underline" },
-		["@markup.list"] = { fg = black_metal_pallet.teal },
-		["@markup.math"] = { fg = black_metal_pallet.bright },
-		["@conceal"] = { fg = black_metal_pallet.comment },
+		["@markup.strong"] = { fg = black_metal_palette.bright, fmt = "bold" },
+		["@markup.italic"] = { fg = black_metal_palette.fg, fmt = "italic" },
+		["@markup.strikethrough"] = { fg = black_metal_palette.comment, fmt = "strikethrough" },
+		["@markup.link"] = { fg = black_metal_palette.bright, fmt = "underline" },
+		["@markup.link.label"] = { fg = black_metal_palette.bright },
+		["@markup.link.url"] = { fg = black_metal_palette.teal, fmt = "underline" },
+		["@markup.list"] = { fg = black_metal_palette.teal },
+		["@markup.math"] = { fg = black_metal_palette.bright },
+		["@conceal"] = { fg = black_metal_palette.comment },
 
-		["@markup.list.markdown"] = { fg = black_metal_pallet.teal, fmt = "bold" },
-		["@markup.raw.delimiter.markdown"] = { fg = black_metal_pallet.teal },
-		["@label.markdown"] = { fg = black_metal_pallet.teal, fmt = "italic" },
-		["@markup.math.markdown_inline"] = { fg = black_metal_pallet.teal, fmt = "italic" },
-		["@markup.math.latex"] = { fg = black_metal_pallet.teal, fmt = "italic" },
+		["@markup.list.markdown"] = { fg = black_metal_palette.teal, fmt = "bold" },
+		["@markup.raw.delimiter.markdown"] = { fg = black_metal_palette.teal },
+		["@label.markdown"] = { fg = black_metal_palette.teal, fmt = "italic" },
+		["@markup.math.markdown_inline"] = { fg = black_metal_palette.teal, fmt = "italic" },
+		["@markup.math.latex"] = { fg = black_metal_palette.teal, fmt = "italic" },
 
-		["@markup.italic.markdown_inline"] = { fg = black_metal_pallet.mid, fmt = "italic" },
-		["@punctuation.special.markdown_inline"] = { fg = black_metal_pallet.bright },
-		["@markup.link.markdown_inline"] = { fg = black_metal_pallet.comment },
+		["@markup.italic.markdown_inline"] = { fg = black_metal_palette.mid, fmt = "italic" },
+		["@punctuation.special.markdown_inline"] = { fg = black_metal_palette.bright },
+		["@markup.link.markdown_inline"] = { fg = black_metal_palette.comment },
 		["@markup.link.label.markdown_inline"] = {
-			fg = black_metal_pallet.bright,
-			bg = black_metal_pallet.line,
+			fg = black_metal_palette.bright,
+			bg = black_metal_palette.line,
 			fmt = "underline",
 		},
 
-		["@markup.heading"] = { fg = black_metal_pallet.bright, fmt = "bold" },
-		["@markup.heading.marker.markdown"] = { fg = black_metal_pallet.bright, underline = false },
-		["@markup.heading.1.markdown"] = { fg = black_metal_pallet.bright, fmt = "bold" },
-		["@markup.heading.2.markdown"] = { fg = black_metal_pallet.bright, fmt = "bold" },
-		["@markup.heading.3.markdown"] = { fg = black_metal_pallet.fg, fmt = "bold" },
-		["@markup.heading.4.markdown"] = { fg = black_metal_pallet.fg, fmt = "bold" },
-		["@markup.heading.5.markdown"] = { fg = black_metal_pallet.mid, fmt = "bold" },
-		["@markup.heading.6.markdown"] = { fg = black_metal_pallet.mid, fmt = "bold" },
+		["@markup.heading"] = { fg = black_metal_palette.bright, fmt = "bold" },
+		["@markup.heading.marker.markdown"] = { fg = black_metal_palette.bright, underline = false },
+		["@markup.heading.1.markdown"] = { fg = black_metal_palette.bright, fmt = "bold" },
+		["@markup.heading.2.markdown"] = { fg = black_metal_palette.bright, fmt = "bold" },
+		["@markup.heading.3.markdown"] = { fg = black_metal_palette.fg, fmt = "bold" },
+		["@markup.heading.4.markdown"] = { fg = black_metal_palette.fg, fmt = "bold" },
+		["@markup.heading.5.markdown"] = { fg = black_metal_palette.mid, fmt = "bold" },
+		["@markup.heading.6.markdown"] = { fg = black_metal_palette.mid, fmt = "bold" },
 	},
 })
 require("black-metal").load()

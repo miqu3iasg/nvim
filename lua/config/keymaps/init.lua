@@ -1,9 +1,12 @@
 -- lua/config/keymaps/init.lua
 
+-- Entry point for the keymaps: sets the leader keys (they must be set before
+-- any `<leader>` mapping is created) and loads the keymap themes. Keymaps that
+-- belong to a single plugin live in that plugin's file under lua/plugins/.
+
 local M = {}
 
 -- Leader keys
--- must be set before any <leader>, based mapping below is created
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 

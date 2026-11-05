@@ -1,5 +1,8 @@
 -- lua/snippets/python.lua
 
+-- Python snippets for LuaSnip: `sol` solution skeletons for practice
+-- problems (LeetCode style) and Google-style docstring scaffolding.
+
 local ls = require("luasnip")
 local s = ls.snippet
 local t = ls.text_node

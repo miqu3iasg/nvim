@@ -1,4 +1,4 @@
--- ftplugin/java.lua
+-- after/ftplugin/java.lua
 
 -- This module configures every Java buffer: editor options, buffer-local
 -- keymaps and a lightweight jdtls (Eclipse JDT Language Server) setup. The

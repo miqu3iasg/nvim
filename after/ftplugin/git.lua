@@ -1,5 +1,8 @@
 -- after/ftplugin/git.lua
 
+-- Buffer-local UI of `git` buffers (e.g. :Git status listing, rebase): no
+-- folds, no wrap, no numbers.
+
 local opt = vim.opt_local
 
 opt.foldenable = false

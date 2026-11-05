@@ -91,13 +91,15 @@ ts.install({
 
 local group = vim.api.nvim_create_augroup("TreesitterSetup", { clear = true })
 
--- Keep Vim's legacy syntax engine for `tex` buffers because VimTeX
--- depends on its highlight groups and conceal rules. The `latex`
--- parser remains installed for LaTeX math highlighting inside Markdown,
--- but must not attach directly to `tex` or `latex` buffers.
+-- Filetypes whose highlighting is handled by Vim's legacy syntax engine,
+-- keyed by filetype, so they are excluded from Tree-sitter highlighting.
+-- The `latex` parser remains installed for LaTeX math highlighting inside
+-- Markdown buffers, but `tex`/`latex` buffers must not attach it because
+-- VimTeX depends on the legacy engine's highlight groups and conceal rules.
 --
 -- See: :h vimtex-faq-treesitter
 -- See: https://github.com/lervag/vimtex/wiki/Syntax
+---@type table<string, boolean>
 local ts_highlight_excluded = {
 	tex = true,
 	latex = true,
@@ -107,6 +109,7 @@ local ts_highlight_excluded = {
 vim.api.nvim_create_autocmd("FileType", {
 	group = group,
 	desc = "Enable treesitter highlighting and indentation",
+	---@param event { match: string, buf: integer }
 	callback = function(event)
 		local lang = vim.treesitter.language.get_lang(event.match) or event.match
 		local buf = event.buf

@@ -1,5 +1,8 @@
 -- after/ftplugin/fugitive.lua
 
+-- Buffer-local UI of the Fugitive views: clean statusline/no margins, and
+-- the commit/blame-side keymaps (close view via lua/features/close_view.lua).
+
 local opt = vim.opt_local
 
 opt.number = false

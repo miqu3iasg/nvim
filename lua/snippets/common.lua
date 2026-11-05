@@ -14,20 +14,28 @@ local d = ls.dynamic_node
 local sn = ls.snippet_node
 local rep = require("luasnip.extras").rep
 
+---Today's date in ISO format, used in Created/Modified header fields.
+---@return string
 local function get_date()
 	return os.date("%Y-%m-%d")
 end
+
+---Current year, used in copyright notices.
+---@return string
 local function get_year()
 	return os.date("%Y")
 end
 
 -- The helpers below fall back to "untitled" for unnamed buffers.
+---Name of the current buffer file, including its extension.
+---@return string
 local function get_filename()
 	local name = vim.fn.expand("%:t")
 	return name ~= "" and name or "untitled"
 end
 
 -- Path relative to the working directory.
+---@return string
 local function get_relpath()
 	local path = vim.fn.expand("%:.")
 	if path == "" then
@@ -37,6 +45,7 @@ local function get_relpath()
 end
 
 -- File name without its extension.
+---@return string
 local function get_basename()
 	local name = vim.fn.expand("%:t:r")
 	return name ~= "" and name or "untitled"
@@ -106,6 +115,7 @@ local DEFAULT_STYLE = { kind = "line", sym = "#" }
 
 -- Single-line comment symbol, for inline snippets that must stay on one
 -- comment line even when the file header is a block comment.
+---@type table<string, string>
 local line_comment_by_ft = {
 	lua = "--",
 	sh = "#",
@@ -138,12 +148,17 @@ local line_comment_by_ft = {
 }
 local DEFAULT_LINE_COMMENT = "#"
 
+---Returns the single-line comment symbol for a filetype, falling back to
+---the default for unknown filetypes.
+---@param ft string Filetype name, for example "lua".
+---@return string
 local function line_comment_sym(ft)
 	return line_comment_by_ft[ft] or DEFAULT_LINE_COMMENT
 end
 
 -- Filetypes whose multi-line inline snippets (refs, drefs) use a block
 -- comment. All others use consecutive line comments.
+---@type table<string, boolean>
 local inline_block_fts = {
 	c = true,
 	cpp = true,
@@ -154,6 +169,7 @@ local inline_block_fts = {
 	markdown = true,
 }
 
+---@type table<string, string>
 local shebang_by_ft = {
 	sh = "#!/usr/bin/env sh",
 	bash = "#!/usr/bin/env bash",
@@ -167,6 +183,8 @@ local shebang_by_ft = {
 local FIELD_WIDTH = 15
 
 -- Pads a field name so header values line up in a column.
+---@param text string
+---@return string
 local function label(text)
 	return text .. string.rep(" ", math.max(1, FIELD_WIDTH - #text))
 end
@@ -194,6 +212,8 @@ local function wrap(style, line)
 end
 
 -- Comment prefix for a line that starts with a placeholder, not a label.
+---@param style CommentStyle
+---@return string
 local function line_prefix(style)
 	if style.kind == "line" then
 		return style.sym .. " "
@@ -207,6 +227,7 @@ end
 -- Compile/run instructions for the `ehead` and `shead` headers. Each entry
 -- takes a comment style and returns the nodes for the lines that follow the
 -- usage title.
+---@type table<string, fun(style: CommentStyle): table>
 local usage_by_ft = {
 	c = function(style)
 		return {
@@ -379,6 +400,7 @@ usage_by_ft.zsh = usage_by_ft.sh
 
 -- Filetypes whose usage lines carry their own labels, so the "Usage:"
 -- title is skipped.
+---@type table<string, boolean>
 local inline_usage_fts = { java = true }
 
 ---Adds a blank line and the usage block to a header. Falls back to a
@@ -579,6 +601,9 @@ local function build_fnhead(_, _)
 end
 
 -- Block and docstring styles need a line break after the opener.
+---@param add fun(...: table) Appends nodes to the snippet being built.
+---@param style CommentStyle
+---@param first_line string
 local function open_and_first_line(add, style, first_line)
 	if style.kind == "block" or style.kind == "docstring" then
 		add(t(style.open))
@@ -589,6 +614,8 @@ local function open_and_first_line(add, style, first_line)
 end
 
 -- Closes the header and adds a blank line before the code.
+---@param add fun(...: table) Appends nodes to the snippet being built.
+---@param style CommentStyle
 local function close_header(add, style)
 	if style.kind == "block" then
 		local indent = style.close_indent or " "

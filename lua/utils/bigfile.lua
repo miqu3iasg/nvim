@@ -8,9 +8,14 @@ local M = {}
 
 -- Shared cutoff values for features that are useful on normal files but can
 -- make very large or minified files feel sluggish.
-local max_size = 1.5 * 1024 * 1024 -- bytes
-local max_line_length = 1000 -- characters
-local sample_lines = 200 -- how many lines from the top are inspected
+---@type number maximum file size, in bytes
+local max_size = 1.5 * 1024 * 1024
+
+---@type number maximum line length, in characters
+local max_line_length = 1000
+
+---@type integer how many lines from the top are inspected
+local sample_lines = 200
 
 ---Check whether a buffer should be treated as a big file.
 ---A buffer is big if its file is larger than `max_size`, or if any of its first

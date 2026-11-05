@@ -1,7 +1,12 @@
 -- colors/artifact.lua
 --
--- A relic of the old terminal, where simplicity was a feature and every
--- color had a purpose.
+-- A relic of the old terminal: a strictly monochrome dark scheme where
+-- simplicity is a feature and every visible character matters. Built for
+-- true-color terminals; 'termguicolors' is enabled automatically. Optional
+-- toggles, set before loading the scheme:
+--   vim.g.artifact_transparent (true)  keep the background transparent
+--   vim.g.artifact_underline (false)   strip underlines and undercurls
+--   vim.g.artifact_italic (true)       enable italics where they exist
 --
 -- Copyright (c) Miquéias Medeiros <contatomiqueiasalvesdev@gmail.com>
 --

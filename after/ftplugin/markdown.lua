@@ -1,5 +1,9 @@
 -- after/ftplugin/markdown.lua
 
+-- Editor surface for writing Markdown/Obsidian notes: soft wrap with
+-- breakindent, no list characters and no end-of-buffer filler, and the
+-- local/normal writing-keymaps declared below.
+
 local opt = vim.opt_local
 
 opt.wrap = true

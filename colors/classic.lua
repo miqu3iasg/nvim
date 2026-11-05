@@ -1,6 +1,9 @@
 -- colors/classic.lua
 --
--- For those who keep the tradition.
+-- A truly classic scheme: straight black background, plain white text and
+-- restrained color on syntax, inspired by the first-generation terminal
+-- palettes. Built for true-color terminals ('termguicolors' required);
+-- the palette keeps a contrast variant commented out for easy tuning.
 --
 -- Copyright (c) Miquéias Alves Medeiros <https://github.com/miqu3iasg>
 --

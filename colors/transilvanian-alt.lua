@@ -1,7 +1,13 @@
 -- colors/transilvanian-alt.lua
 --
--- A theme inspired on Metal Black Darkthrone and in the classical
--- aesthetics of Vim.
+-- An alternate rendering of the transilvanian theme: the same black-metal
+-- palette dressed in the conventions of classic Vim. Every hex is also
+-- converted to its nearest xterm-256 value, so the scheme stays legible
+-- when a terminal lacks true color (though 'termguicolors' is assumed).
+-- Requires a dark background. Optional toggles, set before loading:
+--   vim.g.darkthrone_transparent (true)  keep the background transparent
+--   vim.g.darkthrone_underline (false)   strip underlines and undercurls
+--   vim.g.transilvanian_italic (true)    enable italics where they exist
 --
 -- Copyright (c) Andrea Schiavini <https://github.com/metalelf0>
 -- Copyright (c) Miquéias Medeiros <contatomiqueiasalvesdev@gmail.com>
@@ -16,11 +22,18 @@ if vim.fn.exists("syntax_on") == 1 then
 end
 vim.o.termguicolors = true
 vim.o.background = "dark"
+--- Name reported to Neovim so `:colorscheme transilvanian-alt` works and re-sourcing is detected.
+---@type string
 vim.g.colors_name = "transilvanian-alt"
 
 local set_hl = vim.api.nvim_set_hl
+--- Load-time toggles: transparent background (default off), underline
+--- stripping (default on), italics (default off). Read once, at load time.
+---@type boolean
 local transparent = vim.g.darkthrone_transparent == true
+---@type boolean
 local underline_on = vim.g.darkthrone_underline ~= false
+---@type boolean
 local italic_on = vim.g.transilvanian_italic == true
 
 local function hex2rgb(h)
@@ -66,6 +79,8 @@ local function to256(hex)
   return cube_idx
 end
 
+-- Base palette.
+
 local P = {
   bg = "#000000",
   surface = "#111111",
@@ -79,6 +94,8 @@ local P = {
   teal = "#5f8787",
   blood = "#8a4a4a",
 }
+
+-- Highlight-group color map.
 
 local c = {
   bg = P.bg,
@@ -101,6 +118,7 @@ local c = {
 }
 
 local NONE = "NONE"
+-- Backgrounds and blends resolve to "NONE" when transparency is enabled.
 local bg_main = transparent and NONE or c.bg
 local bg_float = transparent and NONE or c.line
 
@@ -218,6 +236,8 @@ local function link_all(tbl)
   end
 end
 
+-- Editor UI
+
 local editor = {
   Normal = { fg = c.fg, bg = bg_main },
   NormalNC = { fg = c.fg, bg = bg_main },
@@ -317,6 +337,8 @@ local editor = {
   debugBreakpoint = { fg = c.red },
 }
 
+-- Legacy :syntax groups (most text stays plain fg).
+
 local syntax = {
   Comment = { fg = P.teal },
   Constant = { fg = c.constant },
@@ -353,6 +375,8 @@ local syntax = {
   Todo = { fg = P.bg, bg = P.mid, fmt = "bold" },
 }
 
+-- LSP
+
 local lsp = {
   LspInlayHint = { fg = c.comment, bg = c.line },
   LspReferenceText = { bg = c.visual },
@@ -362,6 +386,8 @@ local lsp = {
   LspCodeLensSeparator = { fg = c.comment },
   LspSignatureActiveParameter = { fg = c.type, fmt = "bold,underline" },
 }
+
+-- Diagnostics
 
 local diag = {
   DiagnosticError = { fg = c.red },
@@ -396,6 +422,8 @@ local diag = {
 
 -- Heading levels fade in brightness, not in hue.
 local heading_levels = { P.bright, P.bright, P.fg, P.fg, P.mid, P.mid }
+
+-- Markdown
 
 local markdown = {
   ["@keyword.directive.markdown"] = { fg = c.alt },
@@ -553,6 +581,8 @@ local tex = {
   VimtexError = { fg = c.red },
   VimtexSuccess = { fg = c.type },
 }
+
+-- Plugins
 
 local plugins = {}
 
@@ -787,6 +817,8 @@ plugins.indent_blankline = {
   IndentBlanklineContextSpaceChar = { fmt = "nocombine" },
 }
 
+-- Links
+
 local links = {
   MessageWindow = "Pmenu",
   PopupNotification = "Todo",
@@ -818,6 +850,8 @@ local links = {
   LspDiagnosticsVirtualTextInformation = "DiagnosticVirtualTextInfo",
   LspDiagnosticsVirtualTextHint = "DiagnosticVirtualTextHint",
 }
+
+-- Classic overrides (gVim-style chrome, applied last).
 
 local classic = {
   CursorLine = { bg = NONE },
@@ -907,6 +941,8 @@ vim.api.nvim_create_autocmd("FileType", {
     end
   end,
 })
+
+-- Terminal colors
 
 local term = {
   P.bg, P.blood, P.fg, P.mid, P.mid, P.mid, P.bright, P.bright,

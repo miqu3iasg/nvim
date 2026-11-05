@@ -1,8 +1,7 @@
 -- lua/plugins/latex.lua
 
 -- The LaTeX writing-mode setup (wrapping, conceal, readable width and
--- <localleader>x compile/view/TOC mappings) lives in after/ftplugin/latex/,
--- alongside MarkdownWriting.
+-- <localleader>x compile/view/TOC mappings) lives in after/ftplugin/tex.lua.
 --
 -- This configuration requires a full TeX distribution to compile documents,
 -- a PDF viewer with SyncTeX support, and the dependencies required by

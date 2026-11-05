@@ -1,5 +1,8 @@
 -- lua/config/keymaps/command_mode.lua
 
+-- Command-mode entry (leaving the native `:` to repeat stand-alone character
+-- searches) and command-mode completing keys.
+
 local km = vim.keymap.set
 
 -- Command Mode

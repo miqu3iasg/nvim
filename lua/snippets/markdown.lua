@@ -1,5 +1,9 @@
 -- lua/snippets/markdown.lua
 
+-- Markdown/Obsidian snippets for LuaSnip: headings (`h1`-`h6`), tables,
+-- checkboxes, inline formatting, links/images/references, task and list
+-- scaffolding, blockless quotes/callouts and YAML front matter.
+
 local ls = require("luasnip")
 local s = ls.snippet
 local sn = ls.snippet_node

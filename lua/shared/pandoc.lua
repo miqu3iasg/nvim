@@ -59,6 +59,7 @@ M.config_dir = vim.fn.stdpath("config") .. "/pandoc"
 -- Last file built for each buffer
 M.last = {}
 
+---@type string?
 local home = vim.uv.os_homedir()
 
 ---@param msg string Error message to display.
@@ -112,6 +113,7 @@ local function list_profiles()
 	return names
 end
 
+---@type table<string, boolean> recognized image extensions
 local image_exts = { png = true, jpg = true, jpeg = true, pdf = true, svg = true }
 
 -- Obsidian embeds, which pandoc does not parse reliably:

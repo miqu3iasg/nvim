@@ -1,8 +1,11 @@
 -- lua/plugins/init.lua
 
--- Loads all plugin configuration modules. Plugin installation is managed
--- by Neovim's built-in package manager (`vim.pack`), configured in
--- lua/config/pack.lua. Add new plugin modules to the list below
+-- Loads all plugin configuration modules. Plugin installation is managed by
+-- Neovim's built-in package manager (`vim.pack`), configured in
+-- lua/config/pack.lua. Add new plugin modules to the list below; the load
+-- order matters because some modules depend on others (for example,
+-- lua/plugins/lisp.lua expects lua/plugins/treesitter.lua to load first).
+-- A module that fails to load notifies an error instead of aborting the rest.
 
 for _, mod in ipairs({
 	"treesitter",

@@ -1,5 +1,8 @@
 -- lua/config/keymaps/windows.lua
 
+-- Window navigation, movement, splitting, resizing and the zoom toggle
+-- (delegated to lua/features/window_zoom.lua).
+
 local km = vim.keymap.set
 
 -- Window navigation

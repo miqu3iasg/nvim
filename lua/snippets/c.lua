@@ -1,5 +1,10 @@
 -- lua/snippets/c.lua
 
+-- Small C snippets for LuaSnip: a skeleton `main`, solution scaffolding
+-- for practice problems and a Linux kernel style doc comment. Indentation
+-- inside the snippet bodies assumes hard tabs (see after/ftplugin/c.lua
+-- for the matching buffer settings).
+
 local ls = require("luasnip")
 local s = ls.snippet
 local t = ls.text_node

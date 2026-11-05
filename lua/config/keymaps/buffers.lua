@@ -1,7 +1,15 @@
 -- lua/config/keymaps/buffers.lua
 
+-- Buffer creation, saving, listing, switching and closing; the window/close
+-- logic below leans on lua/utils/buffers.lua.
+
 local utils = require("utils.buffers")
 
+---Mapping shorthand like `vim.keymap.set`, defaulting to `silent = true`.
+---@param mode string|string[] mode(s) in which the mapping applies
+---@param lhs string left-hand side of the map
+---@param rhs string|fun() right-hand side of the map
+---@param opts? table<string, any> extra mapping options
 local function km(mode, lhs, rhs, opts)
 	opts = vim.tbl_extend("keep", opts or {}, { silent = true })
 	vim.keymap.set(mode, lhs, rhs, opts)

@@ -1,15 +1,22 @@
 -- lua/config/keymaps/files.lua
 
+-- File, directory and path helpers: navigation around the working directory,
+-- copying file paths/URIs, and editing files specific to this repository.
+
 -- Helpers
 
 local km = vim.keymap.set
 
--- Normal-mode mapping shorthand
+---Normal-mode mapping shorthand: every mapping carried a description.
+---@param lhs string left-hand side of the map
+---@param desc string which-key description for the mapping
+---@param opts? table<string, any> extra mapping options
 local function map(lhs, rhs, desc, opts)
 	km("n", lhs, rhs, vim.tbl_extend("force", { desc = desc }, opts or {}))
 end
 
 -- Returns the absolute path of the current file, or nil (with a message) if none
+---@return string? file absolute path of the buffer file, or nil
 local function current_file()
 	local file = vim.fn.expand("%:p")
 	if file == "" then
@@ -20,6 +27,7 @@ local function current_file()
 end
 
 -- Copies a non-empty value to the system clipboard
+---@param value string value to copy; empty values are ignored
 local function yank(value)
 	if value == "" then
 		return
@@ -28,6 +36,9 @@ local function yank(value)
 end
 
 -- Maps a key that yanks the result of a filename-modifier expression (see :help filename-modifiers)
+---@param lhs string left-hand side of the map
+---@param modifier string filename modifier expression (e.g. "%:p:~")
+---@param desc string which-key description
 local function yank_map(lhs, modifier, desc)
 	map(lhs, function()
 		yank(vim.fn.expand(modifier))

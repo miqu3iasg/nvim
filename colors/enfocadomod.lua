@@ -2,7 +2,8 @@
 --
 -- Lua port of enfocadomod.vim. Enfocado is more than a theme, it is a
 -- concept of 'how themes should be', focusing on what is really
--- important to developers: the code and nothing else.
+-- important to developers: the code and nothing else. Built for a dark
+-- background in a true-color terminal ('termguicolors' required).
 --
 -- Copyright (c) Wuelner Martínez <wuelner.martinez@outlook.com>
 -- Copyright (c) Robertus Chris <diawan@pm.me>

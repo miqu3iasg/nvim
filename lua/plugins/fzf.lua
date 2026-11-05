@@ -11,7 +11,7 @@
 -- $ sudo pacman -S fzf grep ripgrep fd
 --
 -- The `:StdSrc` command provides interactive, language-aware
--- searches for stdsrc such as functions, types, methods, imports and
+-- searches for declarations such as functions, types, methods, imports and
 -- macros, on the source code of the language itself (standard library / API),
 -- no matter where the current file lives. The language comes from the current
 -- buffer (or, in an Oil directory view, from the files shown) and the
@@ -45,6 +45,7 @@ stdsrc.setup()
 
 -- Directories that are never worth searching. Skipping them keeps the file
 -- and grep pickers fast.
+---@type string[]
 local ignored_dirs = {
 	".git",
 	"node_modules",
@@ -77,7 +78,7 @@ fd_excludes = table.concat(fd_excludes, " ")
 
 --- Builds the options table passed to `fzf.setup()`: window layout, fzf
 --- flags, previewers, actions, keymaps, and the file and grep commands.
----@return table opts The fzf-lua setup options
+---@return table<string, any> opts fzf-lua setup options
 local function make_opts()
 	local actions = fzf.actions
 
@@ -195,7 +196,6 @@ fzf.setup(make_opts())
 --- Sets the border highlight groups of the fzf-lua window and its preview.
 --- It runs once at startup and again whenever the colorscheme changes,
 --- because a colorscheme resets the highlight groups.
----@return nil
 local function set_fzf_hl()
 	vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
 	vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })

@@ -1,5 +1,7 @@
 -- lua/config/keymaps/pack.lua
 
+-- vim.pack updater and prune helpers.
+
 local km = vim.keymap.set
 
 km("n", "<leader>pu", function()

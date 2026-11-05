@@ -1,5 +1,9 @@
 -- lua/snippets/sql.lua
 
+-- SQL snippets for LuaSnip (MySQL-oriented): SELECT/FROM/WHERE/GROUP BY
+-- builders, JOIN chains, INSERT/UPDATE/DELETE, CREATE TABLE/DATABASE
+-- scaffolding and column/index helpers. Indent assumes two spaces.
+
 local ls = require("luasnip")
 local s = ls.snippet
 local t = ls.text_node

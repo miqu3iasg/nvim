@@ -12,8 +12,8 @@
 -- vim.b.git_branch    "Git-<branch> ", "Git-@<sha> " (detached) or ""
 -- vim.b.sl_file_size  " 12.3K " or "" (size of the file on disk)
 --
--- It also reads `vim.t.zoomed`, which is expected to be set by a window-zoom
--- feature elsewhere in the config (shows `[Z]` while a window is zoomed).
+-- It also reads `vim.t.zoomed`, which is set by the window-zoom module
+-- (lua/features/window_zoom.lua) to show a `[Z]` while a window is zoomed.
 --
 -- `M.setup()` installs the statusline and the autocmds (group
 -- `StatuslineBranch`).
@@ -44,6 +44,7 @@ local MODES = {
 
 -- Statusline of windows that are not focused: lead, path and position only.
 -- Set window-locally on WinLeave and cleared on WinEnter (see `M.setup`).
+---@type string
 local INACTIVE =
 	"  %{v:lua.StlLine.lead()}  %<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')}   %P L%l C%c %="
 
@@ -173,7 +174,7 @@ end
 ---  * enc:    `U` for UTF-*, `1` for latin*, `-` for anything else
 ---  * eol:    `:` unix, `\` dos, `/` mac
 ---  * status: `%%` read-only or not modifiable, `**` modified, `--` otherwise
----@return string
+---@return string indicator
 function M.lead()
 	local enc = vim.bo.fileencoding ~= "" and vim.bo.fileencoding or vim.o.encoding
 	local c = enc:match("^utf") and "U" or (enc:match("^latin") and "1" or "-")
@@ -189,7 +190,7 @@ end
 
 ---Major mode: the capitalized filetype in parentheses
 ---(`(Lua)`), or `(Fundamental)` when there is no filetype.
----@return string
+---@return string label
 function M.major()
 	local ft = vim.bo.filetype
 	if ft == "" then
@@ -200,7 +201,7 @@ end
 
 ---Diagnostic counts of the current buffer as `[E<errors> W<warnings>] `, or
 ---an empty string when there are neither errors nor warnings.
----@return string
+---@return string segment
 function M.diag()
 	local c = vim.diagnostic.count(0)
 	local e = c[vim.diagnostic.severity.ERROR] or 0

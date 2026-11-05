@@ -1,21 +1,20 @@
 -- lua/features/stdsrc.lua
 
--- Searches for declarations in the source code of a language, built on
--- fzf-lua and ripgrep.
+-- Language-aware declaration search over the source repository (standard
+-- library / API) of a language, built on fzf-lua and ripgrep.
 --
--- Provides a language-aware declaration search over the source repository of
--- a language (standard library / API), using fzf-lua and ripgrep. Supported languages,
--- declaration patterns and file filters are defined in the `languages` table below. The directories
--- that hold each language's source code are defined in the `sources` table.
+-- Supported languages, declaration patterns and file filters are defined in
+-- the `languages` table below. The directories that hold each language's
+-- source code are defined in the `sources` table.
 --
--- `M.search_source()` detects the current language or the language
--- represented in an Oil directory view, then presents the available search
+-- `M.search_source()` detects the current language (or the language of the
+-- directory open in an Oil view), then presents the available search
 -- categories and greps the language's source repository, no matter where the
 -- current file lives. This allows the standard library to be explored without
 -- leaving the file being edited.
 --
--- `M.setup()` registers the `:StdSrc` command. The
--- module can also be used directly:
+-- `M.setup()` registers the `:StdSrc` command. The module can also be used
+-- directly:
 --
 -- Usage:
 --   local stdsrc = require("features.stdsrc")
@@ -27,8 +26,11 @@ local M = {}
 -- Languages
 
 -- Java fragments shared by several patterns
+---@type string
 local JAVA_TYPE_MODS = [=[(?:(?:abstract|final|sealed|non-sealed|static|strictfp)\s+)*]=]
+---@type string
 local JAVA_TYPE_REF = [=[[\w.<>\[\],? ]+]=]
+---@type string
 local JAVA_PUBLIC_TYPE = [=[^\s*public\s+]=] .. JAVA_TYPE_MODS
 
 ---One entry of the search menu.

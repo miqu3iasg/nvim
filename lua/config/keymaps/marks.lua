@@ -1,5 +1,7 @@
 -- lua/config/keymaps/marks.lua
 
+-- Explicit, well-described alternatives to the native mark motions.
+
 local km = vim.keymap.set
 
 -- Mark Creation

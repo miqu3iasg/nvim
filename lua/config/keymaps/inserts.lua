@@ -1,5 +1,7 @@
 -- lua/config/keymaps/inserts.lua
 
+-- Insert and command-line shorthand for date/time stamps.
+
 local km = vim.keymap.set
 
 -- Insert current date/time via <C-r> register-insert combos. "!" mode stands for insert and command-line

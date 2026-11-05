@@ -1,6 +1,10 @@
 -- lua/config/autocmds.lua
 
--- Keep splits evenly sized after resizing
+-- Side-effect-only file: global autocommands that run alongside the rest of
+-- the configuration. Each block names its group explicitly so it can be
+-- inspected or cleared with :augroup.
+
+-- Keep splits evenly sized after resizing the terminal
 vim.api.nvim_create_autocmd("VimResized", {
 	callback = function()
 		vim.cmd("wincmd =")
@@ -24,7 +28,8 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- Turn off heavy features on big/minified files
--- See: utils/bigfile.lua
+-- A buffer counts as "big" based on file size and indents; the threshold and
+-- the full heuristic live in lua/utils/bigfile.lua
 local bigfile_group = vim.api.nvim_create_augroup("bigfile", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
 	group = bigfile_group,
@@ -53,6 +58,8 @@ vim.api.nvim_create_autocmd("BufRead", {
 
 -- On startup without file args, restore the tmux session, or open Oil.
 -- "Without file args" means no arguments, or a single directory argument.
+-- Session persistence (enabled() checks for tmux; load/save by directory) is
+-- implemented in lua/features/sessions.lua.
 -- `nested` lets the restored session fire its own autocmds (filetype, etc.)
 -- and the work is scheduled so it runs after startup has finished.
 vim.api.nvim_create_augroup("StartupBehavior", { clear = true })
@@ -126,7 +133,10 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
--- Remove whitespace when buffer is written
+-- Strip trailing whitespace when a buffer is written
+-- Skips unmodifiable buffers and special ones ("nofile", "terminal", etc.)
+-- with a nonempty 'buftype'; the view is saved/restored so the cursor and
+-- scroll position do not move.
 vim.api.nvim_create_autocmd("BufWritePre", {
 	group = vim.api.nvim_create_augroup("cg/whitespace", {}),
 	pattern = "*",
@@ -142,6 +152,8 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- Close utility buffers with q or Esc
+-- These filetypes become unfocused scratch/help windows: they get unlisted and
+-- a buffer-local q/<Esc> mapping that closes the window.
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("cg/close_utility_buffers", { clear = true }),
 	pattern = {
@@ -182,6 +194,8 @@ vim.api.nvim_create_autocmd("TermOpen", {
 })
 
 -- Configuration for builtin undotree
+-- Open the undotree on the far left with a fixed width so the file window keeps
+-- its layout.
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "nvim-undotree",
 	callback = function()

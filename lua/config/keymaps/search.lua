@@ -1,5 +1,7 @@
 -- lua/config/keymaps/search.lua
 
+-- Scrolling, search navigation and highlights around the n/N result loop.
+
 local km = vim.keymap.set
 
 -- Scrolling

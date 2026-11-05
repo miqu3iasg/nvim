@@ -1,6 +1,12 @@
 -- colors/transilvanian.lua
 --
--- A theme inspired on Metal Black Darkthrone.
+-- A dark, low-contrast theme inspired by the icy monochrome cover of
+-- Darkthrone's "Transilvanian Hunger". Most text stays close to the
+-- background so structure and a few muted accents carry the eye. Built
+-- for true-color terminals ('termguicolors') with a dark background.
+-- Optional toggles, set before loading:
+--   vim.g.darkthrone_transparent (true)  keep the background transparent
+--   vim.g.darkthrone_underline (false)   strip underlines and undercurls
 --
 -- Copyright (c) Andrea Schiavini <https://github.com/metalelf0>
 -- Copyright (c) Miquéias Medeiros <contatomiqueiasalvesdev@gmail.com>
@@ -15,9 +21,15 @@ if vim.fn.exists("syntax_on") == 1 then
 end
 vim.o.termguicolors = true
 vim.o.background = "dark"
+--- Name reported to Neovim so `:colorscheme transilvanian` works and re-sourcing is detected.
+---@type string
 vim.g.colors_name = "transilvanian"
 
+--- Load-time toggles: transparent background (default off) and underline
+--- stripping (default on). Read once, at load time.
+---@type boolean
 local transparent = vim.g.darkthrone_transparent == true
+---@type boolean
 local underline_on = vim.g.darkthrone_underline ~= false
 
 -- Mixes fg over bg with opacity a (0..1).

@@ -1,5 +1,10 @@
 -- lua/snippets/java.lua
 
+-- Java snippets for LuaSnip: `sol` solution skeletons for practice problems,
+-- `main`/run helpers, type declarations (class, abstract/final/sealed class,
+-- interface, enum, record), constructors, and Javadoc/doc comment blocks.
+-- Class names default to the file name (see the helper functions below).
+
 local ls = require("luasnip")
 local s = ls.snippet
 local sn = ls.snippet_node
