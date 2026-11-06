@@ -2,13 +2,16 @@
 
 -- Miscellaneous quality-of-life mini.nvim modules (and other small plugins)
 -- that are not essential, but make editing feel nicer.
+--
+-- Commenting (gc/gcc/gc<motion>) is Neovim's builtin since 0.12, so there is
+-- no mini.comment setup here.
 
 local ai = require("mini.ai")
 local ts = ai.gen_spec.treesitter
 
 -- One liners
 require("mini.align").setup({})
-require("mini.comment").setup({})
+-- Commenting is native since Neovim 0.12 (vim._comment): gc/gcc/gc< TextObjects come from mini.ai below.
 
 -- Split Join
 local split_join = require("mini.splitjoin")
