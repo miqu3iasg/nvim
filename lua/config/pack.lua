@@ -155,21 +155,6 @@ vim.pack.add({
 	-- I’m currently studying a book that uses Lisp and working on a few projects, so I need this.
 	{ src = "https://github.com/Olical/conjure" },
 
-	-- plenary.nvim
-	-- https://github.com/nvim-lua/plenary.nvim
-	-- Lua utility library (async, paths, jobs, testing) required by many plugins.
-	{ src = "https://github.com/nvim-lua/plenary.nvim" },
-
-	-- compile-mode.nvim
-	-- https://github.com/ej-shafran/compile-mode.nvim
-	-- Emulates Emacs' compilation-mode: runs a command asynchronously into a
-	-- *compilation* buffer, highlights errors, jumps to them and reruns the last command.
-	-- Requires plenary.nvim.
-	{
-		src = "https://github.com/ej-shafran/compile-mode.nvim",
-		version = vim.version.range("5.*"),
-	},
-
 	-- nvim-jdtls
 	-- https://github.com/mfussenegger/nvim-jdtls
 	-- Extended Java LSP support for Eclipse JDT Language Server (refactors, test running, debugging).

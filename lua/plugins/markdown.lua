@@ -5,8 +5,8 @@
 -- through obsidian.nvim.
 --
 -- All plugins are declared in `lua/config/pack.lua` and must be installed
--- before this file is loaded. Obsidian.nvim also depends on plenary.nvim and
--- fzf-lua. The `fzf.lua` plugin configuration must be loaded before this file
+-- before this file is loaded. Obsidian.nvim also depends on fzf-lua. The
+-- `fzf.lua` plugin configuration must be loaded before this file
 -- because fzf-lua is used as the picker for searching and navigating notes.
 --
 -- On Arch Linux, install Obsidian with pacman:
@@ -31,7 +31,6 @@
 --
 -- See: https://github.com/HakonHarnes/img-clip.nvim
 -- See: https://github.com/obsidian-nvim/obsidian.nvim
--- See: https://github.com/nvim-lua/plenary.nvim
 -- See: https://github.com/ibhagwan/fzf-lua
 -- See: https://github.com/artempyanykh/marksman
 
