@@ -20,6 +20,21 @@
 
 local M = {}
 
+-- Branch cache, keyed by the directory the git command would run in
+-- ("dir -> label"). After the first look, BufEnter/WinEnter reuse the label
+-- instead of spawning git every time; entries expire (branch can change
+-- outside Neovim) and are dropped on :cd. BufWritePost refreshes too, since
+-- writes may come from fugitive Git operations.
+--
+-- See: update_branch and M.setup below.
+---@type table<string, { label: string, ts: number }>
+local branch_cache = {}
+
+-- How long a cached branch label is trusted before a git subprocess is
+-- spawned again.
+---@type number cache lifetime in seconds
+local BRANCH_TTL = 30
+
 ---Mode codes from `nvim_get_mode().mode` mapped to the label shown in the line.
 ---@type table<string, string>
 local MODES = {
@@ -78,6 +93,8 @@ end
 ---(`buftype ~= ""`) and unnamed ones use the cwd. On a detached HEAD the short
 ---commit hash is shown instead (`@abc1234`). The label is empty outside a
 ---repository, or when git is missing.
+---Results are cached per directory (see `branch_cache`), so frequent
+---BufEnter/WinEnter calls reuse the label instead of spawning git every time.
 ---@param buf? integer buffer number; `nil` or `0` for the current buffer
 local function update_branch(buf)
 	buf = (buf and buf > 0) and buf or vim.api.nvim_get_current_buf()
@@ -95,20 +112,36 @@ local function update_branch(buf)
 		return
 	end
 
+	-- Fresh enough cache: apply without touching git
+	local cached = branch_cache[dir]
+	if cached and (os.clock() - cached.ts) < BRANCH_TTL then
+		vim.b[buf].git_branch = cached.label
+		return
+	end
+	-- Expired cache still avoids a flicker: keep the old label while probing
+	local stale = cached and cached.label or ""
+
 	local started = git({ "symbolic-ref", "--short", "-q", "HEAD" }, dir, function(res)
 		if res.code == 0 then
+			local label = "Git-" .. vim.trim(res.stdout) .. " "
+			branch_cache[dir] = { label = label, ts = os.clock() }
 			return set_branch(buf, vim.trim(res.stdout))
 		end
 		local ok = git({ "rev-parse", "--short", "HEAD" }, dir, function(r2)
-			set_branch(buf, r2.code == 0 and ("@" .. vim.trim(r2.stdout)) or "")
+			local label = r2.code == 0 and ("@" .. vim.trim(r2.stdout)) or ""
+			branch_cache[dir] = { label = label, ts = os.clock() }
+			set_branch(buf, r2.code == 0 and vim.trim(r2.stdout) or "")
 		end)
 		if not ok then
+			branch_cache[dir] = { label = "", ts = os.clock() }
 			set_branch(buf, "")
 		end
 	end)
 
-	if not started then
-		vim.b[buf].git_branch = ""
+	-- The new label arrives asynchronously anyway; keep the previously
+	-- computed label visible meanwhile (avoids flicker on expiry refresh)
+	if started and stale ~= "" then
+		vim.b[buf].git_branch = stale
 	end
 end
 
@@ -250,6 +283,16 @@ function M.setup()
 	update_mode()
 
 	local group = vim.api.nvim_create_augroup("StatuslineBranch", { clear = true })
+
+	-- On writes and :cd the cached branch labels are dropped: writes may come
+	-- from fugitive Git operations (commit/checkout) and :cd changes what the
+	-- "current directory" key means for unnamed/special buffers.
+	vim.api.nvim_create_autocmd({ "BufWritePost", "DirChanged" }, {
+		group = group,
+		callback = function()
+			branch_cache = {}
+		end,
+	})
 
 	vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "FocusGained", "DirChanged" }, {
 		group = group,
