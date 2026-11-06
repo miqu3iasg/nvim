@@ -8,7 +8,7 @@ km("n", "<leader>th", "<cmd>botright 15split | terminal<CR>", { desc = "Open ter
 km("n", "<leader>tt", "<cmd>tabnew | terminal<CR>", { desc = "Open terminal in a new tab" })
 
 -- Terminal Mode
-km("t", "<C-b>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
+km("t", "<C-c>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
 -- Close the terminal window without stopping its running job
 km("t", "<C-d>", [[<C-\><C-n>:close<CR>]], { desc = "Close terminal window" })

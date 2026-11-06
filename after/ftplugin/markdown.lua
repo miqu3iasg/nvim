@@ -14,10 +14,7 @@ opt.formatoptions:remove({ "t", "l" })
 opt.formatoptions:append("n")
 opt.formatoptions:append({ "r", "o" })
 opt.suffixesadd:append(".md")
--- Indentation is 4 columns, written as tabs plus spaces (one tab per 4 columns,
--- the remainder in spaces). `vim.g.markdown_use_tabs = false` switches to spaces
--- only, for the buffer and for the formatter
--- See: lua/plugins/formatting.lua
+-- See: lua/plugins/formatting.lua:113
 opt.expandtab = vim.g.markdown_use_tabs == false
 opt.tabstop = 4
 opt.shiftwidth = 4
