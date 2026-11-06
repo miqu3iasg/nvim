@@ -44,6 +44,7 @@ local km = vim.keymap.set
 
 -- Images
 
+-- You can see the usage in after/ftplugin/markdown.lua:134
 require("img-clip").setup({
 	default = {
 		-- Always save images in <project-root>/attachments

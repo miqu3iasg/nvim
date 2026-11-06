@@ -9,9 +9,6 @@ vim.pack.add({
 	"https://github.com/jaredgorski/fogbell.vim",
 	"https://github.com/amedoeyes/eyes.nvim",
 	"https://github.com/metalelf0/black-metal-theme-neovim",
-	"https://github.com/bruth/vim-newsprint-theme",
-	"https://github.com/nickkadutskyi/jb.nvim",
-	"https://github.com/kkga/vim-envy",
 	"https://github.com/kryptamine/gruber-darker-renaissance",
 })
 

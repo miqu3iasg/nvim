@@ -1,7 +1,7 @@
 -- lua/plugins/lisp.lua
 
 -- This configuration requires Tree-sitter, MIT Scheme, Racket and rlwrap.
--- Conjure and nvim-paredit are installed automatically through vim.pack.
+-- Conjure is installed automatically through vim.pack.
 --
 -- On Arch Linux, install the available dependencies with pacman:
 --
@@ -115,6 +115,3 @@ vim.g["conjure#mapping#log_jump_to_latest"] = "ll"
 -- Navigation and documentation
 vim.g["conjure#mapping#def_word"] = "gd"
 vim.g["conjure#mapping#doc_word"] = { "K" }
-
--- nvim-paredit
-require("nvim-paredit").setup()

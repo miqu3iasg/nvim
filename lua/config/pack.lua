@@ -165,11 +165,6 @@ vim.pack.add({
 	-- I’m currently studying a book that uses Lisp and working on a few projects, so I need this.
 	{ src = "https://github.com/Olical/conjure" },
 
-	-- nvim-paredit
-	-- https://github.com/julienvincent/nvim-paredit
-	-- Structural editing for S-expressions (slurp, barf, raise, etc.) in Lisp code.
-	{ src = "https://github.com/julienvincent/nvim-paredit" },
-
 	-- plenary.nvim
 	-- https://github.com/nvim-lua/plenary.nvim
 	-- Lua utility library (async, paths, jobs, testing) required by many plugins.

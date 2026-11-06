@@ -90,19 +90,19 @@ local function make_opts()
 			end,
 
 			-- Bottom layout
-			height = 0.22,
-			width = 1.0,
-			row = 1.0,
-			col = 0.0,
-			border = { "", "─", "", "", "", "", "", "" },
-			backdrop = false,
+			-- height = 0.22,
+			-- width = 1.0,
+			-- row = 1.0,
+			-- col = 0.0,
+			-- border = { "", "─", "", "", "", "", "", "" },
+			-- backdrop = false,
 
 			-- Popup layout
-			-- height = 0.95,
-			-- width = 0.90,
-			-- row = 0.35,
-			-- col = 0.50,
-			-- border = "single",
+			height = 0.95,
+			width = 0.90,
+			row = 0.35,
+			col = 0.50,
+			border = "single",
 
 			title = false,
 			title_flags = false,
@@ -119,7 +119,7 @@ local function make_opts()
 
 		fzf_opts = {
 			["--ansi"] = true,
-			["--layout"] = "reverse",
+			["--layout"] = "default",
 			["--highlight-line"] = true, -- background on the whole selected line
 			["--info"] = "inline-right", -- match counter at the right of the prompt
 			["--pointer"] = " ",
