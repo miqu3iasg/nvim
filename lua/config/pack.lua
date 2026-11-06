@@ -35,11 +35,6 @@ vim.pack.add({
 	-- a fork of oil.nvim, but an improved version.
 	{ src = "https://forge.barrettruth.com/barrettruth/canola.nvim" },
 
-	-- blink.compat
-	-- https://github.com/saghen/blink.compat
-	-- Compatibility layer that lets blink.cmp use nvim-cmp sources. Needed for LaTeX completion.
-	{ src = "https://github.com/saghen/blink.compat" },
-
 	-- nvim-treesitter
 	-- https://github.com/nvim-treesitter/nvim-treesitter
 	-- Treesitter integration for parser management, syntax highlighting, and indentation.
@@ -136,11 +131,6 @@ vim.pack.add({
 	-- See: lua/plugins/lsp.lua
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
 
-	-- cmp-vimtex
-	-- https://github.com/micangl/cmp-vimtex
-	-- Completion source for LaTeX (citations, references, commands) using vimtex data.
-	{ src = "https://github.com/micangl/cmp-vimtex" },
-
 	-- mini.nvim
 	-- https://github.com/nvim-mini/mini.nvim
 	-- Library of small, independent modules (surround, pairs, statusline, icons, etc.).
@@ -184,6 +174,16 @@ vim.pack.add({
 	-- https://github.com/nvim-lua/plenary.nvim
 	-- Lua utility library (async, paths, jobs, testing) required by many plugins.
 	{ src = "https://github.com/nvim-lua/plenary.nvim" },
+
+	-- compile-mode.nvim
+	-- https://github.com/ej-shafran/compile-mode.nvim
+	-- Emulates Emacs' compilation-mode: runs a command asynchronously into a
+	-- *compilation* buffer, highlights errors, jumps to them and reruns the last command.
+	-- Requires plenary.nvim.
+	{
+		src = "https://github.com/ej-shafran/compile-mode.nvim",
+		version = vim.version.range("5.*"),
+	},
 
 	-- nvim-jdtls
 	-- https://github.com/mfussenegger/nvim-jdtls

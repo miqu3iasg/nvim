@@ -1,10 +1,8 @@
 -- lua/plugins/fzf.lua
 
 -- This configuration requires fzf, grep, ripgrep and fd to be installed. fzf
--- provides the interactive fuzzy finder, ripgrep powers the text searches
--- used by fzf-lua (including the declaration search), and fd powers the
--- detailed file picker (<leader>fF), which lists permissions, size and
--- modification date next to each file.
+-- provides the interactive fuzzy finder and ripgrep powers the text searches
+-- used by fzf-lua (including the declaration search).
 --
 -- On Arch Linux, install them with:
 --

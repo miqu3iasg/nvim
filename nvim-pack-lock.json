@@ -14,17 +14,14 @@
       "src": "https://github.com/saghen/blink.cmp",
       "version": "1.0.0 - 2.0.0"
     },
-    "blink.compat": {
-      "rev": "2ed6d9a28b07fa6f3bface818470605f8896408c",
-      "src": "https://github.com/saghen/blink.compat"
-    },
     "canola.nvim": {
       "rev": "b5f19d41b294e84e9fd2a81460cfc02fed8321ed",
       "src": "https://forge.barrettruth.com/barrettruth/canola.nvim"
     },
-    "cmp-vimtex": {
-      "rev": "c09ca05bfa0641754516f13294d73d3799a02fc8",
-      "src": "https://github.com/micangl/cmp-vimtex"
+    "compile-mode.nvim": {
+      "rev": "0c91728af9e8433ec1beb99f51e6264df7ab3ee6",
+      "src": "https://github.com/ej-shafran/compile-mode.nvim",
+      "version": "5.0.0 - 6.0.0"
     },
     "conform.nvim": {
       "rev": "016802de402556da54c36bd7359b441266b01cdd",

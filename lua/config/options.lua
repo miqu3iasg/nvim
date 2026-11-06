@@ -7,8 +7,8 @@
 -- General behavior
 vim.opt.hidden = true
 vim.opt.history = 10000
-vim.opt.timeoutlen = 500
-vim.opt.ttimeoutlen = 30
+-- vim.opt.timeoutlen = 1000
+-- vim.opt.ttimeoutlen = 30
 vim.opt.showtabline = 0
 vim.opt.switchbuf = "uselast" -- Jump to the window that last showed the buffer
 vim.opt.showcmd = false
@@ -53,7 +53,7 @@ vim.opt.expandtab = true
 
 -- Window layout
 vim.opt.splitright = true
-vim.opt.splitbelow = false
+vim.opt.splitbelow = true
 vim.opt.laststatus = 2
 vim.opt.winborder = "single"
 

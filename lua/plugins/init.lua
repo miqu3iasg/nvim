@@ -20,6 +20,7 @@ for _, mod in ipairs({
 	"oil",
 	"colorschemes",
 	"markdown",
+	"compile-mode",
 }) do
 	local ok, err = pcall(require, "plugins." .. mod)
 	if not ok then

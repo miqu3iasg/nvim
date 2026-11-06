@@ -185,11 +185,6 @@ for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 	end
 end
 
--- blink.compat is still needed for the vimtex source
-require("blink.compat").setup({
-	impersonate_nvim_cmp = true,
-})
-
 -- blink.cmp Setup
 
 --- Builds a keymap callback that cycles LuaSnip choices without leaking
@@ -333,12 +328,12 @@ require("blink.cmp").setup({
 				module = "lazydev.integrations.blink",
 				score_offset = 100,
 			},
-			vimtex = {
-				name = "vimtex",
-				module = "blink.compat.source",
-				score_offset = -1,
-				async = true,
-			},
+			-- vimtex = {
+			-- 	name = "vimtex",
+			-- 	module = "blink.compat.source",
+			-- 	score_offset = -1,
+			-- 	async = true,
+			-- },
 		},
 	},
 })

@@ -92,11 +92,3 @@ vim.api.nvim_create_autocmd("User", {
 		end)
 	end,
 })
-
--- Install latexindent automatically through Mason. Mason itself is
--- configured in lua/plugins/lsp.lua, which must load before this file.
--- If other files also configure mason-tool-installer, merge their
--- `ensure_installed` lists into a single setup call.
-require("mason-tool-installer").setup({
-	ensure_installed = { "latexindent" },
-})
