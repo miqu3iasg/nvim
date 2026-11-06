@@ -200,4 +200,11 @@ vim.pack.add({
 	-- https://github.com/folke/todo-comments.nvim
 	-- Highlights and searches TODO, FIXME, HACK, etc. in comments, with fzf-lua integration.
 	{ src = "https://github.com/folke/todo-comments.nvim" },
+
+	-- Extra colorschemes
+	-- Configured in lua/plugins/colorschemes.lua
+	"https://github.com/jaredgorski/fogbell.vim",
+	"https://github.com/amedoeyes/eyes.nvim",
+	"https://github.com/metalelf0/black-metal-theme-neovim",
+	"https://github.com/kryptamine/gruber-darker-renaissance",
 })

@@ -6,6 +6,7 @@
 
 -- Keep splits evenly sized after resizing the terminal
 vim.api.nvim_create_autocmd("VimResized", {
+	group = vim.api.nvim_create_augroup("cg/vim_resized", { clear = true }),
 	callback = function()
 		vim.cmd("wincmd =")
 	end,
@@ -13,6 +14,7 @@ vim.api.nvim_create_autocmd("VimResized", {
 
 -- Highlight yanked text
 vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("cg/text_yank_post", { clear = true }),
 	desc = "Highlight yanked text",
 	callback = function()
 		vim.hl.on_yank()
@@ -40,6 +42,7 @@ vim.api.nvim_create_autocmd("FileType", {
 		end
 		pcall(vim.treesitter.stop, ev.buf)
 		vim.b[ev.buf].completion = false
+		vim.diagnostic.disable(ev.buf)
 		vim.opt_local.foldmethod = "manual"
 		vim.opt_local.spell = false
 		vim.opt_local.cursorline = false
@@ -122,12 +125,16 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 -- Jump to last cursor position when opening a file
 -- (only if the '" mark is inside the buffer, and not in a commit message)
+-- The commit check uses the file name because on BufReadPost the FileType
+-- event has not fired yet, so `vim.b.filetype` is still nil.
 vim.api.nvim_create_autocmd("BufReadPost", {
+	group = vim.api.nvim_create_augroup("LastCursorPos", { clear = true }),
 	desc = "Jump to last cursor position when opening a file",
 	callback = function(args)
 		local valid_line = vim.fn.line([['"]]) >= 1 and vim.fn.line([['"]]) < vim.fn.line("$")
-		local not_commit = vim.b[args.buf].filetype ~= "commit"
-		if valid_line and not_commit then
+		local name = vim.api.nvim_buf_get_name(args.buf)
+		local is_commit = name:match("/(COMMIT_EDITMSG|MERGE_MSG|TAG_EDITMSG|NOTES_EDITMSG)$") ~= nil
+		if valid_line and not is_commit then
 			vim.cmd([[normal! g`"]])
 		end
 	end,
@@ -183,6 +190,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Auto-enter insert mode on terminal open, and clean up its UI
 vim.api.nvim_create_autocmd("TermOpen", {
+	group = vim.api.nvim_create_augroup("cg/term_open", { clear = true }),
 	desc = "Clean UI in terminal mode",
 	callback = function()
 		vim.opt_local.number = false
@@ -197,6 +205,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
 -- Open the undotree on the far left with a fixed width so the file window keeps
 -- its layout.
 vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("cg/undotree_layout", { clear = true }),
 	pattern = "nvim-undotree",
 	callback = function()
 		vim.cmd.wincmd("H")

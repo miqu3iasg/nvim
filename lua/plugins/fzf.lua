@@ -200,7 +200,10 @@ local function set_fzf_hl()
 end
 
 set_fzf_hl()
-vim.api.nvim_create_autocmd("ColorScheme", { callback = set_fzf_hl })
+vim.api.nvim_create_autocmd("ColorScheme", {
+	group = vim.api.nvim_create_augroup("cg/fzf_hl", { clear = true }),
+	callback = set_fzf_hl,
+})
 
 -- Keymaps
 

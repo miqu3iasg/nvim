@@ -1,7 +1,7 @@
 -- lua/utils/bigfile.lua
 
 -- Detects "big" buffers (large files or minified output) so other parts of the
--- config can switch off features that make them sluggish: Treesitter, LSP,
+-- config can switch off features that make them sluggish: Treesitter,
 -- completion, folds, etc. The verdict is cached per buffer in `vim.b.bigfile`.
 
 local M = {}

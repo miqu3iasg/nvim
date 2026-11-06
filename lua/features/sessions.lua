@@ -48,10 +48,10 @@ local function count_file_buffers()
 	return count
 end
 
----Delete netrw buffers so they are not written into the session file.
-local function remove_netrw_buffers()
+-- Delete Oil ((canola)) buffers so they are not written into the session file.
+local function remove_oil_buffers()
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.bo[buf].filetype == "netrw" then
+		if vim.bo[buf].filetype == "oil" then
 			pcall(vim.api.nvim_buf_delete, buf, { force = true })
 		end
 	end
@@ -79,7 +79,7 @@ function M.save()
 		return
 	end
 
-	remove_netrw_buffers()
+	remove_oil_buffers()
 
 	vim.fn.mkdir(SESSION_DIR, "p")
 	vim.cmd("mksession! " .. vim.fn.fnameescape(M.path()))

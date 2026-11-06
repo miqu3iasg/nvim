@@ -198,6 +198,7 @@ require("obsidian").setup(opts)
 
 -- Trigger command-line completion for partially typed Obsidian commands.
 vim.api.nvim_create_autocmd("CmdlineChanged", {
+	group = vim.api.nvim_create_augroup("obsidian_cmdline_wildtrigger", { clear = true }),
 	callback = function()
 		if vim.fn.getcmdtype() ~= ":" then
 			return
