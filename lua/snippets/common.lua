@@ -943,6 +943,30 @@ local function build_see(_, _)
 	})
 end
 
+---Reads the system clipboard (falls back to the unnamed register) and
+---returns its first line, trimmed. Multi-line clipboards are cut at the
+---first line so the comment stays on a single line.
+---@return string
+local function get_clipboard()
+	local text = vim.fn.getreg("+")
+	if text == "" then
+		text = vim.fn.getreg('"')
+	end
+	text = text:match("^%s*([^\r\n]*)") or ""
+	return (text:gsub("%s+$", ""))
+end
+
+-- `seec`: like `see`, but pastes the clipboard (usually a link or a path)
+-- right after "See: ". The pasted text is an insert node, so it is
+-- selected and can be edited or replaced with a single keystroke.
+local function build_see_clip(_, _)
+	local sym = line_comment_sym(vim.bo.filetype)
+	return sn(nil, {
+		t(sym .. " See: " .. get_clipboard()),
+		i(0),
+	})
+end
+
 -- `file`: one-line comment with the file path relative to the cwd,
 -- e.g. `-- lua/options.lua`.
 local function build_filepath(_, _)
@@ -1014,6 +1038,7 @@ local snippets = {
 	s("fnhead", { d(1, build_fnhead, {}) }),
 	s("shebang", { d(1, build_shebang, {}) }),
 	s("see", { d(1, build_see, {}) }),
+	s("seec", { d(1, build_see_clip, {}) }),
 	s("file", { d(1, build_filepath, {}) }),
 	s("refs", { d(1, build_refs, {}) }),
 	s("drefs", { d(1, build_snip, {}) }),
