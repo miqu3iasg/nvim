@@ -55,7 +55,6 @@ ts.install({
 	"typst",
 	"vimdoc",
 	"go",
-	"rust",
 	"c",
 	"lua",
 	"python",
@@ -77,14 +76,12 @@ ts.install({
 	"yaml",
 	"json",
 	"toml",
-	"c_sharp",
 	"dockerfile",
-	"terraform",
-	"cmake",
 	"luadoc",
-	"doxygen",
-	"comment",
-	"rst",
+	-- Lisp family (used by lua/plugins/lisp.lua / conjure)
+	"scheme",
+	"commonlisp",
+	"racket",
 }, {
 	max_jobs = 4,
 })

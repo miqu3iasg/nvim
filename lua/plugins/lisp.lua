@@ -35,14 +35,8 @@
 -- See: https://aur.archlinux.org/packages/mit-scheme
 
 -- Treesitter is configured in lua/plugins/treesitter.lua, which must be loaded
--- before this file. Parsers are installed directly because treesitter.lua uses
--- ts.install() and does not consume the lazy-style opts.ensure_installed
--- configuration
-require("nvim-treesitter").install({
-	"scheme",
-	"commonlisp",
-	"racket",
-})
+-- before this file. The scheme/commonlisp/racket parsers are installed by the
+-- main ts.install() list there.
 
 -- Conjure reads these globals when it starts for a Lisp, Scheme or Racket
 -- buffer, after init.lua has finished
