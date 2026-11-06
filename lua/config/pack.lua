@@ -58,16 +58,6 @@ vim.pack.add({
 	-- having this in my study and work environment really improves my workflow.
 	{ src = "https://github.com/obsidian-nvim/obsidian.nvim" },
 
-	-- blink.cmp
-	-- https://github.com/saghen/blink.cmp
-	-- Fast completion engine with LSP, path, snippet, and buffer sources. I only use it when
-	-- I’m coding front-end applications (which is rare).
-	{
-		-- dependency of nvim-lspconfig (capabilities); its own config is not converted yet
-		src = "https://github.com/saghen/blink.cmp",
-		version = vim.version.range("1.*"),
-	},
-
 	-- LuaSnip
 	-- https://github.com/L3MON4D3/LuaSnip
 	-- Snippet engine written in Lua, with support for dynamic and LSP-style snippets.

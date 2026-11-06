@@ -75,9 +75,8 @@ require("lazydev").setup({
 -- Applied to every server. Disabling dynamic file watching avoids the
 -- server registering thousands of watchers in large projects
 vim.lsp.config("*", {
-	capabilities = require("blink.cmp").get_lsp_capabilities({
-		workspace = { didChangeWatchedFiles = { dynamicRegistration = false } },
-	}),
+	capabilities = vim.lsp.protocol.make_client_capabilities(),
+	workspace = { didChangeWatchedFiles = { dynamicRegistration = false } },
 })
 
 -- Validation only produces diagnostics, so it is disabled

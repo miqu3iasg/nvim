@@ -1,9 +1,30 @@
 -- lua/plugins/completions.lua
 
--- This configuration uses blink.cmp for completion, LuaSnip for snippets,
--- and blink.compat to integrate completion sources that use the nvim-cmp
--- interface. The snippet definitions are stored under lua/snippets/ and
--- are loaded lazily when a buffer of the corresponding filetype is opened.
+-- Completion without any completion plugin: the native LSP completion
+-- (`vim.lsp.completion.enable`, autotrigger enabled only on the filetypes
+-- listed in TRIGGER_FILETYPES) plus LuaSnip for snippets.
+--
+-- What changed vs. the previous blink.cmp setup, and the accepted losses:
+--
+-- * LSP completion is only the LSP: there are no path/buffer/snippet sources
+--   in the menu anymore. Snippet completions from the language servers keep
+--   working (they come through the LSP), but LuaSnip's own snippets do NOT
+--   appear as completion items; they are expanded by trigger, autosnippet or
+--   <Tab> instead (see the keymaps below).
+-- * In the filetypes of TRIGGER_FILETYPES the menu opens while typing, like
+--   blink's auto_show did. Everywhere else (e.g. lua, python, markdown...)
+--   completion is manual with <C-y>, which opens the LSP/omni menu on demand.
+-- * Lua: lazydev feeds the LSP layer too, so completions of the Neovim API
+--   keep working through the same LSP entry.
+-- * LaTeX/Typst: texlab/tinymist feed the LSP; VimTeX additions come through
+--   its own omnifunc (<C-x><C-o>) — still works.
+--
+-- Omnifunc completion: `vim.lsp.omnifunc` is the default omnifunc for LSP
+-- buffers (Neovim sets it on attach), so <C-x><C-o> shows LSP items with
+-- fuzzy filtering.
+--
+-- The snippet definitions are stored under lua/snippets/ and are loaded
+-- lazily when a buffer of the corresponding filetype is opened.
 --
 -- Completion works alongside the language servers and formatters configured
 -- elsewhere in this Neovim setup. Install the required language servers and
@@ -30,16 +51,10 @@
 -- languages you use and the configurations in lua/plugins/lsp.lua and
 -- lua/plugins/formatting.lua.
 --
--- The completion menu also integrates with LazyDev for Lua development and
--- VimTeX for LaTeX completion. These sources require their corresponding
--- plugins to be installed and configured. VimTeX's completion integration
--- uses blink.compat to provide compatibility with the nvim-cmp source API.
---
--- See: https://github.com/Saghen/blink.cmp
 -- See: https://github.com/L3MON4D3/LuaSnip
--- See: https://github.com/Saghen/blink.compat
 -- See: https://github.com/nvim-treesitter/nvim-treesitter
 -- See: https://github.com/mason-org/mason.nvim
+-- See: :h vim.lsp.completion
 
 -- Modules under lua/snippets/, required lazily the first time a buffer of that
 -- filetype is opened. Keys are filetypes, values are Lua module names.
@@ -87,15 +102,19 @@ local common_filetypes = {
 	css = true,
 }
 
--- Filetypes where the completion menu opens automatically.
+-- LSP Completion (native)
+
+-- Filetypes where the completion menu opens automatically (the ones where
+-- blink's auto_show was enabled). Every other filetype completes on demand
+-- with <C-y>.
 ---@type table<string, boolean>
-local auto_show_filetypes = {
+local TRIGGER_FILETYPES = {
 	javascript = true,
 	javascriptreact = true,
 	typescript = true,
 	typescriptreact = true,
-	htmlangular = true,
 	html = true,
+	htmlangular = true,
 	css = true,
 	scss = true,
 	tex = true,
@@ -105,13 +124,57 @@ local auto_show_filetypes = {
 	toml = true,
 }
 
--- Markdown is prose, so the menu stays closed except while typing a wikilink ([[Note).
----@return boolean True when the text before the cursor starts an uncompleted wikilink.
-local function markdown_auto_show()
-	local col = vim.api.nvim_win_get_cursor(0)[2]
-	local before = vim.api.nvim_get_current_line():sub(1, col)
-	return before:match("%[%[[^%]]*$") ~= nil
+-- Buffers that already got completion configured (per-buffer state survives
+-- the client id changing, and keeps the map from growing unbounded).
+---@type table<integer, boolean>
+local completion_bufs = {}
+
+---Enable native LSP completion on `buf` when the client supports it, the
+---filetype is in TRIGGER_FILETYPES, and no feature guard turned completion
+---off for the buffer. The bigfile check re-uses the same heuristic so huge
+---files never get an autotrigger.
+---@param client vim.lsp.Client
+---@param buf integer
+local function maybe_enable(client, buf)
+	if completion_bufs[buf] or not vim.api.nvim_buf_is_valid(buf) then
+		return
+	end
+	if not client:supports_method("textDocument/completion", buf) then
+		return
+	end
+	if vim.b[buf].completion == false or require("utils.bigfile").is_big(buf) then
+		return
+	end
+
+	completion_bufs[buf] = true
+	vim.lsp.completion.enable(true, client.id, buf, { autotrigger = true })
 end
+
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("NativeLspCompletion", { clear = true }),
+	callback = function(ev)
+		local client = vim.lsp.get_client_by_id(ev.data.client_id)
+		if not client then
+			return
+		end
+		maybe_enable(client, ev.buf)
+	end,
+})
+
+-- Buffers attached before this file ran (e.g. restored sessions) missed their
+-- LspAttach event.
+for _, client in ipairs(vim.lsp.get_clients({ bufnr = -1 })) do
+	for _, buf in ipairs(client.attached_buffers) do
+		maybe_enable(client, buf)
+	end
+end
+
+-- Markdown is prose without an LSP completion trigger: the menu stays closed
+-- except while typing a wikilink ([[Note), which keeps obsidian.nvim's
+-- trigger/complete behavior.
+-- Commentary: obsidian's completion path is trigger_chars based ("@" for
+-- note links), so nothing is needed here; the filetype is simply not in
+-- TRIGGER_FILETYPES.
 
 -- LuaSnip Setup
 
@@ -185,155 +248,66 @@ for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 	end
 end
 
--- blink.cmp Setup
+-- Keymaps (completion + snippets)
 
---- Builds a keymap callback that cycles LuaSnip choices without leaking
---- `true` (stopping the blink.cmp keymap chain) when no choice is active, so
---- the next handler in the chain (`select_next`/`select_prev`) still runs.
---- The mapping keeps this callback above the `"fallback"` entry so the chain
---- continues to `select_next` / `select_prev` when no choice is active.
----@param dir integer Direction passed to `luasnip.change_choice` (1 or -1).
----@return function callback Returns `true` when a LuaSnip choice is active.
-local function choice(dir)
+local map = vim.keymap.set
+
+-- <C-y>: open the LSP/omni completion menu on demand, where no autotrigger
+-- exists (vim.lsp.completion is wired to the omni menu in 0.12+).
+map("i", "<C-y>", "<C-x><C-o>", { desc = "Trigger LSP completion" })
+
+-- <CR>: accept the selected item, or newline when the menu is closed.
+map("i", "<CR>", function()
+	return vim.fn.pumvisible() == 1 and "<C-y>" or "<CR>"
+end, { expr = true, desc = "Accept completion or newline" })
+
+-- <C-n>/<C-p>: navigate the popup, or cycle LuaSnip choices when one is
+-- active. `vim.schedule` around change_choice mirrors what the old blink
+-- callback did, avoiding the re-entrant jump out of the expr mapping.
+local function select_item(dir)
 	return function()
 		if luasnip.choice_active() then
 			vim.schedule(function()
 				luasnip.change_choice(dir)
 			end)
-			return true
+			return ""
 		end
+		return vim.fn.pumvisible() == 1 and (dir == 1 and "<C-n>" or "<C-p>") or (dir == 1 and "<C-n>" or "<C-p>")
 	end
 end
 
--- Navigate LuaSnip choices through blink.cmp's keymap callback chain (see
--- `choice()` and the "<C-n>" / "<C-p>" entries below)
+map("i", "<C-n>", select_item(1), { expr = true, desc = "Next completion item / cycle snippet choice" })
+map("i", "<C-p>", select_item(-1), { expr = true, desc = "Prev completion item / cycle snippet choice" })
 
-require("blink.cmp").setup({
-	-- Preset "none": only the mappings below exist. Each entry is tried in
-	-- order and the first one that returns true stops the chain
-	keymap = {
-		preset = "none",
-		["<C-y>"] = { "show" },
-		["<CR>"] = { "accept", "fallback" },
-		["<C-n>"] = { "select_next", choice(1), "fallback" },
-		["<C-p>"] = { "select_prev", choice(-1), "fallback" },
-		["<S-Tab>"] = { "snippet_backward", "fallback" },
-		["<C-q>"] = {
-			"hide",
-			function()
-				if luasnip.in_snippet() then
-					luasnip.unlink_current()
-					return true
-				end
-			end,
-			"fallback",
-		},
-		["<Tab>"] = {
-			"accept",
-			function()
-				if vim.fn.mode() == "i" and luasnip.expandable() then
-					vim.schedule(luasnip.expand)
-					return true
-				end
-			end,
-			"snippet_forward",
-			"fallback",
-		},
-	},
+-- <Tab>: expand a snippet when one matches, otherwise navigate the menu
+-- (native "smart tab") / jump to the next placeholder. <S-Tab> jumps back.
+-- Kept as one expr mapping so the checks run in order and fall through.
+map("i", "<Tab>", function()
+	if luasnip.expandable() then
+		return "<cmd>lua require('luasnip').expand()<cr>"
+	end
+	if vim.fn.pumvisible() == 1 then
+		return "<C-n>"
+	end
+	if luasnip.jumpable(1) then
+		return "<cmd>lua require('luasnip').jump(1)<cr>"
+	end
+	return "<Tab>"
+end, { expr = true, desc = "Expand snippet, next completion item or next placeholder" })
 
-	-- Completion Behavior
-	completion = {
-		menu = {
-			auto_show = function()
-				local ft = vim.bo.filetype
-				if ft == "markdown" then
-					return markdown_auto_show()
-				end
-				return auto_show_filetypes[ft] == true
-			end,
+map("i", "<S-Tab>", function()
+	if vim.fn.pumvisible() == 1 then
+		return "<C-p>"
+	end
+	if luasnip.jumpable(-1) then
+		return "<cmd>lua require('luasnip').jump(-1)<cr>"
+	end
+	return "<S-Tab>"
+end, { expr = true, desc = "Prev completion item or previous placeholder" })
 
-			border = "none",
-			min_width = 70,
-			max_height = 18,
-			scrollbar = false,
-
-			draw = {
-				columns = {
-					{ "label", "label_description", gap = 1 },
-					{ "kind" },
-				},
-
-				components = {
-					label = { width = { fill = true, min = 30 } },
-					label_description = { width = { min = 20 } },
-					kind = { width = { min = 12 } },
-				},
-			},
-		},
-
-		documentation = {
-			window = { border = "none" },
-		},
-
-		-- Preselect the first item without inserting it (like "noinsert")
-		list = {
-			selection = { auto_insert = false },
-		},
-
-		accept = {
-			auto_brackets = { enabled = false },
-		},
-	},
-
-	-- Snippet Integration
-	snippets = {
-		preset = "luasnip",
-	},
-
-	-- Command-Line Completion
-	cmdline = {
-		enabled = false,
-	},
-
-	-- Completion Sources
-	sources = {
-		per_filetype = {
-			lua = {
-				inherit_defaults = true,
-				"lazydev",
-			},
-			tex = {
-				inherit_defaults = true,
-				"vimtex",
-			},
-			-- java = {
-			-- 	"snippets",
-			-- 	"buffer",
-			-- },
-		},
-
-		providers = {
-			snippets = {
-				score_offset = -3,
-				opts = { show_autosnippets = false },
-			},
-			path = {
-				score_offset = -4,
-			},
-			buffer = {
-				score_offset = -5,
-			},
-			lazydev = {
-				name = "LazyDev",
-				module = "lazydev.integrations.blink",
-				score_offset = 100,
-			},
-			-- vimtex = {
-			-- 	name = "vimtex",
-			-- 	module = "blink.compat.source",
-			-- 	score_offset = -1,
-			-- 	async = true,
-			-- },
-		},
-	},
-})
+-- <C-q>: unlink the active snippet (delete the active node tree completely).
+map("i", "<C-q>", function()
+	if luasnip.in_snippet() then
+		luasnip.unlink_current()
+	end
+end, { desc = "Unlink active snippet" })
