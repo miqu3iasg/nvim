@@ -186,11 +186,6 @@ vim.pack.add({
 	-- for taking notes in markdown.
 	{ src = "https://github.com/HakonHarnes/img-clip.nvim" },
 
-	-- todo-comments.nvim
-	-- https://github.com/folke/todo-comments.nvim
-	-- Highlights and searches TODO, FIXME, HACK, etc. in comments, with fzf-lua integration.
-	{ src = "https://github.com/folke/todo-comments.nvim" },
-
 	-- Extra colorschemes
 	-- Configured in lua/plugins/colorschemes.lua
 	"https://github.com/jaredgorski/fogbell.vim",

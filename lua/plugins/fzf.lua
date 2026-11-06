@@ -241,9 +241,10 @@ km("n", "<leader>fh", "<cmd>FzfLua help_tags<cr>", { desc = "Fzf: search Neovim 
 km("n", "<leader>fm", "<cmd>FzfLua man_pages<cr>", { desc = "Fzf: search man pages" })
 
 -- Tasks
--- The plugin todo-comments.nvim is a dependecy for this works.
--- See: lua/plugins/unnecessary-shit.lua
-km("n", "<leader>ft", "<cmd>TodoFzfLua keywords=TODO,FIX,FIXME,HACK,BUG,XXX<cr>", { desc = "Fzf: list tasks" })
+-- Search is provided by the native module in lua/features/todos.lua.
+km("n", "<leader>ft", function()
+	require("features.todos").fzf_search()
+end, { desc = "Fzf: list tasks (TODO/FIXME/...)" })
 
 -- Diagnostics
 km("n", "<leader>fx", "<cmd>FzfLua diagnostics_document<cr>", { desc = "Fzf: list LSP diagnostics in current buffer" })

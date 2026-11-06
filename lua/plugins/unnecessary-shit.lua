@@ -89,32 +89,6 @@ require("colorizer").setup({
 	},
 })
 
--- Task Comments
-require("todo-comments").setup({
-	signs = false,
-
-	-- Highlighting is disabled on purpose: treesitter already colors TODO,
-	-- FIXME, HACK, etc. inside comments, so the plugin's colored blocks would
-	-- only duplicate (and clash with) it. The plugin is kept just for the
-	-- fzf-lua picker (:TodoFzfLua) and the ]t / [t navigation, which rely on
-	-- the search pattern and not on the highlight.
-	--
-	-- See: lua/plugins/fzf.lua
-	-- See: lua/plugins/treesitter.lua
-	highlight = {
-		before = "",
-		keyword = "",
-		after = "",
-	},
-	keywords = {
-		XXX = { color = "warning" },
-	},
-})
-
-vim.keymap.set("n", "]t", function()
-	require("todo-comments").jump_next()
-end, { desc = "Next todo comment" })
-
-vim.keymap.set("n", "[t", function()
-	require("todo-comments").jump_prev()
-end, { desc = "Previous todo comment" })
+-- Task Comments (native)
+-- See: lua/features/todos.lua
+require("features.todos").setup()

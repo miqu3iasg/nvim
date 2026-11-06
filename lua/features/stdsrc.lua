@@ -340,29 +340,6 @@ function M.search_source()
 	end)
 end
 
----Search for pending comments (TODO, FIXME, HACK, BUG, XXX) in the current
----directory. Always uses the nvim cwd, even from an Oil view. Skips common
----dependency/build directories (`.git`, `node_modules`, `build`, `dist`,
----`target`, `vendor`, `.venv`, `__pycache__`), minified/lock/map files and
----files above 1 MB. Smart-case.
----
----@deprecated Superseded by todo-comments.nvim and its `:TodoFzfLua` mapping
----(see `lua/plugins/fzf.lua`). Kept only for reference.
-function M.search_pending_comments()
-	local fzf = require("fzf-lua")
-
-	fzf.grep({
-		search = [[\b(TODO|FIXME|HACK|BUG|XXX)\b]],
-		no_esc = true,
-		prompt = "TODO/FIXME> ",
-		rg_opts = "--column --line-number --no-heading --color=always --smart-case "
-			.. "--max-columns=4096 --max-filesize=1M "
-			.. "--glob '!**/{.git,node_modules,build,dist,target,vendor,.venv,__pycache__}/**' "
-			.. "--glob '!*.{min.js,min.css,map,lock}' "
-			.. "-e",
-	})
-end
-
 ---Register the `:StdSrc` command (see `M.search_source`).
 function M.setup()
 	-- wrapped so the command's argument table is not forwarded to the functions
