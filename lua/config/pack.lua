@@ -58,6 +58,12 @@ vim.pack.add({
 	-- having this in my study and work environment really improves my workflow.
 	{ src = "https://github.com/obsidian-nvim/obsidian.nvim" },
 
+	-- plenary.nvim
+	-- https://github.com/nvim-lua/plenary.nvim
+	-- Lua utility library (async, paths, jobs, testing). Declared here as a
+	-- required dependency of obsidian.nvim.
+	{ src = "https://github.com/nvim-lua/plenary.nvim" },
+
 	-- LuaSnip
 	-- https://github.com/L3MON4D3/LuaSnip
 	-- Snippet engine written in Lua, with support for dynamic and LSP-style snippets.
