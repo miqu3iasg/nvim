@@ -27,6 +27,11 @@
 --     after = function() end,         -- optional
 --   })
 --
+-- Because the plugin is NOT on the runtimepath at filetype-detection time, a
+-- filetype whose detection depends on a global the plugin owns (vimtex's
+-- ftdetect sets g:tex_flavor, for example) must set that global in the plugin
+-- file's top level - there it runs at startup, before any buffer opens.
+--
 -- Future extensions (documented here, deliberately not implemented):
 --   * cmds - trigger when a user command is typed before its plugin defines
 --     it (CmdUndefined event), then re-run the typed command after the

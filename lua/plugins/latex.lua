@@ -36,6 +36,12 @@
 
 local M = {}
 
+-- filetype detection must produce `tex` (not the builtin `plaintex`) for the
+-- lazy gate below to fire. VimTeX's own ftdetect/ sets this when it is on the
+-- rtp, but as a lazy plugin it is not at detection time - so it is declared
+-- here, at registration time, before any buffer opens.
+vim.g.tex_flavor = "latex"
+
 -- Triggered only once per session, by utils/lazy before the vimtex packadd.
 function M.configure()
 	local exports = require("shared.exports")
