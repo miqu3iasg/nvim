@@ -7,11 +7,9 @@
 -- The plugin is added to the runtimepath at startup but its plugin/ scripts do
 -- not run until the first buffer of one of the listed filetypes appears (or
 -- until `load(name)` is called manually). Loading runs `configure`, then
--- `:packadd`, then `after`. Because it happens inside the FileType event, the
--- plugin's ftplugins still apply to that first buffer, and ftdetect/ works
--- even before the plugin is loaded. If a buffer of one of the filetypes is
--- already open when `setup` runs (e.g. a restored session), the plugin loads
--- immediately.
+-- `:packadd` (which attaches the plugin to the runtimepath), then `after`, and
+-- finally re-runs the FileType chain for the triggering buffer so the plugin's
+-- ftplugins (e.g. vimtex#init and its -buffer commands) also apply to it.
 --
 -- `configure` runs BEFORE `:packadd`, so it is the place for settings the
 -- plugin reads while loading (e.g. globals). Use `after` for anything that
@@ -83,7 +81,7 @@ local function ensure_gate()
 				return
 			end
 			for _, name in ipairs(names) do
-				M.load(name)
+				M.load(name, ev.buf)
 			end
 		end,
 	})
@@ -92,7 +90,11 @@ end
 ---Load one plugin (once per session). Safe to call repeatedly, also before
 ---setup on the same name (a no-op then).
 ---@param name string
-function M.load(name)
+---@param buf? integer buffer that triggered the load: after the packadd, its
+---   FileType event is re-run so the plugin's ftplugins apply to it (the
+---   ftplugin machinery ran earlier in the chain, when the plugin was
+---   still off the runtimepath)
+function M.load(name, buf)
 	local spec = registered[name]
 	if not spec or loaded[name] then
 		return
@@ -117,6 +119,15 @@ function M.load(name)
 
 	if spec.after then
 		pcall(spec.after)
+	end
+
+	-- Re-run the FileType chain for the triggering buffer: with the plugin now
+	-- on the runtimepath (packadd did it), its ftplugin lands first in the
+	-- `runtime!` order, so things like vimtex#init() and the -buffer commands
+	-- (VimtexCompile) get set up for this very buffer. The load guard keeps
+	-- the re-dispatch from loading the plugin twice.
+	if buf and vim.api.nvim_buf_is_valid(buf) then
+		pcall(vim.api.nvim_exec_autocmds, "FileType", { buffer = buf })
 	end
 end
 
@@ -147,7 +158,7 @@ function M.setup(spec)
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		local ft = vim.bo[buf].filetype
 		if ft and vim.list_contains(spec.filetypes or {}, ft) then
-			M.load(name)
+			M.load(name, buf)
 			break
 		end
 	end
