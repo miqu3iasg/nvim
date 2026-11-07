@@ -29,9 +29,9 @@
 --
 -- Packages on Arch Linux:
 --
---   $ sudo pacman -S pandoc-cli zathura zathura-pdf-mupdf
+-- $ sudo pacman -S pandoc-cli zathura zathura-pdf-mupdf
 --
---   $ sudo pacman -S texlive-xetex texlive-latex texlive-latexextra texlive-latexrecommended texlive-fontsrecommended texlive-langportuguese
+-- $ sudo pacman -S texlive-xetex texlive-latex texlive-latexextra texlive-latexrecommended texlive-fontsrecommended texlive-langportuguese
 --
 -- See: https://pandoc.org/MANUAL.html
 -- See: https://neovim.io/doc/user/lua.html#vim.system()
