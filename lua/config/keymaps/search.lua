@@ -32,6 +32,15 @@ end, {
 	desc = "Clear search highlights",
 })
 
+-- One-shot: <Esc> clears the current search highlights (treesitter-y)
+km({ "n", "x" }, "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
+
+-- Quickfix navigation
+km("n", "]q", "<cmd>cnext<cr>zz", { desc = "Next quickfix item" })
+km("n", "[q", "<cmd>cprev<cr>zz", { desc = "Previous quickfix item" })
+km("n", "]Q", "<cmd>clast<cr>", { desc = "Last quickfix item" })
+km("n", "[Q", "<cmd>cfirst<cr>", { desc = "First quickfix item" })
+
 -- Word Search
 km("n", "<leader>sw", function()
 	local word = vim.fn.escape(vim.fn.expand("<cword>"), "\\/.*$^~[]")

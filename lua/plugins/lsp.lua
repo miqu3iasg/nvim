@@ -266,4 +266,21 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
+-- Toggle inlay hints for the current buffer. Global mapping (not inside
+-- LspAttach): the builtin state is per-buffer, and there is no builtin
+-- default mapping for it.
+vim.keymap.set("n", "<leader>uH", function()
+	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
+end, { desc = "Toggle inlay hints (buffer)" })
+
+-- Explicit diagnostics configuration
+-- virtual_text is off on purpose: the statusline already counts
+-- errors/warnings per buffer (StlLine.diag, see features/statusline.lua).
+vim.diagnostic.config({
+	virtual_text = false,
+	severity_sort = true,
+	underline = true,
+	float = { border = vim.o.winborder },
+})
+
 vim.lsp.enable(servers)
