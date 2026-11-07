@@ -32,8 +32,9 @@ local RG_PATTERN = [[\b(TODO|FIXME|HACK|BUG|XXX)\b]]
 ---@type string
 local QF_TITLE = "TODO scan"
 
--- Directories that are never worth searching; keeps the scan fast.
--- Only combined with rg below; plain grep falls back to the default.
+-- Directories that are never worth searching; keeps the scan fast. The globs
+-- are single-quoted because 'grepprg' is run through the user's shell (zsh
+-- would otherwise expand !** itself and fail).
 ---@type string
 local RG_GLOBS = "--glob '!**/.git/**' --glob '!**/node_modules/**' --glob '!**/target/**' "
 	.. "--glob '!**/dist/**' --glob '!**/.venv/**' --glob '!**/__pycache__/**' "
@@ -58,8 +59,12 @@ local function scan_and_jump(dir)
 		vim.o.grepformat = "%f:%l:%m"
 	end
 
-	-- silent! keeps the "press enter" prompt and hit-errors away
-	vim.cmd.keepjumps("silent! grep! " .. vim.fn.shellescape(RG_PATTERN))
+-- silent! keeps the "press enter" prompt and hit-errors away; the pattern
+-- goes in double quotes (single quotes are a mark, not a string, to the Ex
+-- parser) and the pipes escape as `\|`: :grep ends its arguments at an
+-- unescaped `|`. rg receives `\|` inside the pattern, still read by it as
+-- alternation.
+vim.cmd([[keepjumps silent! grep! "\b(TODO\|FIXME\|HACK\|BUG\|XXX)\b"]])
 	-- restore the user's grepprg from keymaps/editing.lua (set on startup)
 	if vim.fn.executable("rg") == 1 then
 		vim.o.grepprg = "rg --vimgrep"
