@@ -11,7 +11,6 @@ local ts = ai.gen_spec.treesitter
 
 -- One liners
 require("mini.align").setup({})
--- Commenting is native since Neovim 0.12 (vim._comment): gc/gcc/gc< TextObjects come from mini.ai below.
 
 -- Split Join
 local split_join = require("mini.splitjoin")
@@ -89,6 +88,7 @@ require("colorizer").setup({
 	},
 })
 
--- Task Comments (native)
--- See: lua/features/todos.lua
+-- Register the ]t/[t jumps and :Todos (search/navigation of
+-- TODO|FIXME|HACK|BUG|XXX comments); see lua/features/todos.lua.
+-- <leader>ft (fzf grep) lives in lua/plugins/fzf.lua.
 require("features.todos").setup()

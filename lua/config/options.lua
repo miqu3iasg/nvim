@@ -4,6 +4,11 @@
 -- (e.g. vim-sleuth adjusts indentation).
 -- See all options with :options or :set all, and an option's help with :help 'name'.
 
+-- GREP is rg; :grep and the quickfix machinery use ripgrep when available
+if vim.fn.executable("rg") == 1 then
+	vim.opt.grepprg = "rg --vimgrep"
+end
+
 -- General behavior
 vim.opt.hidden = true
 vim.opt.history = 10000

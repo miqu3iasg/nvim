@@ -3,10 +3,6 @@
 local km = vim.keymap.set
 local substitute = require("utils.substitute")
 
-if vim.fn.executable("rg") == 1 then
-	vim.opt.grepprg = "rg --vimgrep"
-end
-
 -- Helpers
 
 local function clamp_dest(dest)

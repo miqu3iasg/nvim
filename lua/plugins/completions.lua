@@ -4,20 +4,22 @@
 -- (`vim.lsp.completion.enable`, autotrigger enabled only on the filetypes
 -- listed in TRIGGER_FILETYPES) plus LuaSnip for snippets.
 --
--- What changed vs. the previous blink.cmp setup, and the accepted losses:
+-- Accepted losses from the previous plugin-based setup:
 --
 -- * LSP completion is only the LSP: there are no path/buffer/snippet sources
 --   in the menu anymore. Snippet completions from the language servers keep
 --   working (they come through the LSP), but LuaSnip's own snippets do NOT
 --   appear as completion items; they are expanded by trigger, autosnippet or
 --   <Tab> instead (see the keymaps below).
--- * In the filetypes of TRIGGER_FILETYPES the menu opens while typing, like
---   blink's auto_show did. Everywhere else (e.g. lua, python, markdown...)
---   completion is manual with <C-y>, which opens the LSP/omni menu on demand.
+-- * In the filetypes of TRIGGER_FILETYPES the menu opens while typing.
+--   Everywhere else (e.g. lua, python, markdown...) completion is manual
+--   with <C-y>, which opens the LSP/omni menu on demand.
 -- * Lua: lazydev feeds the LSP layer too, so completions of the Neovim API
 --   keep working through the same LSP entry.
 -- * LaTeX/Typst: texlab/tinymist feed the LSP; VimTeX additions come through
 --   its own omnifunc (<C-x><C-o>) — still works.
+-- * Markdown wikilink completion (obsidian.nvim) is trigger_chars based, so
+--   it still works when typing "@"/"[" even without the autotrigger.
 --
 -- Omnifunc completion: `vim.lsp.omnifunc` is the default omnifunc for LSP
 -- buffers (Neovim sets it on attach), so <C-x><C-o> shows LSP items with
@@ -104,9 +106,8 @@ local common_filetypes = {
 
 -- LSP Completion (native)
 
--- Filetypes where the completion menu opens automatically (the ones where
--- blink's auto_show was enabled). Every other filetype completes on demand
--- with <C-y>.
+-- Filetypes where the completion menu opens automatically. Every other
+-- filetype completes on demand with <C-y>.
 ---@type table<string, boolean>
 local TRIGGER_FILETYPES = {
 	javascript = true,
@@ -169,12 +170,9 @@ for _, client in ipairs(vim.lsp.get_clients({ bufnr = -1 })) do
 	end
 end
 
--- Markdown is prose without an LSP completion trigger: the menu stays closed
--- except while typing a wikilink ([[Note), which keeps obsidian.nvim's
--- trigger/complete behavior.
--- Commentary: obsidian's completion path is trigger_chars based ("@" for
--- note links), so nothing is needed here; the filetype is simply not in
--- TRIGGER_FILETYPES.
+-- Markdown is prose: it is deliberately not in TRIGGER_FILETYPES. Obsidian's
+-- completion triggers through its LSP separately, so note-link completion
+-- keeps working when typing [[.
 
 -- LuaSnip Setup
 
