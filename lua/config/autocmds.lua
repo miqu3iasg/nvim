@@ -28,7 +28,6 @@ vim.api.nvim_create_autocmd("FileType", {
 -- Turn off heavy features on big/minified files
 -- A buffer counts as "big" based on file size and indents; the threshold and
 -- the full heuristic live in lua/utils/bigfile.lua
-local bigfile_group = vim.api.nvim_create_augroup("bigfile", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
 	group = bigfile_group,
 	desc = "Disable heavy features on big files",
@@ -38,7 +37,7 @@ vim.api.nvim_create_autocmd("FileType", {
 		end
 		pcall(vim.treesitter.stop, ev.buf)
 		vim.b[ev.buf].completion = false
-		vim.diagnostic.disable(ev.buf)
+		vim.diagnostic.enable(false, { bufnr = ev.buf })
 		vim.opt_local.foldmethod = "manual"
 		vim.opt_local.spell = false
 		vim.opt_local.cursorline = false
