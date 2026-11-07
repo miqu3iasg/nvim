@@ -140,28 +140,6 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
--- Lazy-load the filetype-bound heavy plugins (vimtex, conjure).
--- They are added to the runtimepath at startup without running their plugin/
--- scripts (see the `load` add in lua/config/pack.lua); on the first matching
--- filetype the module's configure() sets the needed globals, then :packadd
--- finishes loading. `packadd` in a FileType autocmd runs before the buffer's
--- ftplugin, so plugin ftplugins and (re)detection apply as usual.
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("LazyFtPlugins", { clear = true }),
-	pattern = { "tex", "latex", "scheme", "lisp", "racket", "clojure" },
-	callback = function(ev)
-		local plugs = { tex = "vimtex", latex = "vimtex", scheme = "conjure", lisp = "conjure", racket = "conjure", clojure = "conjure" }
-		local plug = plugs[ev.match]
-		if not plug or vim.g["lazyft_" .. plug] then
-			return
-		end
-
-		require("plugins." .. (plug == "vimtex" and "latex" or "lisp")).configure()
-		vim.cmd.packadd(plug)
-		vim.g["lazyft_" .. plug] = true
-	end,
-})
-
 -- Strip trailing whitespace when a buffer is written
 -- Skips unmodifiable buffers and special ones ("nofile", "terminal", etc.)
 -- with a nonempty 'buftype'; the view is saved/restored so the cursor and

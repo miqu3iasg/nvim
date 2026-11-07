@@ -2,10 +2,11 @@
 
 -- Conjure globals and Lisp-family glue.
 --
--- This module is no longer loaded eagerly: it only exposes
--- `configure()`, which the FileType gate in lua/config/autocmds.lua calls
--- before `:packadd conjure` on the first scheme/lisp/racket buffer (Conjure
--- reads these globals when its client for a buffer is initialized).
+-- This plugin is lazy: the src and its trigger filetypes are declared at the
+-- bottom of this file via utils.lazy.setup, which defers the plugin/ scripts
+-- until the first scheme/lisp/racket buffer and calls configure() (below)
+-- right before the :packadd (Conjure reads these globals when its client for
+-- a buffer is initialized).
 --
 -- This configuration requires Tree-sitter, MIT Scheme, Racket and rlwrap.
 -- Conjure is installed automatically through vim.pack; the treesitter
@@ -45,8 +46,7 @@
 
 local M = {}
 
--- Triggered only once per editor session, from the FileType gate in
--- lua/config/autocmds.lua, before the conjure packadd.
+-- Triggered only once per session, by utils/lazy before the conjure packadd.
 function M.configure()
 	-- Set the local leader before defining Conjure's key mappings
 	if vim.g.maplocalleader == nil or vim.g.maplocalleader == "" then
@@ -122,5 +122,17 @@ function M.configure()
 		end,
 	})
 end
+
+-- Declares this plugin as lazy (see the pattern in lua/utils/lazy.lua):
+-- the module only registers the spec here; configure() runs on the first
+-- scheme/lisp buffer, before the :packadd.
+require("utils.lazy").setup({
+	-- conjure
+	-- https://github.com/Olical/conjure
+	-- Interactive REPL-driven evaluation for Lisps (Clojure, Fennel, Scheme, ...).
+	src = "https://github.com/Olical/conjure",
+	filetypes = { "scheme", "lisp", "racket", "clojure" },
+	configure = M.configure,
+})
 
 return M

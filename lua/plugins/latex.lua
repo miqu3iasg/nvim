@@ -2,10 +2,11 @@
 
 -- VimTeX globals and the PDF export hook.
 --
--- This module is no longer loaded eagerly: it only exposes `configure()`,
--- which the FileType gate in lua/config/autocmds.lua calls before
--- `:packadd vimtex` on the first tex/latex buffer (VimTeX reads these
--- globals when it initializes for the buffer).
+-- This plugin is lazy: the src and its trigger filetypes are declared at the
+-- bottom of this file via utils.lazy.setup, which defers the plugin/ scripts
+-- until the first tex/latex buffer and calls configure() (below) right
+-- before the :packadd (VimTeX reads these globals when it initializes for
+-- the buffer).
 --
 -- The LaTeX writing-mode setup (wrapping, conceal, readable width and
 -- <localleader>x compile/view/TOC mappings) lives in after/ftplugin/tex.lua.
@@ -35,8 +36,7 @@
 
 local M = {}
 
--- Triggered only once per editor session, from the FileType gate in
--- lua/config/autocmds.lua, before the vimtex packadd.
+-- Triggered only once per session, by utils/lazy before the vimtex packadd.
 function M.configure()
 	local exports = require("shared.exports")
 
@@ -106,6 +106,18 @@ vim.api.nvim_create_autocmd("User", {
 			end
 		end)
 	end,
+})
+
+-- Declares this plugin as lazy (see the pattern in lua/utils/lazy.lua):
+-- the module only registers the spec here; configure() runs on the first
+-- tex/latex buffer, before the :packadd.
+require("utils.lazy").setup({
+	-- vimtex
+	-- https://github.com/lervag/vimtex
+	-- Full LaTeX support: compilation, PDF viewer sync, motions, folding, and TOC.
+	src = "https://github.com/lervag/vimtex",
+	filetypes = { "tex", "latex" },
+	configure = M.configure,
 })
 
 return M

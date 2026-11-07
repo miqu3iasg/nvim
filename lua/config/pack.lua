@@ -1,7 +1,9 @@
 -- lua/config/pack.lua
 
--- Declares and installs plugins through Neovim's built-in package manager.
--- Run :lua vim.pack.update() to update plugins.
+-- Declares and installs the EAGER plugins through Neovim's built-in package
+-- manager. LAZY plugins are declared in their own config files in lua/plugins/
+-- via utils.lazy.setup (see lua/utils/lazy.lua); pack.lua only adds theirs
+-- when the trigger fires. Run :lua vim.pack.update() to update plugins.
 -- See: config/keymaps/pack.lua
 
 -- Must be created before plugin installations.
@@ -173,22 +175,3 @@ vim.pack.add({
 	"https://github.com/metalelf0/black-metal-theme-neovim",
 	"https://github.com/kryptamine/gruber-darker-renaissance",
 })
-
--- VimTeX and conjure are useful only for their filetypes, and their
--- plugin/ scripts are comparatively heavy on startup. `load = function() end`
--- still puts them on the runtimepath (so :packadd later finds them and their
--- ftdetect/ files work when the file is opened), but skips running their
--- plugin/ directory at startup. The FileType gate in lua/config/autocmds.lua
--- packadds them when a tex/lisp-family buffer shows up for the first time.
--- See: lua/plugins/latex.lua, lua/plugins/lisp.lua
-vim.pack.add({
-	-- vimtex
-	-- https://github.com/lervag/vimtex
-	-- Full LaTeX support: compilation, PDF viewer sync, motions, folding, and TOC.
-	{ src = "https://github.com/lervag/vimtex" },
-
-	-- conjure
-	-- https://github.com/Olical/conjure
-	-- Interactive REPL-driven evaluation for Lisp-family languages (Clojure, Fennel, Scheme, etc.).
-	{ src = "https://github.com/Olical/conjure" },
-}, { load = function() end })
