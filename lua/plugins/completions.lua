@@ -35,7 +35,7 @@
 -- See: https://github.com/mason-org/mason.nvim
 -- See: :h vim.lsp.completion
 
--- FIXME: there's bug in completion popups. I tested open it in a java buffer hitting
+-- FIXME: there's a bug in completion popups. I tested open it in a java buffer hitting
 -- <C-y>, but I got this error message: "E764: Option 'omnifunc' is not set"
 
 -- Modules under lua/snippets/, required lazily the first time a buffer of that

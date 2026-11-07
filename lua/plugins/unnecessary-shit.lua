@@ -85,8 +85,9 @@ require("colorizer").setup({
 	},
 })
 
--- ]t/[t jumps and :Todos
--- See: lua/features/todos.lua
+-- Register the ]t/[t jumps and :Todos (search/navigation of
+-- TODO|FIXME|HACK|BUG|XXX comments); see lua/features/todos.lua.
+-- <leader>ft (fzf grep) lives in lua/plugins/fzf.lua.
 require("features.todos").setup()
 
 -- Flash
