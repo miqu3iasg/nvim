@@ -182,6 +182,12 @@ vim.pack.add({
 	-- for taking notes in markdown.
 	{ src = "https://github.com/HakonHarnes/img-clip.nvim" },
 
+	-- flash.nvim
+	-- https://github.com/folke/flash.nvim
+	-- Label-based navigation: `s{char}` shows labels on every visible match and jumps
+	-- straight to the one you pick. Also offers treesitter selection and remote operations.
+	{ src = "https://github.com/folke/flash.nvim" },
+
 	-- Extra colorschemes
 	-- Configured in lua/plugins/colorschemes.lua
 	"https://github.com/jaredgorski/fogbell.vim",

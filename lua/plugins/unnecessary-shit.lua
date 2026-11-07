@@ -18,11 +18,11 @@ split_join.setup({
 	},
 })
 
-vim.keymap.set({ "n", "x" }, "sj", function()
+vim.keymap.set({ "n", "x" }, "<leader>sj", function()
 	split_join.join()
 end, { desc = "Join arguments" })
 
-vim.keymap.set({ "n", "x" }, "sk", function()
+vim.keymap.set({ "n", "x" }, "<leader>sk", function()
 	split_join.split()
 end, { desc = "Split arguments" })
 
@@ -88,3 +88,34 @@ require("colorizer").setup({
 -- ]t/[t jumps and :Todos
 -- See: lua/features/todos.lua
 require("features.todos").setup()
+
+-- Flash
+local flash = require("flash")
+flash.setup({
+	prompt = {
+		prefix = { { ">", "FlashPromptIcon" } },
+	},
+	highlight = {
+		backdrop = false,
+	},
+})
+
+vim.keymap.set({ "n", "x", "o" }, "s", function()
+	flash.jump()
+end, { desc = "Flash" })
+
+vim.keymap.set({ "n", "x", "o" }, "S", function()
+	flash.treesitter()
+end, { desc = "Flash Treesitter" })
+
+vim.keymap.set("o", "r", function()
+	flash.remote()
+end, { desc = "Remote Flash" })
+
+vim.keymap.set({ "o", "x" }, "R", function()
+	flash.treesitter_search()
+end, { desc = "Treesitter Search" })
+
+vim.keymap.set("c", "<c-s>", function()
+	flash.toggle()
+end, { desc = "Toggle Flash Search" })

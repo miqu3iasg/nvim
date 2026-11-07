@@ -33,6 +33,10 @@
       "rev": "2b06d219787cfe2cbbcf8857598f81434ff2bcb1",
       "src": "https://github.com/amedoeyes/eyes.nvim"
     },
+    "flash.nvim": {
+      "rev": "5f0f270fdc7c5b0c21d903ee85b9cb06f2ac636a",
+      "src": "https://github.com/folke/flash.nvim"
+    },
     "fogbell.vim": {
       "rev": "274cc13184f6a7d0589650c0763c94cef431b319",
       "src": "https://github.com/jaredgorski/fogbell.vim"
