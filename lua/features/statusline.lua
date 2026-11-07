@@ -1,16 +1,18 @@
 -- lua/features/statusline.lua
 
 -- Statusline built on the native 'statusline' option (no plugin). The active
--- window shows the mode, file state, path, position, filetype, git branch,
--- diagnostics, macro recording and file size; inactive windows get a reduced
--- version (lead, path, position).
+-- window shows the mode, file state, scroll percentage, path, position,
+-- selection size, search count, filetype, git branch, diagnostics, macro
+-- recording and (for big files only) file size; inactive windows get a reduced
+-- version (lead, percentage, path, position).
 --
 -- Costly or asynchronous pieces (mode, git branch, file size) are not computed
 -- on every redraw: they are stored in `vim.g.sl_mode`, `vim.b.git_branch` and
 -- `vim.b.sl_file_size` and refreshed by autocmds. The branch is looked up
 -- asynchronously and cached per directory for a short time, so a change made
 -- outside Neovim can take a few seconds to show up. The file size is read from
--- disk, so it is stale until the file is saved.
+-- disk, so it is stale until the file is saved. It is only shown for files of
+-- at least `FILE_SIZE_MIN` bytes.
 --
 -- The segment functions are exposed through the global `StlLine` because the
 -- statusline string calls them via `v:lua`. The `[Z]` indicator reads
@@ -40,6 +42,16 @@ local branch_cache = {}
 ---@type number cache lifetime in seconds
 local BRANCH_TTL = 30
 
+-- Files smaller than this are not worth a size indicator, so the segment stays
+-- empty for them.
+---@type number threshold in bytes (1 MiB)
+local FILE_SIZE_MIN = 1024 * 1024
+
+-- Maximum number of matches counted by the search segment; beyond it the total
+-- is shown as `>999`. Keeps the redraw cheap in huge files.
+---@type integer
+local SEARCH_MAXCOUNT = 999
+
 ---Mode codes from `nvim_get_mode().mode` mapped to the label shown in the line.
 ---@type table<string, string>
 local MODES = {
@@ -62,11 +74,24 @@ local MODES = {
 	t = "TERMINAL",
 }
 
--- Statusline of windows that are not focused: lead, path and position only.
--- Set window-locally on WinLeave and cleared on WinEnter (see `M.setup`).
+-- Modes (as returned by `vim.fn.mode()`) in which a selection exists and its
+-- size is shown: charwise/linewise/blockwise Visual and Select.
+---@type table<string, boolean>
+local SELECTION_MODES = {
+	v = true,
+	V = true,
+	["\22"] = true,
+	s = true,
+	S = true,
+	["\19"] = true,
+}
+
+-- Statusline of windows that are not focused: lead, percentage, path and
+-- position only. Set window-locally on WinLeave and cleared on WinEnter (see
+-- `M.setup`).
 ---@type string
 local INACTIVE =
-	"  %{v:lua.StlLine.lead()}  %<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')}   %P L%l C%c %="
+	"  %{v:lua.StlLine.lead()}  %P %<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')}   L%l C%c %="
 
 ---Store the branch label in `b:git_branch` and redraw the statusline.
 ---Scheduled, so it is safe to call from a `vim.system` callback. Does nothing
@@ -159,10 +184,11 @@ local function set_file_size(buf, size_str)
 	end
 end
 
----Refresh `b:sl_file_size` with the size of the file on disk, padded with
----spaces and in the largest unit below 1024 (`" 512B "`, `" 1.5K "`, `" 3.2M "`;
----bytes are shown as integers, the rest with one decimal). Empty for unnamed
----buffers, special buffers, empty files and files that do not exist yet.
+---Refresh `b:sl_file_size` with the size of the file on disk, but only when it
+---is large (at least `FILE_SIZE_MIN` bytes). The value is padded with spaces
+---and uses the largest unit below 1024 (`" 1.5M "`, `" 3.2G "`; one decimal).
+---Empty for small files, unnamed buffers, special buffers, empty files and
+---files that do not exist yet.
 ---Reads the disk, not the buffer, so it is stale until the file is saved.
 ---@param buf? integer buffer number; `nil` or `0` for the current buffer
 local function update_file_size(buf)
@@ -178,7 +204,7 @@ local function update_file_size(buf)
 	end
 
 	local size = vim.fn.getfsize(name)
-	if size == nil or size <= 0 then
+	if size == nil or size < FILE_SIZE_MIN then
 		set_file_size(buf, "")
 		return
 	end
@@ -190,14 +216,7 @@ local function update_file_size(buf)
 		i = i + 1
 	end
 
-	local formatted
-	if i == 1 then
-		formatted = string.format("%d%s", size, units[i])
-	else
-		formatted = string.format("%.1f%s", size, units[i])
-	end
-
-	set_file_size(buf, " " .. formatted .. " ")
+	set_file_size(buf, string.format(" %.1f%s ", size, units[i]))
 end
 
 ---Store the label of the current mode in `g:sl_mode`. Looks the mode up in
@@ -250,17 +269,67 @@ function M.diag()
 	return string.format("[E%d W%d] ", e, w)
 end
 
+---Size of the current Visual/Select selection as `" <lines>L <chars>C"`
+---(e.g. `" 4L 63C"`). Empty outside those modes, and when the statusline being
+---drawn belongs to another window (the selection only exists in the current one).
+---@return string segment
+function M.selection()
+	local winid = vim.g.statusline_winid
+	if winid and winid ~= vim.api.nvim_get_current_win() then
+		return ""
+	end
+	if not SELECTION_MODES[vim.fn.mode()] then
+		return ""
+	end
+	local lines = math.abs(vim.fn.line("v") - vim.fn.line(".")) + 1
+	local chars = vim.fn.wordcount().visual_chars or 0
+	return string.format(" %dL %dC", lines, chars)
+end
+
+---Search match counter as `" [<current>/<total>]"` (e.g. `" [3/12]"`). Only
+---shown while 'hlsearch' highlighting is active (`v:hlsearch == 1`), so it
+---disappears after `:nohlsearch`. Counts are capped at `SEARCH_MAXCOUNT`
+---(`[>999/>999]`); `?` is shown for the total if the count timed out.
+---@return string segment
+function M.search()
+	local winid = vim.g.statusline_winid
+	if winid and winid ~= vim.api.nvim_get_current_win() then
+		return ""
+	end
+	if vim.v.hlsearch == 0 then
+		return ""
+	end
+	local ok, sc = pcall(vim.fn.searchcount, { maxcount = SEARCH_MAXCOUNT, timeout = 100 })
+	if not ok or not sc or (sc.total or 0) == 0 then
+		return ""
+	end
+	local max = sc.maxcount
+	local cur = sc.current > max and (">" .. max) or tostring(sc.current)
+	local total
+	if sc.incomplete == 1 then
+		total = "?"
+	elseif sc.incomplete == 2 or sc.total > max then
+		total = ">" .. max
+	else
+		total = tostring(sc.total)
+	end
+	return string.format(" [%s/%s]", cur, total)
+end
+
 ---Install the statusline and the autocmds that keep it up to date.
 ---
 --- * Exposes the module as the global `StlLine`, which the statusline string
----   needs to call `lead`, `major` and `diag` through `v:lua`.
+---   needs to call `lead`, `major`, `diag`, `selection` and `search` through
+---   `v:lua`.
 --- * Uses `laststatus=2` (one statusline per window) and turns `showmode` off,
----   since the mode is already in the line.
+---   since the mode is already in the line, and adds `S` to 'shortmess' to hide
+---   the native search count, since the line has its own.
 --- * `b:git_branch` and `b:sl_file_size`: refreshed on BufEnter, BufWritePost,
 ---   FocusGained and DirChanged (the size also on FileChangedShellPost and
 ---   WinEnter/BufWinEnter).
 --- * `g:sl_mode`: refreshed on ModeChanged.
---- * Redraws on mode, diagnostic and macro recording changes.
+--- * Redraws on mode, diagnostic, macro recording and command-line changes
+---   (the latter so the search counter updates after `/`, `?` and `:noh`).
 --- * Inactive windows use INACTIVE through a window-local 'statusline', which is
 ---   cleared again (falling back to the global one) when the window is entered.
 function M.setup()
@@ -268,21 +337,24 @@ function M.setup()
 
 	vim.opt.laststatus = 2
 	vim.opt.showmode = false
+	vim.opt.shortmess:append("S")
 
 	vim.opt.statusline = table.concat({
 		"-- %{get(g:, 'sl_mode', '')} -- ",
 		"%{v:lua.StlLine.lead()}",
 		"%{&diff && winnr('$') > 2 ? '  [' . bufnr() . ']' : ''}",
-		"  %<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')} %m",
-		"   %P L%l C%c",
+		"  %<%{bufname() ==# '' ? '[No Name]' : fnamemodify(bufname(), ':p:~')}   %P %m",
+		"   L%l C%c",
+		"%{v:lua.StlLine.selection()}",
+		"%{v:lua.StlLine.search()}",
 		"   %{v:lua.StlLine.major()}",
-		" %{get(b:, 'git_branch', '')}",
+		"   %{get(b:, 'git_branch', '')}",
 		" %{v:lua.StlLine.diag()}",
 		"%{reg_recording() !=# '' ? 'REC@' . reg_recording() . ' ' : ''}",
 		"%=",
 		"%{get(t:, 'zoomed', 0) ? '[Z]  ' : ''}",
 		"%{get(b:, 'sl_file_size', '')}",
-		" 0x%04B ",
+		" ",
 	})
 
 	update_mode()
@@ -326,6 +398,19 @@ function M.setup()
 		group = group,
 		callback = function()
 			vim.cmd.redrawstatus()
+		end,
+	})
+
+	-- CmdlineLeave fires before the command runs, so redraw on the next tick:
+	-- by then `v:hlsearch` and the search register reflect `/foo`, `?foo`
+	-- or `:nohlsearch`.
+	vim.api.nvim_create_autocmd("CmdlineLeave", {
+		group = group,
+		pattern = { "/", "?", ":" },
+		callback = function()
+			vim.schedule(function()
+				vim.cmd.redrawstatus()
+			end)
 		end,
 	})
 
