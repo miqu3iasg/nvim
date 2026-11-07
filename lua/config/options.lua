@@ -1,7 +1,6 @@
 -- lua/config/options.lua
 
--- Global editor options, set at startup. Some plugins override a few per-buffer
--- (e.g. vim-sleuth adjusts indentation).
+-- Global editor options, set at startup.
 -- See all options with :options or :set all, and an option's help with :help 'name'.
 
 -- GREP is rg; :grep and the quickfix machinery use ripgrep when available
@@ -20,7 +19,7 @@ vim.opt.showcmd = false
 vim.opt.mouse = ""
 vim.opt.wrap = false
 vim.opt.startofline = false -- Keep the cursor column on gg/G
-vim.opt.list = true -- Toggled per-window by <leader>vl
+vim.opt.list = true
 vim.opt.listchars = { tab = "¬·", trail = "•", nbsp = "·", space = "·" }
 vim.opt.diffopt:append({ "algorithm:histogram", "indent-heuristic", "linematch:60" })
 

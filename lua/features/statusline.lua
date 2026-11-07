@@ -1,22 +1,27 @@
 -- lua/features/statusline.lua
 
--- Statusline, built on the native 'statusline' option (no plugin).
+-- Statusline built on the native 'statusline' option (no plugin). The active
+-- window shows the mode, file state, path, position, filetype, git branch,
+-- diagnostics, macro recording and file size; inactive windows get a reduced
+-- version (lead, path, position).
 --
--- Inactive windows get a reduced version (lead, path, position).
+-- Costly or asynchronous pieces (mode, git branch, file size) are not computed
+-- on every redraw: they are stored in `vim.g.sl_mode`, `vim.b.git_branch` and
+-- `vim.b.sl_file_size` and refreshed by autocmds. The branch is looked up
+-- asynchronously and cached per directory for a short time, so a change made
+-- outside Neovim can take a few seconds to show up. The file size is read from
+-- disk, so it is stale until the file is saved.
 --
--- The segments are plain Lua functions called through `v:lua.StlLine`, plus
--- three pieces of state that are refreshed by autocmds instead of on every
--- redraw, because they are costly or asynchronous:
+-- The segment functions are exposed through the global `StlLine` because the
+-- statusline string calls them via `v:lua`. The `[Z]` indicator reads
+-- `vim.t.zoomed`, set by lua/features/window_zoom.lua.
 --
--- vim.g.sl_mode       label of the current mode (see MODES)
--- vim.b.git_branch    "Git-<branch> ", "Git-@<sha> " (detached) or ""
--- vim.b.sl_file_size  " 12.3K " or "" (size of the file on disk)
+-- Requires git for the branch segment; without it the segment is just empty.
 --
--- It also reads `vim.t.zoomed`, which is set by the window-zoom module
--- (lua/features/window_zoom.lua) to show a `[Z]` while a window is zoomed.
+-- Usage:
+--   require("features.statusline").setup()
 --
--- `M.setup()` installs the statusline and the autocmds (group
--- `StatuslineBranch`).
+-- See: lua/features/window_zoom.lua
 
 local M = {}
 

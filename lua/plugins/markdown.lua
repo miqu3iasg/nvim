@@ -1,34 +1,25 @@
 -- lua/plugins/markdown.lua
 
--- This configuration groups the plugins used for writing Markdown notes: image
--- pasting with img-clip.nvim and integration with the Obsidian desktop application
--- through obsidian.nvim.
+-- Configuration for writing Markdown notes: image pasting and integration with
+-- an Obsidian vault.
 --
--- All plugins are declared in `lua/config/pack.lua` and must be installed
--- before this file is loaded. Obsidian.nvim also depends on plenary.nvim
--- (declared in pack.lua right after obsidian.nvim) and on fzf-lua. The
--- `fzf.lua` plugin configuration must be loaded before this file
--- because fzf-lua is used as the picker for searching and navigating notes.
+-- The vault path must point to an existing Obsidian vault. The picker used for
+-- searching and navigating notes is fzf-lua, so `fzf.lua` must be loaded before
+-- this file.
 --
--- On Arch Linux, install Obsidian with pacman:
+-- Pasted images are saved in `<project-root>/attachments`. Inside the vault they
+-- use the wikilink template; anywhere else they use the standard Markdown link.
+--
+-- Markdown language-server features require Marksman to be both installed and
+-- enabled in `lua/plugins/lsp.lua`.
+--
+-- On Arch Linux, install Obsidian with:
 --
 -- $ sudo pacman -S obsidian
 --
--- The vault path below must point to an existing Obsidian vault.
---
--- Images pasted inside the vault use the `![[$FILE_NAME]]` wikilink template,
--- while images pasted anywhere else use the standard Markdown link template.
--- In both cases they are saved in `<project-root>/attachments`.
---
--- Marksman provides Markdown language-server features, including navigation,
--- document symbols and diagnostics. Install it through Mason:
+-- Install Marksman through Mason:
 --
 -- :MasonInstall marksman
---
--- Installing Marksman is not enough: it must also be configured and enabled in
--- the Neovim LSP setup. The LSP configuration is located in
--- `lua/plugins/lsp.lua`; make sure Marksman is configured there for Markdown
--- buffers.
 --
 -- See: https://github.com/HakonHarnes/img-clip.nvim
 -- See: https://github.com/obsidian-nvim/obsidian.nvim

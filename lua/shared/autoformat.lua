@@ -1,16 +1,17 @@
 -- lua/shared/autoformat.lua
 
--- Single source of truth for the autoformat-on-save state. Every place that
--- reads or writes the state goes through this module:
---
---   * plugins/formatting.lua: `<leader>uf` toggle and conform's
---     `format_on_save` guard;
---   * plugins/lsp.lua: the `LspEslintFixAll` guard before conform formats;
---   * config/commands.lua: the `:FormatEnable` and `:FormatDisable` commands.
+-- Single source of truth for the autoformat-on-save state. Anything that reads
+-- or changes the state (toggle keymap, format-on-save guards, commands) must go
+-- through this module instead of touching the variables directly.
 --
 -- The state has two scopes: global (`g:disable_autoformat`) and buffer-local
--- (`b:disable_autoformat`), so autoformat can be turned off everywhere while
--- staying on in a specific buffer, or the other way around.
+-- (`b:disable_autoformat`). Autoformat runs only when neither disables it.
+-- `enable()` and `toggle()` act on the global scope, and `enable()` also clears
+-- the override of the current buffer only, not of other buffers.
+--
+-- Usage:
+--   local autoformat = require("shared.autoformat")
+--   if autoformat.enabled(bufnr) then ... end
 
 local M = {}
 

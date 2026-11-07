@@ -32,8 +32,8 @@ end, {
 	desc = "Clear search highlights",
 })
 
--- One-shot: <Esc> clears the current search highlights (treesitter-y)
-km({ "n", "x" }, "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
+-- (Alternative) <Esc> clears the current search highlights
+km("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
 
 -- Quickfix navigation
 km("n", "]q", "<cmd>cnext<cr>zz", { desc = "Next quickfix item" })

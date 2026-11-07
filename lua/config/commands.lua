@@ -1,11 +1,10 @@
 -- lua/config/commands.lua
 
--- Side-effect-only file. User commands defined with :command. Plugin
--- management commands here ("Pack*") mirror the built-in :vim.pack commands
--- with friendlier names; the plugin list itself lives in lua/config/pack.lua.
+-- User commands defined with :command. Plugin management commands here
+-- ("Pack*") mirror the built-in :vim.pack commands with friendlier names; the
+-- plugin list itself lives in lua/config/pack.lua.
 
 -- Change the working directory to the current file's directory.
--- Mapped to <leader>nw in lua/config/keymaps/files.lua.
 vim.api.nvim_create_user_command("Setwd", function()
 	vim.cmd.cd(vim.fn.expand("%:p:h"))
 end, {})

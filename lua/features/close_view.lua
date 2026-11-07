@@ -1,10 +1,20 @@
 -- lua/features/close_view.lua
 
--- Close Fugitive views (status, blame, diffs, commit messages, git objects)
--- with `q`, `gq` and `dq`, without ever quitting Neovim.
+-- Closes Fugitive views (status, blame, diffs, commit messages, git objects)
+-- with `q`, `gq` and `dq`, without ever quitting Neovim. The mappings are
+-- buffer-local and installed by the autocmds registered in `setup()`, which
+-- must be called once (it is idempotent).
+--
+-- Closing a `gitcommit` buffer discards it, which aborts the commit. When
+-- closing a diff, the working copy is kept and the other diff windows are
+-- closed. Errors are reported as warnings instead of being raised.
+--
+-- Requires vim-fugitive.
 --
 -- Usage:
 --   require("features.close_view").setup()
+--
+-- See: https://github.com/tpope/vim-fugitive
 
 local M = {}
 

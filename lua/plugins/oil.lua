@@ -1,9 +1,14 @@
 -- lua/plugins/oil.lua
 
--- Oil.nvim as the default file explorer: filesystem editing as a normal
--- buffer. Column set tuned for study/work directories; `gx` opens entries
--- with extension-specific viewers (zathura, imv, mpv, ...) falling back to
--- `xdg-open`.
+-- File explorer: the filesystem is edited as a normal buffer, and oil.nvim
+-- replaces netrw as the default explorer.
+--
+-- Deletions go to the trash and simple edits (delete, move, rename) are applied
+-- without confirmation.
+--
+-- `gx` opens an entry with an extension-specific viewer (zathura, imv, mpv) and
+-- falls back to `xdg-open` for anything else. The viewers must be installed for
+-- their extensions to work.
 --
 -- See: https://github.com/stevearc/oil.nvim
 

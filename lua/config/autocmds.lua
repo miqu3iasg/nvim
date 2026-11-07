@@ -1,9 +1,5 @@
 -- lua/config/autocmds.lua
 
--- Side-effect-only file. Global autocommands that run alongside the rest of
--- the configuration. Each block names its group explicitly so it can be
--- inspected or cleared with :augroup.
-
 -- Keep splits evenly sized after resizing the terminal
 vim.api.nvim_create_autocmd("VimResized", {
 	group = vim.api.nvim_create_augroup("cg/vim_resized", { clear = true }),
@@ -158,23 +154,28 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	end,
 })
 
+-- Filetypes of utility buffers (scratch/help/tool windows). They share the
+-- close behavior and the clean UI autocmds below.
+---@type string[]
+local utility_filetypes = {
+	"checkhealth",
+	"conform-info",
+	"fugitive",
+	"fugitiveblame",
+	"help",
+	"nvim-pack",
+	"lspinfo",
+	"man",
+	"nvim-undotree",
+	"qf",
+}
+
 -- Close utility buffers with q or Esc
 -- These filetypes become unfocused scratch/help windows: they get unlisted and
 -- a buffer-local q/<Esc> mapping that closes the window.
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("cg/close_utility_buffers", { clear = true }),
-	pattern = {
-		"checkhealth",
-		"conform-info",
-		"fugitive",
-		"fugitiveblame",
-		"help",
-		"nvim-pack",
-		"lspinfo",
-		"man",
-		"nvim-undotree",
-		"qf",
-	},
+	pattern = utility_filetypes,
 	callback = function(args)
 		vim.bo[args.buf].buflisted = false
 		for _, key in ipairs({ "q", "<Esc>" }) do
@@ -185,6 +186,18 @@ vim.api.nvim_create_autocmd("FileType", {
 				desc = "close buffer",
 			})
 		end
+	end,
+})
+
+-- Hide whitespace characters ('listchars') in utility buffers
+-- Tabs, trailing spaces and the like are just noise in quickfix, help, undotree
+-- and similar windows, so 'list' is turned off locally for them.
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("cg/utility_nolist", { clear = true }),
+	desc = "Disable listchars in utility buffers",
+	pattern = utility_filetypes,
+	callback = function()
+		vim.opt_local.list = false
 	end,
 })
 

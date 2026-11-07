@@ -78,7 +78,7 @@ ts.install({
 	"toml",
 	"dockerfile",
 	"luadoc",
-	-- Lisp family (used by lua/plugins/lisp.lua / conjure)
+	-- Lisp family (used by lua/plugins/lisp.lua and conjure)
 	"scheme",
 	"commonlisp",
 	"racket",

@@ -8,16 +8,16 @@
 --
 -- $ sudo pacman -S fzf grep ripgrep fd
 --
--- The `:StdSrc` command provides interactive, language-aware
--- searches for declarations such as functions, types, methods, imports and
--- macros, on the source code of the language itself (standard library / API),
--- no matter where the current file lives. The language comes from the current
--- buffer (or, in an Oil directory view, from the files shown) and the
--- directories are defined in the `sources` table of lua/features/stdsrc.lua,
--- which also defines the language-specific patterns, categories and file
--- filters. If the language cannot be detected it asks which one to explore,
--- and `Any` falls back to live grep. Opening a result jumps to the declaration
--- in the language's source; go back with <C-o> or <C-^>.
+-- The `:StdSrc` command provides interactive, language-aware searches for
+-- declarations such as functions, types, methods, imports and macros, on the
+-- source code of the language itself (standard library / API), no matter where
+-- the current file lives. The language comes from the current buffer (or, in
+-- an Oil directory view, from the files shown) and the directories are defined
+-- in the `sources` table of lua/features/stdsrc.lua, which also defines the
+-- language-specific patterns, categories and file filters. If the language
+-- cannot be detected it asks which one to explore, and `Any` falls back to
+-- live grep. Opening a result jumps to the declaration in the language's
+-- source.
 --
 -- These searches explore local source code, making it useful for studying
 -- standard libraries and understanding implementations.

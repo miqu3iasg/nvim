@@ -1,36 +1,33 @@
 -- lua/utils/lazy.lua
 
--- Generic lazy-loading for vim.pack plugins.
+-- Generic filetype-based lazy-loading for vim.pack plugins. Each plugin's own
+-- config file in lua/plugins/ declares itself with `setup(spec)`;
+-- lua/config/pack.lua stays declarations-only for eager plugins.
 --
--- Usage: the PLUGIN'S OWN CONFIG FILE in lua/plugins/ calls M.setup with one
--- spec (this is the established pattern; lua/config/pack.lua stays
--- declarations-only for eager plugins). The module:
---   * adds the source with vim.pack.add(..., { load = function() end }),
---     which puts the plugin on the runtimepath but does NOT run its
---     plugin/ scripts at startup (ftdetect/ still works when a matching
---     file is opened later),
---   * installs a single shared FileType autocmd (augroup "LazyPack") that
---     loads (configure + :packadd) the plugin on the first buffer of a
---     listed filetype; packadd inside the FileType event runs before the
---     buffer's ftplugin, so the plugin's ftplugins apply as usual,
---   * loads immediately when setup runs while the session already has a
---     buffer of one of the filetypes open (e.g. a restored session),
---   * exposes M.load(name) for manual triggers (e.g. a rarely used keymap).
+-- The plugin is added to the runtimepath at startup but its plugin/ scripts do
+-- not run until the first buffer of one of the listed filetypes appears (or
+-- until `load(name)` is called manually). Loading runs `configure`, then
+-- `:packadd`, then `after`. Because it happens inside the FileType event, the
+-- plugin's ftplugins still apply to that first buffer, and ftdetect/ works
+-- even before the plugin is loaded. If a buffer of one of the filetypes is
+-- already open when `setup` runs (e.g. a restored session), the plugin loads
+-- immediately.
 --
--- Established pattern - copy this into the plugin config file:
+-- `configure` runs BEFORE `:packadd`, so it is the place for settings the
+-- plugin reads while loading (e.g. globals). Use `after` for anything that
+-- needs the plugin already loaded. The plugin name is derived from `src`
+-- (basename without `.git`) and must match the directory vim.pack installs.
 --
---   -- at the end of lua/plugins/myplugin.lua
+-- Usage, at the end of lua/plugins/myplugin.lua:
+--
 --   require("utils.lazy").setup({
---     -- https://github.com/author/myplugin
---     -- One-line description of what the plugin does.
 --     src = "https://github.com/author/myplugin",
---     filetypes = { "foo", "bar" }, -- filetypes that trigger the load
---     -- Optional: name of the module (this same file is common) with a
---     -- configure() that runs BEFORE the :packadd, or a direct function.
---     configure = "plugins.myplugin",
---     -- Optional: runs after the :packadd.
---     -- after = function() ... end,
+--     filetypes = { "foo", "bar" },
+--     configure = "plugins.myplugin", -- module with configure(), or a function
+--     after = function() end,         -- optional
 --   })
+--
+-- See: lua/config/pack.lua
 
 ---@class lazy.Spec
 ---@field src string            -- plugin source (a vim.pack spec)
@@ -88,11 +85,9 @@ function M.load(name)
 	loaded[name] = true
 
 	if spec.configure then
-		local fn = type(spec.configure) == "string"
-			and function()
-				require(spec.configure).configure()
-			end
-			or spec.configure
+		local fn = type(spec.configure) == "string" and function()
+			require(spec.configure).configure()
+		end or spec.configure
 		local ok, err = pcall(fn)
 		if not ok then
 			vim.notify(("LazyPack: configuring %s failed: %s"):format(name, err), vim.log.levels.ERROR)

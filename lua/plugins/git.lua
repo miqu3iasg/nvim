@@ -1,20 +1,20 @@
 -- lua/plugins/git.lua
 
--- Git must be installed and configured for the commands in this file to work.
--- The current directory must belong to a Git repository (`git init` or a clone).
+-- Git workflow built on vim-fugitive, gitsigns.nvim and, optionally, fzf-lua
+-- (its keymaps are registered only when it is available). Git must be
+-- installed and the current directory must belong to a repository.
+--
+-- `:GBrowse` depends on vim-rhubarb to build GitHub URLs. Destructive remote
+-- operations (force push, rebase, ...) are intentionally left to the terminal.
 --
 -- On Arch Linux, install Git with:
 --
 -- $ sudo pacman -S git
 --
--- Global configuration lives in ~/.gitconfig (user.name, user.email, ...):
+-- Global configuration (user.name, user.email, ...) lives in ~/.gitconfig and
+-- can be inspected with:
 --
 -- $ git config --global --list
---
--- $ cat ~/.gitconfig
---
--- The keymaps below use vim-fugitive, gitsigns.nvim and, optionally, fzf-lua.
--- fzf-lua keymaps are registered only when fzf-lua is available.
 --
 -- See: https://git-scm.com/doc
 -- See: https://github.com/tpope/vim-fugitive

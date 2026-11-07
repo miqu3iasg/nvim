@@ -1,25 +1,31 @@
 -- lua/features/todos.lua
 
--- TODO / FIXME / HACK / BUG / XXX task comments, natively (no plugin).
+-- Search and navigation for task comments (TODO, FIXME, HACK, BUG, XXX),
+-- natively (no plugin). It adds no highlighting on purpose: the keywords live
+-- in comments, which treesitter already colors.
 --
--- The keywords live in comments, where treesitter already colors them, so
--- this module adds no highlighting on purpose: it only provides the search
--- and navigation that todo-comments.nvim used to provide.
+-- The project is scanned with ripgrep (falling back to grep) into the quickfix
+-- list, which is tagged so that `M.jump(dir)` can tell it apart from lists
+-- produced by something else. If the current list is a TODO scan it is reused;
+-- otherwise a fresh scan runs and jumps to the first match. The scan
+-- temporarily overrides 'grepprg' and 'grepformat' and then restores
+-- 'grepprg' to the value set in lua/config/options.lua, so that value must
+-- stay in sync with the restore in `scan_and_jump`.
 --
--- Custom color for one keyword (todo-comments' `keywords` option) is not
--- reproduced: highlighting is deliberately none.
+-- `M.fzf_search()` is a live grep restricted to the keywords and requires
+-- fzf-lua. ripgrep is optional but recommended: the grep fallback does not
+-- exclude as many directories.
 --
--- * M.jump(dir):    jump between matches. If the current quickfix list was
---                   produced by a TODO scan, reuses it (cnext/cprev);
---                   otherwise scans the project first and jumps to the first
---                   match.
--- * M.fzf_search(): fzf-lua live grep restricted to the keywords (used by
---                   <leader>ft, replacing :TodoFzfLua).
+-- Commands and keymaps (installed by `setup()`):
+--   :Todos      scan the project and jump to the first match
+--   ]t / [t     next / previous task comment
 --
--- Navigation between results in general (including these scans) uses the
--- ]q / [q quickfix keymaps.
+-- Usage:
+--   require("features.todos").setup()
 --
 -- See: lua/plugins/fzf.lua
+-- See: lua/config/options.lua
+-- See: https://github.com/james-orcales/james-orcales/blob/main/home/.config/nvim/init.lua
 
 local M = {}
 
@@ -55,16 +61,17 @@ local function scan_and_jump(dir)
 		vim.o.grepprg = "rg --vimgrep --smart-case " .. RG_GLOBS
 		vim.o.grepformat = "%f:%l:%c:%m,%f:%l:%m"
 	else
-		vim.o.grepprg = "grep -rn --binary-files=without-match --exclude-dir=.git --exclude-dir=node_modules $* /dev/null"
+		vim.o.grepprg =
+			"grep -rn --binary-files=without-match --exclude-dir=.git --exclude-dir=node_modules $* /dev/null"
 		vim.o.grepformat = "%f:%l:%m"
 	end
 
--- silent! keeps the "press enter" prompt and hit-errors away; the pattern
--- goes in double quotes (single quotes are a mark, not a string, to the Ex
--- parser) and the pipes escape as `\|`: :grep ends its arguments at an
--- unescaped `|`. rg receives `\|` inside the pattern, still read by it as
--- alternation.
-vim.cmd([[keepjumps silent! grep! "\b(TODO\|FIXME\|HACK\|BUG\|XXX)\b"]])
+	-- silent! keeps the "press enter" prompt and hit-errors away; the pattern
+	-- goes in double quotes (single quotes are a mark, not a string, to the Ex
+	-- parser) and the pipes escape as `\|`: :grep ends its arguments at an
+	-- unescaped `|`. rg receives `\|` inside the pattern, still read by it as
+	-- alternation.
+	vim.cmd([[keepjumps silent! grep! "\b(TODO\|FIXME\|HACK\|BUG\|XXX)\b"]])
 	-- restore the user's grepprg from config/options.lua (set on startup)
 	if vim.fn.executable("rg") == 1 then
 		vim.o.grepprg = "rg --vimgrep"

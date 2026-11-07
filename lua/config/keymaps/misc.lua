@@ -5,9 +5,8 @@
 -- configuration files and directories, and reload, restart and run
 -- commands.
 --
--- For this file to work, oil.nvim and fzf-lua must be installed. The
--- directory mappings use `require("oil").open()` and the colorscheme
--- picker runs `:FzfLua colorschemes`.
+-- For this file to work, oil.nvim must be installed. The directory mappings
+-- use `require("oil").open()`.
 --
 -- See: :h restart
 -- See: lua/plugins/oil.lua
@@ -80,8 +79,8 @@ map("<leader>vd", function()
 end, "Toggle diagnostics")
 
 map("<leader>vh", function()
-	vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
-end, "Toggle tabline")
+	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
+end, "Toggle inlay hints (buffer)")
 
 -- Line numbers
 

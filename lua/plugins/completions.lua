@@ -1,57 +1,34 @@
 -- lua/plugins/completions.lua
 
--- Completion without any completion plugin: the native LSP completion
--- (`vim.lsp.completion.enable`, autotrigger enabled only on the filetypes
--- listed in TRIGGER_FILETYPES) plus LuaSnip for snippets.
+-- Completion without any completion plugin: native LSP completion
+-- (`vim.lsp.completion.enable`, autotrigger only on the filetypes listed in
+-- TRIGGER_FILETYPES) plus LuaSnip for snippets.
 --
--- Accepted losses from the previous plugin-based setup:
+-- The menu has the LSP as its only source. Snippets sent by language servers
+-- show up there, but LuaSnip's own snippets do not: those are expanded by
+-- trigger, autosnippet or <Tab> (see the keymaps below). Outside
+-- TRIGGER_FILETYPES completion is manual with <C-y>, and <C-x><C-o> opens the
+-- LSP omnifunc (VimTeX also hooks in through it).
 --
--- * LSP completion is only the LSP: there are no path/buffer/snippet sources
---   in the menu anymore. Snippet completions from the language servers keep
---   working (they come through the LSP), but LuaSnip's own snippets do NOT
---   appear as completion items; they are expanded by trigger, autosnippet or
---   <Tab> instead (see the keymaps below).
--- * In the filetypes of TRIGGER_FILETYPES the menu opens while typing.
---   Everywhere else (e.g. lua, python, markdown...) completion is manual
---   with <C-y>, which opens the LSP/omni menu on demand.
--- * Lua: lazydev feeds the LSP layer too, so completions of the Neovim API
---   keep working through the same LSP entry.
--- * LaTeX/Typst: texlab/tinymist feed the LSP; VimTeX additions come through
---   its own omnifunc (<C-x><C-o>) — still works.
--- * Markdown wikilink completion (obsidian.nvim) is trigger_chars based, so
---   it still works when typing "@"/"[" even without the autotrigger.
+-- Snippet definitions live under lua/snippets/ and are loaded lazily by
+-- filetype.
 --
--- Omnifunc completion: `vim.lsp.omnifunc` is the default omnifunc for LSP
--- buffers (Neovim sets it on attach), so <C-x><C-o> shows LSP items with
--- fuzzy filtering.
+-- Completion depends on the language servers and formatters configured in
+-- lua/plugins/lsp.lua and lua/plugins/formatting.lua. Mason installs the
+-- external tools; the LSP configuration decides how Neovim starts them.
 --
--- The snippet definitions are stored under lua/snippets/ and are loaded
--- lazily when a buffer of the corresponding filetype is opened.
---
--- Completion works alongside the language servers and formatters configured
--- elsewhere in this Neovim setup. Install the required language servers and
--- formatters through Mason, and make sure the corresponding servers are
--- configured and enabled in lua/plugins/lsp.lua. Mason manages the external
--- tools, while the LSP configuration determines how Neovim starts and uses
--- the language servers.
---
--- On Arch Linux, install the Tree-sitter CLI and the system dependencies
--- required by the supported languages with:
+-- On Arch Linux, install the Tree-sitter CLI and the system dependencies with:
 --
 -- $ sudo pacman -S tree-sitter-cli nodejs npm jdk-openjdk typst typstyle
 -- $ sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra
 --
--- Install the Tree-sitter parsers used by this configuration from Neovim
--- with the following command:
+-- Then install the Tree-sitter parsers from Neovim:
 --
 -- :TSInstall c java python lua scheme racket sql markdown javascript typescript
 -- :TSInstall html css json jsonc yaml toml bash latex typst
 --
--- Language servers and formatters are installed separately through Mason.
--- For example, use :Mason to open the Mason interface or :MasonInstall followed
--- by the relevant package names. The exact tools required depend on the
--- languages you use and the configurations in lua/plugins/lsp.lua and
--- lua/plugins/formatting.lua.
+-- Language servers and formatters are installed through Mason (:Mason, or
+-- :MasonInstall followed by package names), according to the languages you use.
 --
 -- See: https://github.com/L3MON4D3/LuaSnip
 -- See: https://github.com/nvim-treesitter/nvim-treesitter
@@ -172,7 +149,7 @@ end
 
 -- Markdown is prose: it is deliberately not in TRIGGER_FILETYPES. Obsidian's
 -- completion triggers through its LSP separately, so note-link completion
--- keeps working when typing [[.
+-- works when typing [[.
 
 -- LuaSnip Setup
 
@@ -246,7 +223,7 @@ for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 	end
 end
 
--- Keymaps (completion + snippets)
+-- Keymaps (completion and snippets)
 
 local map = vim.keymap.set
 
@@ -260,8 +237,8 @@ map("i", "<CR>", function()
 end, { expr = true, desc = "Accept completion or newline" })
 
 -- <C-n>/<C-p>: navigate the popup, or cycle LuaSnip choices when one is
--- active. `vim.schedule` around change_choice mirrors what the old blink
--- callback did, avoiding the re-entrant jump out of the expr mapping.
+-- active. `vim.schedule` around change_choice avoids a re-entrant jump out of
+-- the expr mapping.
 local function select_item(dir)
 	return function()
 		if luasnip.choice_active() then

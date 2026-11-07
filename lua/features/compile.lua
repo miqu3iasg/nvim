@@ -1,30 +1,34 @@
 -- lua/features/compile.lua
 
--- Emacs-like :Compile, natively (no plugin).
+-- Emacs-like `:Compile`, natively (no plugin). Runs a build command
+-- asynchronously, streaming its output into a `*compilation*` buffer in a
+-- bottom split. When the command fails, the output is parsed into the quickfix
+-- list, so errors are navigated with the usual quickfix motions.
 --
--- Runs a build command asynchronously (vim.system), streaming its output
--- into a *compilation* buffer shown in a bottom split, like Emacs'
--- `M-x compile`. When the job ends with an error, the buffer is parsed with
--- a buffer-local 'errorformat' into the quickfix list (:cbuffer), so error
--- navigation uses the ]q / [q keymaps.
+-- State is kept per working directory: one running process at a time (starting
+-- a new compile in the same directory kills the previous one) and one "last
+-- command", which `:Recompile` reruns. Commands run through `sh -c`, so shell
+-- syntax works.
+--
+-- Without arguments, `:Compile` prompts for a command pre-filled with the
+-- default for the current filetype (see `DEFAULT_COMMAND`). Only gcc/clang,
+-- javac and Python traceback output is parsed into quickfix; anything else
+-- still shows in the buffer but produces no entries (see `ERRORFORMAT`).
+--
+-- The `*compilation*` buffer uses the `qf` filetype so that the
+-- `cg/close_utility_buffers` autocmd gives it the usual `q`/`<Esc>` close
+-- behavior, and the quickfix motions `]q` / `[q` come from the search keymaps.
 --
 -- Commands:
---   :Compile {cmd}        run {cmd}; without arguments, prompts for one
---                         pre-filled with the default for the current
---                         filetype (see DEFAULT_COMMAND)
+--   :Compile {cmd}        run {cmd}, or prompt when no argument is given
 --   :Recompile            rerun the last command of the current cwd
 --   :CompileInterrupt     stop the command of the current cwd
 --
--- Keymaps: <leader>cc / <leader>cr / <leader>ck.
+-- Usage:
+--   require("features.compile").setup()
 --
--- Not ported from compile-mode.nvim (accepted losses): ANSI/OSC color
--- rendering of the output, ask-to-save and ask-to-interrupt prompts, auto
--- jump to the first error, and per-language error regexp tables. The MVP
--- keeps practical parity: async run, live output, autoscroll, and quickfix
--- with the gcc/clang/javac and Python traceback formats.
---
--- See: lua/config/autocmds.lua (cg/close_utility_buffers gives qf-like
--- buffers a q/<Esc> close), lua/config/keymaps/search.lua (]q / [q).
+-- See: lua/config/autocmds.lua
+-- See: lua/config/keymaps/search.lua
 
 local M = {}
 
@@ -60,9 +64,9 @@ local ERRORFORMAT = table.concat({
 	"%f:%l: %m",
 	-- Python traceback frames (message text is not captured)
 	'%A  File "%f"\\, line %l\\, in %.%#',
-	'%-C  %.%#',
-	'--In file included from %.%#',
-	'%-G%.%#',
+	"%-C  %.%#",
+	"--In file included from %.%#",
+	"%-G%.%#",
 }, ",")
 
 -- One running process per cwd (starting a new compile of the same directory
@@ -122,7 +126,7 @@ local function open_window()
 	-- q/<Esc> window close behavior and drops it from the buffer list
 	vim.bo[buf].filetype = "qf"
 
-	vim.cmd("rightbelow 15split")
+	vim.cmd("rightbelow 25split")
 	vim.cmd("buffer " .. buf)
 
 	return buf

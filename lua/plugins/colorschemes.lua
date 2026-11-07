@@ -1,12 +1,10 @@
 -- lua/plugins/colorschemes.lua
 
--- Extra colorschemes installed on top of the two built-in theme groups
+-- Configuration of the extra colorschemes and their highlight overrides. This
+-- file only configures them; the theme itself is applied with `:colorscheme`.
 --
--- Installation: the vim.pack entries of all extra colorschemes live in the
--- central plugin list of lua/config/pack.lua, which must have run before this
--- file. This module only configures them; the theme itself is applied with
--- :colorscheme (removing the eager load() also avoids applying highlights on
--- every startup).
+-- The plugins must already be installed, so `lua/config/pack.lua` must have
+-- run before this file.
 --
 -- See: colors/ (self-maintained schemes)
 -- See: https://github.com/metalelf0/black-metal-theme-neovim
@@ -28,8 +26,6 @@ local black_metal_palette = {
 -- Colorscheme configurations
 
 -- Black Metal
--- Only setup() here: it registers config/highlights tables but applies no
--- highlights. The theme is applied with :colorscheme.
 require("black-metal").setup({
 	transparent = true,
 	trve = true, -- switch this to false if you want light variants

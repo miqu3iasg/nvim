@@ -266,16 +266,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
--- Toggle inlay hints for the current buffer. Global mapping (not inside
--- LspAttach): the builtin state is per-buffer, and there is no builtin
--- default mapping for it.
-vim.keymap.set("n", "<leader>uH", function()
-	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
-end, { desc = "Toggle inlay hints (buffer)" })
-
 -- Explicit diagnostics configuration
--- virtual_text is off on purpose: the statusline already counts
--- errors/warnings per buffer (StlLine.diag, see features/statusline.lua).
 vim.diagnostic.config({
 	virtual_text = false,
 	severity_sort = true,
@@ -284,3 +275,48 @@ vim.diagnostic.config({
 })
 
 vim.lsp.enable(servers)
+
+-- Global LSP toggle. Only affects the servers listed in `servers`; `jdtls` is
+-- started elsewhere and is deliberately left alone.
+
+--- Whether the servers in `servers` are currently enabled.
+---@type boolean
+local lsp_enabled = true
+
+--- Enable or disable every language server in `servers` at once.
+---
+--- When disabling, `vim.lsp.enable(servers, false)` prevents new clients from
+--- starting, and any client that is still alive is stopped explicitly so its
+--- diagnostics are cleared. When enabling, `vim.lsp.enable(servers)` starts
+--- the servers again and re-attaches them to the already open buffers.
+---
+---@param enable? boolean Force a state. When omitted, the current state is toggled.
+---@return boolean enabled The new state: `true` if the servers are enabled.
+local function toggle_lsp(enable)
+	if enable == nil then
+		lsp_enabled = not lsp_enabled
+	else
+		lsp_enabled = enable
+	end
+
+	if lsp_enabled then
+		vim.lsp.enable(servers)
+	else
+		vim.lsp.enable(servers, false)
+
+		-- Make sure no managed client stays alive
+		for _, client in ipairs(vim.lsp.get_clients()) do
+			if vim.tbl_contains(servers, client.name) then
+				client:stop()
+			end
+		end
+	end
+
+	vim.notify("LSP " .. (lsp_enabled and "enabled" or "disabled"), vim.log.levels.INFO)
+
+	return lsp_enabled
+end
+
+vim.keymap.set("n", "<leader>ul", function()
+	toggle_lsp()
+end, { desc = "Toggle LSP" })

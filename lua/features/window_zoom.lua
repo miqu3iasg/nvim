@@ -1,9 +1,17 @@
 -- lua/features/window_zoom.lua
 
--- Zoom of the focused window: temporarily shows it full screen (as the only
--- window of a new tab) while keeping the original layout intact. The toggle
--- state lives in the tabpage-local variable `t:zoomed`, which is also read by
--- the statusline (see lua/features/statusline.lua) to show a `[Z]` indicator.
+-- Zoom of the focused window: temporarily shows it full screen, as the only
+-- window of a new tab, while the original layout stays intact in its own tab.
+-- Toggling again closes the zoom tab and brings the layout back.
+--
+-- The state lives in the tabpage-local variable `t:zoomed`, which the
+-- statusline reads to show the `[Z]` indicator. Since zoom is implemented as a
+-- tab, closing it by other means (`:tabclose`, `:tabonly`) also ends it.
+--
+-- Usage:
+--   require("features.window_zoom").toggle()
+--
+-- See: lua/features/statusline.lua
 
 local M = {}
 

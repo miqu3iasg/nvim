@@ -1,10 +1,24 @@
 -- lua/config/pack.lua
 
--- Declares and installs the EAGER plugins through Neovim's built-in package
--- manager. LAZY plugins are declared in their own config files in lua/plugins/
--- via utils.lazy.setup (see lua/utils/lazy.lua); pack.lua only adds theirs
--- when the trigger fires. Run :lua vim.pack.update() to update plugins.
--- See: config/keymaps/pack.lua
+-- Declares and installs the eager plugins through Neovim's built-in package
+-- manager (`vim.pack`). Lazy plugins are not declared here: each one registers
+-- itself from its own config file in lua/plugins/ via `utils.lazy.setup`, and
+-- is only added when its trigger fires.
+--
+-- The `PackChanged` autocmd must be created before `vim.pack.add`, because it
+-- runs the post-install steps that some plugins need: `:TSUpdate` for
+-- nvim-treesitter and `make install_jsregexp` for LuaSnip (requires `make` and
+-- a C compiler; a failure is only a warning). When adding a plugin that needs a
+-- build step, handle it there.
+--
+-- Plugins are only installed and loaded here. Their configuration lives in
+-- lua/plugins/, which must run after this file. To update everything, run:
+--
+-- :lua vim.pack.update()
+--
+-- See: lua/utils/lazy.lua
+-- See: lua/config/keymaps/pack.lua
+-- See: https://fredrikaverpil.github.io/blog/2026/04/15/from-lazy.nvim-to-vim.pack/
 
 -- Must be created before plugin installations.
 vim.api.nvim_create_autocmd("PackChanged", {

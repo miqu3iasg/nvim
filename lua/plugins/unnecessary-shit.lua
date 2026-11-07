@@ -85,5 +85,6 @@ require("colorizer").setup({
 	},
 })
 
--- ]t/[t jumps and :Todos; see lua/features/todos.lua
+-- ]t/[t jumps and :Todos
+-- See: lua/features/todos.lua
 require("features.todos").setup()
