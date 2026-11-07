@@ -2,9 +2,6 @@
 
 -- Miscellaneous quality-of-life mini.nvim modules (and other small plugins)
 -- that are not essential, but make editing feel nicer.
---
--- Commenting (gc/gcc/gc<motion>) is Neovim's builtin since 0.12, so there is
--- no mini.comment setup here.
 
 local ai = require("mini.ai")
 local ts = ai.gen_spec.treesitter
@@ -88,7 +85,5 @@ require("colorizer").setup({
 	},
 })
 
--- Register the ]t/[t jumps and :Todos (search/navigation of
--- TODO|FIXME|HACK|BUG|XXX comments); see lua/features/todos.lua.
--- <leader>ft (fzf grep) lives in lua/plugins/fzf.lua.
+-- ]t/[t jumps and :Todos; see lua/features/todos.lua
 require("features.todos").setup()
