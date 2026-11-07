@@ -27,6 +27,16 @@
 --     after = function() end,         -- optional
 --   })
 --
+-- Future extensions (documented here, deliberately not implemented):
+--   * cmds - trigger when a user command is typed before its plugin defines
+--     it (CmdUndefined event), then re-run the typed command after the
+--     :packadd (the approach lazy.nvim takes). Nothing here needs it yet:
+--     no lazy plugin is command-first.
+--   * keys - trigger on the first use of a mapping owned by a lazy plugin,
+--     replaying the typed keys so the real mapping answers it (install a
+--     placeholder mapping, packadd, then feedkeys the original). Only worth
+--     it for rare-use mappings of heavyweight plugins.
+--
 -- See: lua/config/pack.lua
 
 ---@class lazy.Spec

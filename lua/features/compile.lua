@@ -45,7 +45,7 @@ local DEFAULT_COMMAND = {
 	lua = "lua %",
 	c = "cc -o %:r.out % && ./%:r.out",
 	cpp = "c++ -std=c++23 -o %:r.out % && ./%:r.out",
-	java = "javac % && java %:r",
+	java = "javac -d out % && java %:r",
 	go = "go run %",
 }
 
