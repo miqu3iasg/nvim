@@ -4,8 +4,12 @@
 -- Neovim's built-in package manager (`vim.pack`), configured in
 -- lua/config/pack.lua. Add new plugin modules to the list below; the load
 -- order matters because some modules depend on others (for example,
--- lua/plugins/lisp.lua expects lua/plugins/treesitter.lua to load first).
+-- lua/plugins/fzf.lua must load before lua/plugins/markdown.lua).
 -- A module that fails to load notifies an error instead of aborting the rest.
+--
+-- Latex (vimtex) and lisp (conjure) are NOT here: those modules now only
+-- provide configure() functions, which the FileType gate in
+-- lua/config/autocmds.lua calls right before :packadd of the plugin.
 --
 -- Natively replaced features live in lua/features/ instead: todos.lua
 -- (todo-comments) and compile.lua (:Compile/compile-mode) set themselves up.
@@ -18,8 +22,6 @@ for _, mod in ipairs({
 	"fzf",
 	"git",
 	"unnecessary-shit",
-	"latex",
-	"lisp",
 	"oil",
 	"colorschemes",
 	"markdown",

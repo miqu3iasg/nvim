@@ -139,21 +139,10 @@ vim.pack.add({
 	-- creating themes.
 	{ src = "https://github.com/catgoose/nvim-colorizer.lua" },
 
-	-- vimtex
-	-- https://github.com/lervag/vimtex
-	-- Full LaTeX support: compilation, PDF viewer sync, motions, folding, and TOC.
-	{ src = "https://github.com/lervag/vimtex" },
-
 	-- mason-tool-installer.nvim
 	-- https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim
 	-- Automatically installs and updates a declared list of Mason tools.
 	{ src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim" },
-
-	-- conjure
-	-- https://github.com/Olical/conjure
-	-- Interactive REPL-driven evaluation for Lisp-family languages (Clojure, Fennel, Scheme, etc.).
-	-- I’m currently studying a book that uses Lisp and working on a few projects, so I need this.
-	{ src = "https://github.com/Olical/conjure" },
 
 	-- nvim-jdtls
 	-- https://github.com/mfussenegger/nvim-jdtls
@@ -178,3 +167,22 @@ vim.pack.add({
 	"https://github.com/metalelf0/black-metal-theme-neovim",
 	"https://github.com/kryptamine/gruber-darker-renaissance",
 })
+
+-- VimTeX and conjure are useful only for their filetypes, and their
+-- plugin/ scripts are comparatively heavy on startup. `load = function() end`
+-- still puts them on the runtimepath (so :packadd later finds them and their
+-- ftdetect/ files work when the file is opened), but skips running their
+-- plugin/ directory at startup. The FileType gate in lua/config/autocmds.lua
+-- packadds them when a tex/lisp-family buffer shows up for the first time.
+-- See: lua/plugins/latex.lua, lua/plugins/lisp.lua
+vim.pack.add({
+	-- vimtex
+	-- https://github.com/lervag/vimtex
+	-- Full LaTeX support: compilation, PDF viewer sync, motions, folding, and TOC.
+	{ src = "https://github.com/lervag/vimtex" },
+
+	-- conjure
+	-- https://github.com/Olical/conjure
+	-- Interactive REPL-driven evaluation for Lisp-family languages (Clojure, Fennel, Scheme, etc.).
+	{ src = "https://github.com/Olical/conjure" },
+}, { load = function() end })

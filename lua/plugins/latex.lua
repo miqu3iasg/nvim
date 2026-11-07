@@ -1,5 +1,12 @@
 -- lua/plugins/latex.lua
 
+-- VimTeX globals and the PDF export hook.
+--
+-- This module is no longer loaded eagerly: it only exposes `configure()`,
+-- which the FileType gate in lua/config/autocmds.lua calls before
+-- `:packadd vimtex` on the first tex/latex buffer (VimTeX reads these
+-- globals when it initializes for the buffer).
+--
 -- The LaTeX writing-mode setup (wrapping, conceal, readable width and
 -- <localleader>x compile/view/TOC mappings) lives in after/ftplugin/tex.lua.
 --
@@ -26,47 +33,55 @@
 -- See: https://github.com/cmhughes/latexindent.pl
 -- See: https://github.com/latex3/latex2e
 
-local tex_group = vim.api.nvim_create_augroup("latex_buffer_plugins", { clear = true })
+local M = {}
 
-local exports = require("shared.exports")
+-- Triggered only once per editor session, from the FileType gate in
+-- lua/config/autocmds.lua, before the vimtex packadd.
+function M.configure()
+	local exports = require("shared.exports")
 
-vim.g.vimtex_view_method = "zathura"
-vim.g.vimtex_compiler_method = "latexmk"
-vim.g.vimtex_compiler_latexmk = {
-	continuous = 1,
-	-- NOTE: VimTeX renamed `build_dir` to `out_dir` in v2.13; `build_dir` is
-	-- now silently ignored.
+	vim.g.vimtex_view_method = "zathura"
+	vim.g.vimtex_compiler_method = "latexmk"
+	vim.g.vimtex_compiler_latexmk = {
+		continuous = 1,
+		-- NOTE: VimTeX renamed `build_dir` to `out_dir` in v2.13; `build_dir` is
+		-- now silently ignored.
 
-	-- Byproducts (and the first PDF) go to <root>/.build/<reldir>/<name>/.
-	-- A function is used because the folder depends on the project.
-	out_dir = function()
-		return exports.build_dir(vim.api.nvim_get_current_buf())
-	end,
-	options = {
-		"-pdf",
-		"-interaction=nonstopmode",
-		"-synctex=1",
-	},
-}
-vim.g.vimtex_quickfix_mode = 0 -- Avoid stealing focus for every warning.
-vim.g.vimtex_fold_enabled = true
-vim.g.vimtex_indent_enabled = true
-vim.g.vimtex_syntax_conceal_disable = true
+		-- Byproducts (and the first PDF) go to <root>/.build/<reldir>/<name>/.
+		-- A function is used because the folder depends on the project.
+		out_dir = function()
+			return exports.build_dir(vim.api.nvim_get_current_buf())
+		end,
+		options = {
+			"-pdf",
+			"-interaction=nonstopmode",
+			"-synctex=1",
+		},
+	}
+	vim.g.vimtex_quickfix_mode = 0 -- Avoid stealing focus for every warning.
+	vim.g.vimtex_fold_enabled = true
+	vim.g.vimtex_indent_enabled = true
+	vim.g.vimtex_syntax_conceal_disable = true
 
--- Use VimTeX's "simple" algorithm (plain citation-key matching) instead
--- of the default "smart" search over titles and authors. The documentation
--- recommends "simple" when another completion plugin provides the menu.
--- See: :h g:vimtex_complete_bib
-vim.g.vimtex_complete_bib = {
-	simple = 1,
-	info_fmt = "@author_all (@year)\n@title",
-}
+	-- Use VimTeX's "simple" algorithm (plain citation-key matching) instead
+	-- of the default "smart" search over titles and authors. The documentation
+	-- recommends "simple" when another completion plugin provides the menu.
+	-- See: :h g:vimtex_complete_bib
+	vim.g.vimtex_complete_bib = {
+		simple = 1,
+		info_fmt = "@author_all (@year)\n@title",
+	}
+end
 
--- After a successful compilation, copy the PDF from .build/ to exports/
+-- After a successful compilation, copy the PDF from .build/ to exports/.
+-- Kept global (registered once at startup): it is cheap and only fires on
+-- the VimtexEventCompileSuccess user event, which exists only when vimtex
+-- is loaded.
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VimtexEventCompileSuccess",
 	group = vim.api.nvim_create_augroup("latex_export_pdf", { clear = true }),
 	callback = function()
+		local exports = require("shared.exports")
 		local state = vim.b.vimtex
 		local tex_file = (state and state.tex) or vim.fn.expand("%:p")
 
@@ -92,3 +107,5 @@ vim.api.nvim_create_autocmd("User", {
 		end)
 	end,
 })
+
+return M

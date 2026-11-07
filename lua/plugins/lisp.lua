@@ -1,7 +1,16 @@
 -- lua/plugins/lisp.lua
 
+-- Conjure globals and Lisp-family glue.
+--
+-- This module is no longer loaded eagerly: it only exposes
+-- `configure()`, which the FileType gate in lua/config/autocmds.lua calls
+-- before `:packadd conjure` on the first scheme/lisp/racket buffer (Conjure
+-- reads these globals when its client for a buffer is initialized).
+--
 -- This configuration requires Tree-sitter, MIT Scheme, Racket and rlwrap.
--- Conjure is installed automatically through vim.pack.
+-- Conjure is installed automatically through vim.pack; the treesitter
+-- parsers (scheme, commonlisp, racket) are installed by the main
+-- ts.install() list in lua/plugins/treesitter.lua.
 --
 -- On Arch Linux, install the available dependencies with pacman:
 --
@@ -34,78 +43,84 @@
 -- See: https://www.mail-archive.com/debian-bugs-closed@lists.debian.org/msg850823.html
 -- See: https://aur.archlinux.org/packages/mit-scheme
 
--- Treesitter is configured in lua/plugins/treesitter.lua, which must be loaded
--- before this file. The scheme/commonlisp/racket parsers are installed by the
--- main ts.install() list there.
+local M = {}
 
--- Conjure reads these globals when it starts for a Lisp, Scheme or Racket
--- buffer, after init.lua has finished
-vim.g["conjure#filetype#scheme"] = "conjure.client.scheme.stdio"
-vim.g["conjure#client#scheme#stdio#command"] = "unbuffer -p mit-scheme"
+-- Triggered only once per editor session, from the FileType gate in
+-- lua/config/autocmds.lua, before the conjure packadd.
+function M.configure()
+	-- Set the local leader before defining Conjure's key mappings
+	if vim.g.maplocalleader == nil or vim.g.maplocalleader == "" then
+		vim.g.maplocalleader = ","
+	end
 
--- Disable the floating HUD and use a docked split instead
-vim.g["conjure#log#hud#enabled"] = false
-vim.g["conjure#log#botright"] = true -- Dock on the far right, full height
-vim.g["conjure#log#split#width"] = 0.5
-vim.opt.splitright = true
+	-- Conjure reads these globals when it starts for a Lisp, Scheme or Racket
+	-- buffer
+	vim.g["conjure#filetype#scheme"] = "conjure.client.scheme.stdio"
+	vim.g["conjure#client#scheme#stdio#command"] = "unbuffer -p mit-scheme"
 
--- Highlight the evaluated form briefly
-vim.g["conjure#highlight#enabled"] = true
+	-- Disable the floating HUD and use a docked split instead
+	vim.g["conjure#log#hud#enabled"] = false
+	vim.g["conjure#log#botright"] = true -- Dock on the far right, full height
+	vim.g["conjure#log#split#width"] = 0.5
+	vim.opt.splitright = true
 
--- Automatically open the log split on the first Scheme, Lisp or Racket buffer.
--- This is best-effort; if it fails, <localleader>lv opens the log manually
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("conjure_auto_log_split", { clear = true }),
-	pattern = { "scheme", "lisp", "racket" },
-	callback = function()
-		if vim.g.conjure_log_split_opened then
-			return
-		end
-		vim.g.conjure_log_split_opened = true
-		local origin_win = vim.api.nvim_get_current_win()
-		vim.defer_fn(function()
-			pcall(vim.cmd, "ConjureLogVsplit")
-			if vim.api.nvim_win_is_valid(origin_win) then
-				vim.api.nvim_set_current_win(origin_win)
+	-- Highlight the evaluated form briefly
+	vim.g["conjure#highlight#enabled"] = true
+
+	-- Evaluation
+	vim.g["conjure#mapping#eval_current_form"] = "ee"
+	vim.g["conjure#mapping#eval_root_form"] = "er"
+	vim.g["conjure#mapping#eval_word"] = "ew"
+	vim.g["conjure#mapping#eval_file"] = "ef"
+	vim.g["conjure#mapping#eval_buf"] = "eb"
+	vim.g["conjure#mapping#eval_visual"] = "E"
+	vim.g["conjure#mapping#eval_motion"] = "E"
+	vim.g["conjure#mapping#eval_marked_form"] = "em"
+	vim.g["conjure#mapping#eval_previous"] = "ep"
+	vim.g["conjure#mapping#eval_replace_form"] = "e!"
+
+	-- Evaluation with the result inserted as a comment
+	vim.g["conjure#eval#comment_prefix"] = "; => "
+	vim.g["conjure#mapping#eval_comment_current_form"] = "ece"
+	vim.g["conjure#mapping#eval_comment_root_form"] = "ecr"
+	vim.g["conjure#mapping#eval_comment_word"] = "ecw"
+
+	-- Log and REPL
+	vim.g["conjure#mapping#log_split"] = "ls"
+	vim.g["conjure#mapping#log_vsplit"] = "lv"
+	vim.g["conjure#mapping#log_tab"] = "lt"
+	vim.g["conjure#mapping#log_buf"] = "le"
+	vim.g["conjure#mapping#log_toggle"] = "lg"
+	vim.g["conjure#mapping#log_close_visible"] = "lq"
+	vim.g["conjure#mapping#log_reset_soft"] = "lr"
+	vim.g["conjure#mapping#log_reset_hard"] = "lR"
+	vim.g["conjure#mapping#log_jump_to_latest"] = "ll"
+
+	-- Navigation and documentation
+	vim.g["conjure#mapping#def_word"] = "gd"
+	vim.g["conjure#mapping#doc_word"] = { "K" }
+
+	-- Automatically open the log split on the first Scheme, Lisp or Racket
+	-- buffer. This is best-effort; if it fails, <localleader>lv opens the log
+	-- manually. Registered here so the autocmd exists only while conjure is
+	-- actually loaded.
+	vim.api.nvim_create_autocmd("FileType", {
+		group = vim.api.nvim_create_augroup("conjure_auto_log_split", { clear = true }),
+		pattern = { "scheme", "lisp", "racket" },
+		callback = function()
+			if vim.g.conjure_log_split_opened then
+				return
 			end
-		end, 50)
-	end,
-})
-
--- Set the local leader before defining Conjure's key mappings
-if vim.g.maplocalleader == nil or vim.g.maplocalleader == "" then
-	vim.g.maplocalleader = ","
+			vim.g.conjure_log_split_opened = true
+			local origin_win = vim.api.nvim_get_current_win()
+			vim.defer_fn(function()
+				pcall(vim.cmd, "ConjureLogVsplit")
+				if vim.api.nvim_win_is_valid(origin_win) then
+					vim.api.nvim_set_current_win(origin_win)
+				end
+			end, 50)
+		end,
+	})
 end
 
--- Evaluation
-vim.g["conjure#mapping#eval_current_form"] = "ee"
-vim.g["conjure#mapping#eval_root_form"] = "er"
-vim.g["conjure#mapping#eval_word"] = "ew"
-vim.g["conjure#mapping#eval_file"] = "ef"
-vim.g["conjure#mapping#eval_buf"] = "eb"
-vim.g["conjure#mapping#eval_visual"] = "E"
-vim.g["conjure#mapping#eval_motion"] = "E"
-vim.g["conjure#mapping#eval_marked_form"] = "em"
-vim.g["conjure#mapping#eval_previous"] = "ep"
-vim.g["conjure#mapping#eval_replace_form"] = "e!"
-
--- Evaluation with the result inserted as a comment
-vim.g["conjure#eval#comment_prefix"] = "; => "
-vim.g["conjure#mapping#eval_comment_current_form"] = "ece"
-vim.g["conjure#mapping#eval_comment_root_form"] = "ecr"
-vim.g["conjure#mapping#eval_comment_word"] = "ecw"
-
--- Log and REPL
-vim.g["conjure#mapping#log_split"] = "ls"
-vim.g["conjure#mapping#log_vsplit"] = "lv"
-vim.g["conjure#mapping#log_tab"] = "lt"
-vim.g["conjure#mapping#log_buf"] = "le"
-vim.g["conjure#mapping#log_toggle"] = "lg"
-vim.g["conjure#mapping#log_close_visible"] = "lq"
-vim.g["conjure#mapping#log_reset_soft"] = "lr"
-vim.g["conjure#mapping#log_reset_hard"] = "lR"
-vim.g["conjure#mapping#log_jump_to_latest"] = "ll"
-
--- Navigation and documentation
-vim.g["conjure#mapping#def_word"] = "gd"
-vim.g["conjure#mapping#doc_word"] = { "K" }
+return M
