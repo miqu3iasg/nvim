@@ -65,7 +65,7 @@ local function scan_and_jump(dir)
 -- unescaped `|`. rg receives `\|` inside the pattern, still read by it as
 -- alternation.
 vim.cmd([[keepjumps silent! grep! "\b(TODO\|FIXME\|HACK\|BUG\|XXX)\b"]])
-	-- restore the user's grepprg from keymaps/editing.lua (set on startup)
+	-- restore the user's grepprg from config/options.lua (set on startup)
 	if vim.fn.executable("rg") == 1 then
 		vim.o.grepprg = "rg --vimgrep"
 	end
