@@ -2,12 +2,6 @@
 
 -- Conjure globals and Lisp-family glue.
 --
--- This plugin is lazy: the src and its trigger filetypes are declared at the
--- bottom of this file via utils.lazy.setup, which defers the plugin/ scripts
--- until the first scheme/lisp/racket buffer and calls configure() (below)
--- right before the :packadd (Conjure reads these globals when its client for
--- a buffer is initialized).
---
 -- This configuration requires Tree-sitter, MIT Scheme, Racket and rlwrap.
 -- Conjure is installed automatically through vim.pack; the treesitter
 -- parsers (scheme, commonlisp, racket) are installed by the main
