@@ -3,7 +3,7 @@
 -- Language servers for frontend development (HTML, CSS, Tailwind CSS, Emmet and
 -- TypeScript/JavaScript), LaTeX, Typst and Markdown. Backend language servers
 -- are intentionally excluded. Java's `jdtls` is installed through Mason but
--- started separately by the Java ftplugin.
+-- started separately by the Java ftplugin (see after/ftplugin/java.lua).
 --
 -- nvim-lspconfig, mason.nvim, mason-lspconfig.nvim and lazydev.nvim must be
 -- installed through the plugin manager. Mason manages the language servers, but

@@ -1,5 +1,5 @@
 -- lua/plugins/latex.lua
---
+
 -- LaTeX support through VimTeX, covering compilation, PDF viewer sync, motions,
 -- folding and the table of contents, plus a hook that copies the compiled PDF
 -- to `exports/`.

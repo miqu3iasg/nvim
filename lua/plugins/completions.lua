@@ -215,9 +215,7 @@ end
 
 local map = vim.keymap.set
 
--- Opens the completion menu on demand where there is no autotrigger. It warns
--- instead of raising E764 when no completion client is attached yet, for
--- example while jdtls is still starting.
+-- Opens the completion menu on demand where there is no autotrigger.
 map("i", "<C-y>", function()
 	if vim.bo.omnifunc == "" then
 		vim.notify("No LSP completion available for this buffer", vim.log.levels.WARN)
