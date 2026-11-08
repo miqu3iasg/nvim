@@ -35,9 +35,6 @@
 -- See: https://github.com/mason-org/mason.nvim
 -- See: :h vim.lsp.completion
 
--- FIXME: there's a bug in completion popups. I tested open it in a java buffer hitting
--- <C-y>, but I got this error message: "E764: Option 'omnifunc' is not set"
-
 -- Modules under lua/snippets/, required lazily the first time a buffer of that
 -- filetype is opened. Keys are filetypes, values are Lua module names.
 -- `common` is loaded with the first filetype that inherits it.
@@ -110,10 +107,12 @@ local TRIGGER_FILETYPES = {
 ---@type table<integer, boolean>
 local completion_bufs = {}
 
----Enable native LSP completion on `buf` when the client supports it, the
----filetype is in TRIGGER_FILETYPES, and no feature guard turned completion
----off for the buffer. The bigfile check re-uses the same heuristic so huge
----files never get an autotrigger.
+---Enable native LSP completion on `buf` when the client supports it and no
+---feature guard turned completion off for the buffer. Enabling it is what
+---sets the buffer's `omnifunc`, so it happens for every filetype (manual
+---completion with <C-y>); only the automatic popup (`autotrigger`) is
+---restricted to TRIGGER_FILETYPES. The bigfile check re-uses the same
+---heuristic so huge files never get completion at all.
 ---@param client vim.lsp.Client
 ---@param buf integer
 local function maybe_enable(client, buf)
@@ -128,7 +127,9 @@ local function maybe_enable(client, buf)
 	end
 
 	completion_bufs[buf] = true
-	vim.lsp.completion.enable(true, client.id, buf, { autotrigger = true })
+
+	local autotrigger = TRIGGER_FILETYPES[vim.bo[buf].filetype] == true
+	vim.lsp.completion.enable(true, client.id, buf, { autotrigger = autotrigger })
 end
 
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -231,8 +232,16 @@ end
 local map = vim.keymap.set
 
 -- <C-y>: open the LSP/omni completion menu on demand, where no autotrigger
--- exists (vim.lsp.completion is wired to the omni menu in 0.12+).
-map("i", "<C-y>", "<C-x><C-o>", { desc = "Trigger LSP completion" })
+-- exists (vim.lsp.completion is wired to the omni menu in 0.12+). When no
+-- completion client is attached yet (e.g. jdtls still starting), warn instead
+-- of raising E764 ("Option 'omnifunc' is not set").
+map("i", "<C-y>", function()
+	if vim.bo.omnifunc == "" then
+		vim.notify("No LSP completion available for this buffer", vim.log.levels.WARN)
+		return ""
+	end
+	return "<C-x><C-o>"
+end, { expr = true, desc = "Trigger LSP completion" })
 
 -- <CR>: accept the selected item, or newline when the menu is closed.
 map("i", "<CR>", function()
@@ -250,7 +259,7 @@ local function select_item(dir)
 			end)
 			return ""
 		end
-		return vim.fn.pumvisible() == 1 and (dir == 1 and "<C-n>" or "<C-p>") or (dir == 1 and "<C-n>" or "<C-p>")
+		return dir == 1 and "<C-n>" or "<C-p>"
 	end
 end
 
