@@ -1,38 +1,44 @@
 -- lua/plugins/lisp.lua
 
--- Conjure globals and Lisp-family glue.
+-- Interactive REPL-driven evaluation for Lisp-family languages through Conjure,
+-- configured here for Scheme with MIT Scheme as the REPL. Racket and Common Lisp
+-- buffers also load Conjure.
 --
--- This configuration requires Tree-sitter, MIT Scheme, Racket and rlwrap.
--- Conjure is installed automatically through vim.pack; the treesitter
--- parsers (scheme, commonlisp, racket) are installed by the main
--- ts.install() list in lua/plugins/treesitter.lua.
+-- Conjure is loaded lazily. The plugin is declared at the bottom of this file
+-- and its scripts are only loaded on the first Scheme, Lisp, Racket or Clojure
+-- buffer, right after `configure()` sets the globals that Conjure reads when it
+-- starts.
 --
--- On Arch Linux, install the available dependencies with pacman:
+-- Conjure must be declared in `pack.lua` and installed through the plugin
+-- manager. The Tree-sitter parsers for scheme, commonlisp and racket are
+-- installed by the list in `lua/plugins/treesitter.lua`.
 --
--- $ sudo pacman -S tree-sitter-cli racket rlwrap
+-- Racket, rlwrap and the Tree-sitter CLI must be installed on the system.
+-- `unbuffer`, which keeps the REPL output from being buffered, comes with
+-- `expect`. On Arch Linux:
+--
+-- $ sudo pacman -S tree-sitter-cli racket rlwrap expect
 --
 -- MIT Scheme is available through the AUR:
 --
 -- $ yay -S mit-scheme
 --
--- A known build issue may occur when installing MIT Scheme 12.1 from the AUR.
--- Arch Linux's glibc defines `_POSIX_C_SOURCE` with a newer value than the
--- MIT Scheme source expects. The source then attempts to redefine the macro,
--- and the build fails because warnings are treated as errors (`-Werror`).
--- Debian already provides an official patch for this issue.
+-- Building MIT Scheme 12.1 from the AUR may fail on Arch Linux. The glibc
+-- defines `_POSIX_C_SOURCE` with a newer value than the source expects, so the
+-- source tries to redefine the macro, and the build fails because warnings are
+-- treated as errors (`-Werror`). Debian already provides an official patch.
 --
--- To find possible fixes, search for:
---
--- "mit-scheme AUR chacha12.c _POSIX_C_SOURCE redefined error Arch Linux"
---
--- One workaround is to edit the `PKGBUILD` in `~/.cache/yay/mit-scheme`
--- and update its `prepare()` function to insert the appropriate values
--- using `sed`. Then remove the cached build directories and rebuild:
+-- One workaround is to edit the `PKGBUILD` in `~/.cache/yay/mit-scheme` and
+-- update its `prepare()` function to adjust the macro with `sed`. Then remove
+-- the cached build directories and rebuild:
 --
 -- $ rm -rf ~/.cache/yay/mit-scheme/src ~/.cache/yay/mit-scheme/pkg
 -- $ cd ~/.cache/yay/mit-scheme
 -- $ makepkg -si
 --
+-- See: lua/utils/lazy.lua
+-- See: lua/plugins/treesitter.lua
+-- See: https://github.com/Olical/conjure
 -- See: https://web.mit.edu/scheme/current/doc/mit-scheme-user/Introduction.html
 -- See: https://www.shido.info/lisp/scheme1_e.html
 -- See: https://www.mail-archive.com/debian-bugs-closed@lists.debian.org/msg850823.html
@@ -40,28 +46,25 @@
 
 local M = {}
 
--- Triggered only once per session, by utils/lazy before the conjure packadd.
+---Set the Conjure globals. Called once per session by `utils.lazy`, before
+---Conjure is loaded.
 function M.configure()
-	-- Set the local leader before defining Conjure's key mappings
+	-- The local leader must be set before Conjure defines its mappings.
 	if vim.g.maplocalleader == nil or vim.g.maplocalleader == "" then
 		vim.g.maplocalleader = ","
 	end
 
-	-- Conjure reads these globals when it starts for a Lisp, Scheme or Racket
-	-- buffer
 	vim.g["conjure#filetype#scheme"] = "conjure.client.scheme.stdio"
 	vim.g["conjure#client#scheme#stdio#command"] = "unbuffer -p mit-scheme"
 
-	-- Disable the floating HUD and use a docked split instead
+	-- A docked split on the far right replaces the floating HUD.
 	vim.g["conjure#log#hud#enabled"] = false
-	vim.g["conjure#log#botright"] = true -- Dock on the far right, full height
+	vim.g["conjure#log#botright"] = true
 	vim.g["conjure#log#split#width"] = 0.5
 	vim.opt.splitright = true
 
-	-- Highlight the evaluated form briefly
 	vim.g["conjure#highlight#enabled"] = true
 
-	-- Evaluation
 	vim.g["conjure#mapping#eval_current_form"] = "ee"
 	vim.g["conjure#mapping#eval_root_form"] = "er"
 	vim.g["conjure#mapping#eval_word"] = "ew"
@@ -73,13 +76,11 @@ function M.configure()
 	vim.g["conjure#mapping#eval_previous"] = "ep"
 	vim.g["conjure#mapping#eval_replace_form"] = "e!"
 
-	-- Evaluation with the result inserted as a comment
 	vim.g["conjure#eval#comment_prefix"] = "; => "
 	vim.g["conjure#mapping#eval_comment_current_form"] = "ece"
 	vim.g["conjure#mapping#eval_comment_root_form"] = "ecr"
 	vim.g["conjure#mapping#eval_comment_word"] = "ecw"
 
-	-- Log and REPL
 	vim.g["conjure#mapping#log_split"] = "ls"
 	vim.g["conjure#mapping#log_vsplit"] = "lv"
 	vim.g["conjure#mapping#log_tab"] = "lt"
@@ -90,14 +91,12 @@ function M.configure()
 	vim.g["conjure#mapping#log_reset_hard"] = "lR"
 	vim.g["conjure#mapping#log_jump_to_latest"] = "ll"
 
-	-- Navigation and documentation
 	vim.g["conjure#mapping#def_word"] = "gd"
 	vim.g["conjure#mapping#doc_word"] = { "K" }
 
-	-- Automatically open the log split on the first Scheme, Lisp or Racket
-	-- buffer. This is best-effort; if it fails, <localleader>lv opens the log
-	-- manually. Registered here so the autocmd exists only while conjure is
-	-- actually loaded.
+	-- Opens the log split on the first Scheme, Lisp or Racket buffer, on a
+	-- best-effort basis. It is registered here so that it only exists while
+	-- Conjure is loaded.
 	vim.api.nvim_create_autocmd("FileType", {
 		group = vim.api.nvim_create_augroup("conjure_auto_log_split", { clear = true }),
 		pattern = { "scheme", "lisp", "racket" },
@@ -117,13 +116,7 @@ function M.configure()
 	})
 end
 
--- Declares this plugin as lazy (see the pattern in lua/utils/lazy.lua):
--- the module only registers the spec here; configure() runs on the first
--- scheme/lisp buffer, before the :packadd.
 require("utils.lazy").setup({
-	-- conjure
-	-- https://github.com/Olical/conjure
-	-- Interactive REPL-driven evaluation for Lisps (Clojure, Fennel, Scheme, ...).
 	src = "https://github.com/Olical/conjure",
 	filetypes = { "scheme", "lisp", "racket", "clojure" },
 	configure = M.configure,

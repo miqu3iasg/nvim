@@ -1,8 +1,5 @@
 -- init.lua
 
--- Entry point. Enables vim.loader (caches compiled Lua bytecode so `require`
--- calls are faster on later startups) and neuters vim.deprecate, which would
--- otherwise raise deprecation errors from third-party code.
 vim.loader.enable()
 vim.deprecate = function() end
 

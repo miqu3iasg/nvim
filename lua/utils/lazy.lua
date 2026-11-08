@@ -1,78 +1,61 @@
 -- lua/utils/lazy.lua
 
--- Generic filetype-based lazy-loading for vim.pack plugins. Each plugin's own
--- config file in lua/plugins/ declares itself with `setup(spec)`;
--- lua/config/pack.lua stays declarations-only for eager plugins.
+-- Filetype-based lazy loading for vim.pack plugins. Each plugin's own file in
+-- `lua/plugins/` declares itself with `setup(spec)`, so `lua/config/pack.lua`
+-- stays limited to declarations of eager plugins.
 --
--- The plugin is added to the runtimepath at startup but its plugin/ scripts do
--- not run until the first buffer of one of the listed filetypes appears (or
--- until `load(name)` is called manually). Loading runs `configure`, then
--- `:packadd` (which attaches the plugin to the runtimepath), then `after`, and
--- finally re-runs the FileType chain for the triggering buffer so the plugin's
--- ftplugins (e.g. vimtex#init and its -buffer commands) also apply to it.
+-- The plugin is registered at startup, but its `plugin/` scripts only run when
+-- the first buffer of one of the listed filetypes appears, or when `load(name)`
+-- is called manually. Loading runs `configure`, then `:packadd`, then `after`,
+-- and finally runs the FileType event again for the triggering buffer. The
+-- repeat is needed because the plugin was not on the runtimepath when the
+-- original event ran, so its ftplugins would otherwise be skipped for that
+-- buffer.
 --
--- `configure` runs BEFORE `:packadd`, so it is the place for settings the
--- plugin reads while loading (e.g. globals). Use `after` for anything that
--- needs the plugin already loaded. The plugin name is derived from `src`
--- (basename without `.git`) and must match the directory vim.pack installs.
+-- `configure` runs before `:packadd`, so it is the place for settings the plugin
+-- reads while loading, such as globals. `after` is for anything that needs the
+-- plugin already loaded. The plugin name is derived from `src` and must match
+-- the directory that vim.pack installs.
 --
--- Usage, at the end of lua/plugins/myplugin.lua:
---
---   require("utils.lazy").setup({
---     src = "https://github.com/author/myplugin",
---     filetypes = { "foo", "bar" },
---     configure = "plugins.myplugin", -- module with configure(), or a function
---     after = function() end,         -- optional
---   })
---
--- Because the plugin is NOT on the runtimepath at filetype-detection time, a
--- filetype whose detection depends on a global the plugin owns (vimtex's
--- ftdetect sets g:tex_flavor, for example) must set that global in the plugin
--- file's top level - there it runs at startup, before any buffer opens.
---
--- Future extensions (documented here, deliberately not implemented):
---   * cmds - trigger when a user command is typed before its plugin defines
---     it (CmdUndefined event), then re-run the typed command after the
---     :packadd (the approach lazy.nvim takes). Nothing here needs it yet:
---     no lazy plugin is command-first.
---   * keys - trigger on the first use of a mapping owned by a lazy plugin,
---     replaying the typed keys so the real mapping answers it (install a
---     placeholder mapping, packadd, then feedkeys the original). Only worth
---     it for rare-use mappings of heavyweight plugins.
+-- A filetype whose detection depends on a global owned by the plugin must set
+-- that global at the top level of the plugin's file, because the plugin is not
+-- on the runtimepath at detection time.
 --
 -- See: lua/config/pack.lua
+-- See: lua/plugins/latex.lua
 
 ---@class lazy.Spec
----@field src string            -- plugin source (a vim.pack spec)
----@field filetypes? string[]   -- filetypes that trigger the load
----@field version? string       -- optional, passed through to vim.pack
----@field configure? string|fun() -- module name with configure() (globals BEFORE packadd) or a function
----@field after? fun()          -- optional, runs after the packadd
+---@field src string Plugin source, as a vim.pack spec.
+---@field filetypes? string[] Filetypes that trigger the load.
+---@field version? string Passed through to vim.pack.
+---@field configure? string|fun() Module name exposing `configure()`, or a function. Runs before the `:packadd`.
+---@field after? fun() Runs after the `:packadd`.
 
 local M = {}
 
--- name -> spec, filetype -> array of plugin names, load-once guard
 local registered = {}
 local ft_map = {}
 local loaded = {}
 local gate_installed = false
 
----Resolve the plugin name from its source (basename, without ".git").
+---Resolve the plugin name from its source, which is the basename without
+---`.git`.
 ---@param src string
 ---@return string
 local function name_of(src)
 	return (src:gsub("%.git$", ""):match("[^/]+$"))
 end
 
----Install the shared FileType gate, once, no matter how many setups ran.
+---Install the shared FileType gate once, no matter how many setups ran.
 local function ensure_gate()
 	if gate_installed then
 		return
 	end
 	gate_installed = true
 
-	-- No pattern on purpose: an O(1) table lookup is as cheap as the event
-	-- matching, and all lazy plugins stay inspectable in one place (`:au LazyPack`).
+	-- There is no pattern on purpose. A table lookup is as cheap as the event
+	-- matching, and every lazy plugin stays inspectable in one place with
+	-- `:autocmd LazyPack`.
 	vim.api.nvim_create_autocmd("FileType", {
 		group = vim.api.nvim_create_augroup("LazyPack", { clear = true }),
 		callback = function(ev)
@@ -87,13 +70,11 @@ local function ensure_gate()
 	})
 end
 
----Load one plugin (once per session). Safe to call repeatedly, also before
----setup on the same name (a no-op then).
+---Load one plugin, once per session. Calling it repeatedly is safe, and so is
+---calling it before `setup` for the same name, which does nothing.
 ---@param name string
----@param buf? integer buffer that triggered the load: after the packadd, its
----   FileType event is re-run so the plugin's ftplugins apply to it (the
----   ftplugin machinery ran earlier in the chain, when the plugin was
----   still off the runtimepath)
+---@param buf? integer Buffer that triggered the load. Its FileType event is run
+---again after the `:packadd` so the plugin's ftplugins apply to it.
 function M.load(name, buf)
 	local spec = registered[name]
 	if not spec or loaded[name] then
@@ -121,18 +102,16 @@ function M.load(name, buf)
 		pcall(spec.after)
 	end
 
-	-- Re-run the FileType chain for the triggering buffer: with the plugin now
-	-- on the runtimepath (packadd did it), its ftplugin lands first in the
-	-- `runtime!` order, so things like vimtex#init() and the -buffer commands
-	-- (VimtexCompile) get set up for this very buffer. The load guard keeps
-	-- the re-dispatch from loading the plugin twice.
+	-- With the plugin on the runtimepath, its ftplugin runs first in the
+	-- `runtime!` order, which sets up buffer-local commands for this very buffer.
+	-- The load guard prevents the plugin from loading twice.
 	if buf and vim.api.nvim_buf_is_valid(buf) then
 		pcall(vim.api.nvim_exec_autocmds, "FileType", { buffer = buf })
 	end
 end
 
----Declare one lazy plugin: defer its plugin/ scripts and load it later on
----filetype. Called from the plugin's own config file in lua/plugins/.
+---Declare one lazy plugin. Its `plugin/` scripts are deferred until a buffer
+---of one of its filetypes appears.
 ---@param spec lazy.Spec
 function M.setup(spec)
 	local name = name_of(spec.src)
@@ -146,6 +125,7 @@ function M.setup(spec)
 	if spec.version then
 		add_spec.version = spec.version
 	end
+	-- The empty `load` makes vim.pack install the plugin without sourcing it.
 	local ok, err = pcall(vim.pack.add, { add_spec }, { load = function() end })
 	if not ok then
 		vim.notify(("LazyPack: adding %s failed: %s"):format(spec.src, err), vim.log.levels.ERROR)
@@ -153,8 +133,8 @@ function M.setup(spec)
 
 	ensure_gate()
 
-	-- Catch-up for buffers that already have one of the filetypes (restored
-	-- sessions and files opened before this module got required).
+	-- Buffers that already have one of the filetypes, such as restored sessions
+	-- and files opened before this module was required, missed the event.
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		local ft = vim.bo[buf].filetype
 		if ft and vim.list_contains(spec.filetypes or {}, ft) then

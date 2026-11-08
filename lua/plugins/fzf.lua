@@ -1,37 +1,25 @@
 -- lua/plugins/fzf.lua
 
--- This configuration requires fzf, grep, ripgrep and fd to be installed. fzf
--- provides the interactive fuzzy finder and ripgrep powers the text searches
--- used by fzf-lua (including the declaration search).
+-- Fuzzy finder for files, buffers, text, diagnostics and help, built on
+-- fzf-lua. It gives a single interface for navigating a project and for
+-- exploring the source code of a language's standard library through the
+-- declaration search of the stdsrc feature.
 --
--- On Arch Linux, install them with:
+-- fzf-lua must be installed through the plugin manager. The external tools must
+-- be installed on the system, since fzf-lua only wraps them. On Arch Linux:
 --
 -- $ sudo pacman -S fzf grep ripgrep fd
 --
--- The `:StdSrc` command provides interactive, language-aware searches for
--- declarations such as functions, types, methods, imports and macros, on the
--- source code of the language itself (standard library / API), no matter where
--- the current file lives. The language comes from the current buffer (or, in
--- an Oil directory view, from the files shown) and the directories are defined
--- in the `sources` table of lua/features/stdsrc.lua, which also defines the
--- language-specific patterns, categories and file filters. If the language
--- cannot be detected it asks which one to explore, and `Any` falls back to
--- live grep. Opening a result jumps to the declaration in the language's
--- source.
+-- The `:StdSrc` command is registered here, and the directories it searches are
+-- defined in the stdsrc feature.
 --
--- These searches explore local source code, making it useful for studying
--- standard libraries and understanding implementations.
+-- The shell aliases in `~/.config/zsh/aliasesrc` that open language source
+-- directories, such as `stdc`, `stdjava` and `stdpython`, are optional and
+-- specific to this machine.
 --
--- My local shell aliases in ~/.config/zsh/aliasesrc open language source
--- directories using the `std` + language convention:
---
--- $ stdc
--- $ stdjava
--- $ stdpython
---
--- These aliases and the fzf shell settings in ~/.zshrc are optional and
--- specific to my machine.
---
+-- See: lua/features/stdsrc.lua
+-- See: lua/features/todos.lua
+-- See: https://github.com/ibhagwan/fzf-lua
 -- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fzf.vim
 -- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/plugin/fzf.vim
 -- See: https://github.com/james-orcales/james-orcales/blob/main/home/.config/nvim/init.lua
@@ -41,8 +29,7 @@ local stdsrc = require("features.stdsrc")
 
 stdsrc.setup()
 
--- Directories that are never worth searching. Skipping them keeps the file
--- and grep pickers fast.
+-- Skipped by the file and grep pickers to keep them fast.
 ---@type string[]
 local ignored_dirs = {
 	".git",
@@ -60,10 +47,9 @@ local ignored_dirs = {
 	"dist",
 }
 
--- ripgrep: -g "!name" excludes a directory at any depth
+-- The ripgrep glob `-g "!name"` excludes a directory at any depth. The fd flag
+-- `--exclude name` does the same for the detailed file picker.
 local rg_globs = {}
-
--- fd: --exclude name (used by the detailed file picker)
 local fd_excludes = {}
 
 for _, dir in ipairs(ignored_dirs) do
@@ -74,35 +60,31 @@ end
 rg_globs = table.concat(rg_globs, " ")
 fd_excludes = table.concat(fd_excludes, " ")
 
---- Builds the options table passed to `fzf.setup()`: window layout, fzf
---- flags, previewers, actions, keymaps, and the file and grep commands.
----@return table<string, any> opts fzf-lua setup options
+---Build the options table passed to `fzf.setup()`.
+---@return table<string, any>
 local function make_opts()
 	local actions = fzf.actions
 
 	return {
 		winopts = {
-			-- Remove window title
 			on_create = function(e)
 				if e.winid and vim.api.nvim_win_is_valid(e.winid) then
 					vim.api.nvim_win_set_config(e.winid, { title = "" })
 				end
 			end,
 
-			-- Bottom layout
+			height = 0.95,
+			width = 0.90,
+			row = 0.35,
+			col = 0.50,
+			border = "single",
+
 			-- height = 0.22,
 			-- width = 1.0,
 			-- row = 1.0,
 			-- col = 0.0,
 			-- border = { "", "─", "", "", "", "", "", "" },
 			-- backdrop = false,
-
-			-- Popup layout
-			height = 0.95,
-			width = 0.90,
-			row = 0.35,
-			col = 0.50,
-			border = "single",
 
 			title = false,
 			title_flags = false,
@@ -120,8 +102,8 @@ local function make_opts()
 		fzf_opts = {
 			["--ansi"] = true,
 			["--layout"] = "default",
-			["--highlight-line"] = true, -- background on the whole selected line
-			["--info"] = "inline-right", -- match counter at the right of the prompt
+			["--highlight-line"] = true,
+			["--info"] = "inline-right",
 			["--pointer"] = " ",
 			["--no-scrollbar"] = true,
 			["--no-separator"] = true,
@@ -130,12 +112,10 @@ local function make_opts()
 		fzf_colors = {
 			["bg+"] = { "bg", "CursorLine" },
 			["fg+"] = { "fg", "Normal" },
-			-- Prompt in the default text color
 			["prompt"] = { "fg", "Normal" },
-			-- Gutter of the unselected lines, same color as the editor background
 			["gutter"] = { "bg", "Normal" },
-			-- Same color as the selected line background, so the pointer and
-			-- the multi-select marker column become invisible
+			-- The pointer and the multi-select marker use the selected line
+			-- background, which makes their column invisible.
 			["pointer"] = { "bg", "CursorLine" },
 			["marker"] = { "bg", "CursorLine" },
 			["hl"] = { "fg", "Special" },
@@ -170,13 +150,13 @@ local function make_opts()
 			},
 		},
 
+		-- The fzf-lua defaults plus the extra ignores.
 		files = {
-			-- fzf-lua defaults plus the extra ignores
 			rg_opts = "--color=never --files --hidden --follow " .. rg_globs,
 			fd_opts = "--color=never --hidden --type f --type l " .. fd_excludes,
 		},
 
-		-- Hide the line and column fields from grep results
+		-- The line and column fields are hidden from the results.
 		grep = {
 			rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=4096 "
 				.. rg_globs
@@ -191,9 +171,9 @@ end
 
 fzf.setup(make_opts())
 
---- Sets the border highlight groups of the fzf-lua window and its preview.
---- It runs once at startup and again whenever the colorscheme changes,
---- because a colorscheme resets the highlight groups.
+---Set the border highlights of the fzf-lua window and its preview. It also runs
+---on every colorscheme change, because a colorscheme resets the highlight
+---groups.
 local function set_fzf_hl()
 	vim.api.nvim_set_hl(0, "FzfLuaBorder", { fg = "#2a2a2a" })
 	vim.api.nvim_set_hl(0, "FzfLuaPreviewBorder", { fg = "#2a2a2a" })
@@ -205,11 +185,8 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 	callback = set_fzf_hl,
 })
 
--- Keymaps
-
 local km = vim.keymap.set
 
--- Files and directories
 km("n", "<leader>ff", "<cmd>FzfLua files<cr>", { desc = "Fzf: find files in cwd (respects .gitignore)" })
 km("n", "<leader>fd", "<cmd>FzfLua files cwd=%:p:h<cr>", { desc = "Fzf: find files in the current buffer's directory" })
 km("n", "<leader>fz", "<cmd>FzfLua zoxide<cr>", { desc = "Fzf: jump to a frequent directory (zoxide)" })
@@ -222,11 +199,9 @@ km("n", "<leader>fn", function()
 	fzf.files({ cwd = vim.fn.expand("~/.config/nvim") })
 end, { desc = "Fzf: find files in ~/.config/nvim" })
 
--- Buffers and history
 km("n", "<leader>fb", "<cmd>FzfLua buffers<cr>", { desc = "Fzf: switch between open buffers" })
 km("n", "<leader>fo", "<cmd>FzfLua oldfiles<cr>", { desc = "Fzf: reopen recently edited files" })
 
--- Text search
 km("n", "<leader>fg", function()
 	fzf.live_grep({ rg_glob = true })
 end, { desc = "Fzf: live grep in cwd" })
@@ -235,21 +210,16 @@ km("n", "<leader>fw", "<cmd>FzfLua grep_cword<cr>", { desc = "Fzf: grep the word
 km("v", "<leader>fw", fzf.grep_visual, { desc = "Fzf: grep the visual selection" })
 km("n", "<leader>fl", "<cmd>FzfLua blines<cr>", { desc = "Fzf: search lines in the current buffer" })
 
--- Docs and API
 km("n", "<leader>fa", stdsrc.search_source, { desc = "Fzf: search declarations in the language's source repository" })
 km("n", "<leader>fh", "<cmd>FzfLua help_tags<cr>", { desc = "Fzf: search Neovim help tags" })
 km("n", "<leader>fm", "<cmd>FzfLua man_pages<cr>", { desc = "Fzf: search man pages" })
 
--- Tasks
--- Search is provided by the native module in lua/features/todos.lua.
 km("n", "<leader>ft", function()
 	require("features.todos").fzf_search()
 end, { desc = "Fzf: list tasks (TODO/FIXME/...)" })
 
--- Diagnostics
 km("n", "<leader>fx", "<cmd>FzfLua diagnostics_document<cr>", { desc = "Fzf: list LSP diagnostics in current buffer" })
 km("n", "<leader>fX", "<cmd>FzfLua diagnostics_workspace<cr>", { desc = "Fzf: list LSP diagnostics in workspace" })
 
--- Misc
 km("n", "<leader>fk", "<cmd>FzfLua keymaps<cr>", { desc = "Fzf: search all keymaps" })
 km("n", "<leader>fc", "<cmd>FzfLua resume<cr>", { desc = "Fzf: resume the last picker with its previous query" })

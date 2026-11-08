@@ -46,13 +46,11 @@ vim.api.nvim_create_autocmd("PackChanged", {
 
 vim.pack.add({
 	-- canola.nvim (Oil.nvim fork)
-	-- https://forge.barrettruth.com/barrettruth/canola.nvim
 	-- File explorer that lets you edit your filesystem like a normal buffer. It is actually
 	-- a fork of oil.nvim, but an improved version.
 	{ src = "https://forge.barrettruth.com/barrettruth/canola.nvim" },
 
 	-- nvim-treesitter
-	-- https://github.com/nvim-treesitter/nvim-treesitter
 	-- Treesitter integration for parser management, syntax highlighting, and indentation.
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter",
@@ -60,7 +58,6 @@ vim.pack.add({
 	},
 
 	-- nvim-treesitter-textobjects
-	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 	-- Syntax-aware text objects and motions (functions, classes, parameters, etc.).
 	-- Significantly increases the speed of writing code.
 	{
@@ -69,19 +66,16 @@ vim.pack.add({
 	},
 
 	-- obsidian.nvim
-	-- https://github.com/obsidian-nvim/obsidian.nvim
 	-- Note-taking workflow for Obsidian vaults. I use Obsidian as my main note taking app, so
 	-- having this in my study and work environment really improves my workflow.
 	{ src = "https://github.com/obsidian-nvim/obsidian.nvim" },
 
 	-- plenary.nvim
-	-- https://github.com/nvim-lua/plenary.nvim
 	-- Lua utility library (async, paths, jobs, testing). Declared here as a
 	-- required dependency of obsidian.nvim.
 	{ src = "https://github.com/nvim-lua/plenary.nvim" },
 
 	-- LuaSnip
-	-- https://github.com/L3MON4D3/LuaSnip
 	-- Snippet engine written in Lua, with support for dynamic and LSP-style snippets.
 	-- For me, snippets are indispensable in my workflow.
 	{
@@ -90,33 +84,27 @@ vim.pack.add({
 	},
 
 	-- conform.nvim
-	-- https://github.com/stevearc/conform.nvim
 	-- Lightweight formatter runner that applies external formatters (stylua, prettier, etc.).
 	{ src = "https://github.com/stevearc/conform.nvim" },
 
 	-- fzf-lua
-	-- https://github.com/ibhagwan/fzf-lua
 	-- Fuzzy finder for files, grep, buffers, LSP results, and more, powered by fzf.
 	{ src = "https://github.com/ibhagwan/fzf-lua" },
 
 	-- vim-fugitive
-	-- https://github.com/tpope/vim-fugitive
 	-- Git wrapper for running git commands, staging, committing, diffing, and blaming.
 	{ src = "https://github.com/tpope/vim-fugitive" },
 
 	-- vim-rhubarb
-	-- https://github.com/tpope/vim-rhubarb
 	-- Allows open the current git file/selecion/line in GitHub on the browser.
 	{ src = "https://github.com/tpope/vim-rhubarb" },
 
 	-- gitsigns.nvim
-	-- https://github.com/lewis6991/gitsigns.nvim
 	-- Shows git diff markers in the sign column and provides hunk staging, preview, and blame.
 	-- I use it mainly for staging and checking hunks.
 	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 
 	-- mason.nvim
-	-- https://github.com/mason-org/mason.nvim
 	-- Package manager that installs LSP servers, formatters, linters, and debuggers.
 	{
 		-- also used by mason-tool-installer for latex configuration
@@ -124,12 +112,10 @@ vim.pack.add({
 	},
 
 	-- mason-lspconfig.nvim
-	-- https://github.com/mason-org/mason-lspconfig.nvim
 	-- Bridges mason.nvim and nvim-lspconfig, auto-installing and enabling LSP servers.
 	{ src = "https://github.com/mason-org/mason-lspconfig.nvim" },
 
 	-- lazydev.nvim
-	-- https://github.com/folke/lazydev.nvim
 	-- Configures lua_ls for Neovim API and plugin development (completions, types, annotations).
 	{
 		-- Needed for .lua files and configurations
@@ -137,53 +123,44 @@ vim.pack.add({
 	},
 
 	-- nvim-lspconfig
-	-- https://github.com/neovim/nvim-lspconfig
 	-- Collection of default configurations for Neovim's built-in LSP client. Used only for the
 	-- front-end stack (unfortunately, sometimes it’s necessary).
 	-- See: lua/plugins/lsp.lua
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
 
 	-- mini.nvim
-	-- https://github.com/nvim-mini/mini.nvim
 	-- Library of small, independent modules (surround, pairs, statusline, icons, etc.).
 	-- In short, a bunch of unnecessary crap, but cool stuff, nonetheless.
 	{ src = "https://github.com/nvim-mini/mini.nvim" },
 
 	-- vim-tmux-navigator
-	-- https://github.com/christoomey/vim-tmux-navigator
 	-- Seamless navigation between Neovim splits and tmux panes with the same
 	-- keybindings (indispensable).
 	{ src = "https://github.com/christoomey/vim-tmux-navigator" },
 
 	-- nvim-colorizer.lua
-	-- https://github.com/catgoose/nvim-colorizer.lua
 	-- Highlights color codes (hex, rgb, names) in the buffer with their actual color. Useful for
 	-- creating themes.
 	{ src = "https://github.com/catgoose/nvim-colorizer.lua" },
 
 	-- mason-tool-installer.nvim
-	-- https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim
 	-- Automatically installs and updates a declared list of Mason tools.
 	{ src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim" },
 
 	-- nvim-jdtls
-	-- https://github.com/mfussenegger/nvim-jdtls
 	-- Extended Java LSP support for Eclipse JDT Language Server (refactors, test running, debugging).
 	{ src = "https://github.com/mfussenegger/nvim-jdtls" },
 
 	-- vim-sleuth
-	-- https://github.com/tpope/vim-sleuth
 	-- Check if the document uses tabs or spaces for indentation and automatically adjusts
 	{ src = "https://github.com/tpope/vim-sleuth" },
 
 	-- img-clip.nvim
-	-- https://github.com/HakonHarnes/img-clip.nvim
 	-- Pastes images from the clipboard into files (Markdown, LaTeX, etc.) and inserts the link. Useful
 	-- for taking notes in markdown.
 	{ src = "https://github.com/HakonHarnes/img-clip.nvim" },
 
 	-- flash.nvim
-	-- https://github.com/folke/flash.nvim
 	-- Label-based navigation: `s{char}` shows labels on every visible match and jumps
 	-- straight to the one you pick. Also offers treesitter selection and remote operations.
 	{ src = "https://github.com/folke/flash.nvim" },

@@ -1,19 +1,21 @@
 -- lua/plugins/markdown.lua
 
--- Configuration for writing Markdown notes: image pasting and integration with
--- an Obsidian vault.
+-- Markdown note-taking workflow built on obsidian.nvim and img-clip.nvim, so
+-- notes in an Obsidian vault can be created, linked and searched without
+-- leaving Neovim, and images can be pasted straight from the clipboard.
 --
--- The vault path must point to an existing Obsidian vault. The picker used for
--- searching and navigating notes is fzf-lua, so `fzf.lua` must be loaded before
--- this file.
+-- The vault path must point to an existing Obsidian vault. Notes are searched
+-- and navigated through fzf-lua, so `fzf.lua` must be loaded before this file.
+-- obsidian.nvim, img-clip.nvim and plenary.nvim must be installed through the
+-- plugin manager.
 --
 -- Pasted images are saved in `<project-root>/attachments`. Inside the vault they
--- use the wikilink template; anywhere else they use the standard Markdown link.
+-- use the wikilink template, and anywhere else they use the standard Markdown
+-- link.
 --
 -- Markdown language-server features require Marksman to be both installed and
--- enabled in `lua/plugins/lsp.lua`.
---
--- On Arch Linux, install Obsidian with:
+-- enabled in `lua/plugins/lsp.lua`. The Obsidian app is only needed to open
+-- notes in it. On Arch Linux:
 --
 -- $ sudo pacman -S obsidian
 --
@@ -21,6 +23,9 @@
 --
 -- :MasonInstall marksman
 --
+-- See: after/ftplugin/markdown.lua
+-- See: lua/plugins/lsp.lua
+-- See: ~/.local/bin/on
 -- See: https://github.com/HakonHarnes/img-clip.nvim
 -- See: https://github.com/obsidian-nvim/obsidian.nvim
 -- See: https://github.com/nvim-lua/plenary.nvim
@@ -34,17 +39,12 @@ local INBOX_TEMPLATE = "inbox_template"
 
 local km = vim.keymap.set
 
--- Images
-
--- You can see the usage in after/ftplugin/markdown.lua:134
 require("img-clip").setup({
 	default = {
-		-- Always save images in <project-root>/attachments
 		dir_path = function()
 			local root = vim.fs.root(0, { ".git", ".obsidian" }) or vim.fn.expand("%:p:h")
 			return root .. "/attachments"
 		end,
-		-- dir_path = "attachments",
 		relative_to_current_file = false,
 		relative_template_path = true,
 		use_absolute_path = false,
@@ -75,17 +75,15 @@ require("img-clip").setup({
 	},
 })
 
--- Obsidian
-
 local function new_inbox_capture()
 	local title = "CAP-" .. os.date("%Y%m%d-%H%M%S")
 	vim.cmd("Obsidian new " .. title)
+	-- The template is applied on the next tick, once the new note is open.
 	vim.schedule(function()
 		vim.cmd("Obsidian template " .. INBOX_TEMPLATE)
 	end)
 end
 
--- Global mappings, available from any buffer or filetype
 km("n", "<leader>os", "<cmd>Obsidian quick_switch<cr>", { desc = "Obsidian: jump to a note" })
 km("n", "<leader>oi", "<cmd>Obsidian new<cr>", { desc = "Obsidian: quick capture" })
 km("n", "<leader>oc", new_inbox_capture, { desc = "Obsidian: new inbox capture" })
@@ -96,14 +94,12 @@ km("n", "<leader>ot", "<cmd>Obsidian new_from_template<cr>", { desc = "Obsidian:
 local opts = {
 	legacy_commands = false,
 
-	-- Workspace and note creation
 	workspaces = {
 		{ name = "Brain", path = VAULT_PATH },
 	},
 	new_notes_location = "notes_subdir",
 	notes_subdir = "_inbox",
 
-	-- UI and metadata
 	ui = {
 		enable = false,
 	},
@@ -114,7 +110,6 @@ local opts = {
 		enabled = false,
 	},
 
-	-- Links, attachments and completion
 	link = {
 		style = "wiki",
 		format = "shortest",
@@ -131,15 +126,13 @@ local opts = {
 		name = "fzf-lua",
 	},
 
-	-- Daily notes
 	daily_notes = {
-		-- The year used to be hardcoded, which breaks on January 1st.
+		-- The year is computed when this file loads.
 		folder = "journal/daily/" .. os.date("%Y"),
 		date_format = "DD-MM-YYYY",
 		workdays_only = true,
 	},
 
-	-- Templates
 	templates = {
 		folder = "system/templates",
 		date_format = "YYYY-MM-DD",
@@ -148,7 +141,6 @@ local opts = {
 			["DATE:YYYYMMDD-HHmmss"] = function()
 				return os.date("%Y%m%d-%H%M%S")
 			end,
-			-- Also handles the variant with a space after the colon.
 			["DATE: YYYYMMDD-HHmmss"] = function()
 				return os.date("%Y%m%d-%H%M%S")
 			end,
@@ -162,10 +154,8 @@ local opts = {
 		},
 	},
 
-	-- Generate filenames as CAP-YYYYMMDD-HHmmss[-slug], matching the `on` script.
-	-- See: ~/.local/bin/on
 	note_id_func = function(title)
-		-- Title already carries the prefix (e.g. from new_inbox_capture).
+		-- The title may already carry the prefix, as in `new_inbox_capture`.
 		if title and title:match("^CAP%-%d+%-%d+") then
 			return title
 		end
@@ -188,7 +178,6 @@ local opts = {
 
 require("obsidian").setup(opts)
 
--- Trigger command-line completion for partially typed Obsidian commands.
 vim.api.nvim_create_autocmd("CmdlineChanged", {
 	group = vim.api.nvim_create_augroup("obsidian_cmdline_wildtrigger", { clear = true }),
 	callback = function()
@@ -203,7 +192,6 @@ vim.api.nvim_create_autocmd("CmdlineChanged", {
 	end,
 })
 
--- Register mappings only in buffers recognized as vault notes.
 vim.api.nvim_create_autocmd("User", {
 	pattern = "ObsidianNoteEnter",
 	callback = function()

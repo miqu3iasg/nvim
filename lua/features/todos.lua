@@ -1,27 +1,23 @@
 -- lua/features/todos.lua
 
--- Search and navigation for task comments (TODO, FIXME, HACK, BUG, XXX),
--- natively (no plugin). It adds no highlighting on purpose: the keywords live
--- in comments, which treesitter already colors.
+-- Native search and navigation for task comments such as TODO, FIXME, HACK, BUG
+-- and XXX. It adds no highlighting on purpose, since the keywords live in
+-- comments that treesitter already colors.
 --
--- The project is scanned with ripgrep (falling back to grep) into the quickfix
--- list, which is tagged so that `M.jump(dir)` can tell it apart from lists
--- produced by something else. If the current list is a TODO scan it is reused;
--- otherwise a fresh scan runs and jumps to the first match. The scan
--- temporarily overrides 'grepprg' and 'grepformat' and then restores
--- 'grepprg' to the value set in lua/config/options.lua, so that value must
--- stay in sync with the restore in `scan_and_jump`.
+-- The project is scanned with ripgrep, falling back to grep, into a quickfix
+-- list tagged so that it can be told apart from lists produced by something
+-- else. When the current list is a TODO scan it is reused, otherwise a fresh
+-- scan runs and jumps to the first match.
 --
--- `M.fzf_search()` is a live grep restricted to the keywords and requires
--- fzf-lua. ripgrep is optional but recommended: the grep fallback does not
--- exclude as many directories.
+-- The scan temporarily overrides 'grepprg' and 'grepformat' and then restores
+-- 'grepprg' to the value set in `lua/config/options.lua`, so both must stay in
+-- sync with the restore in `scan_and_jump`.
 --
--- Commands and keymaps (installed by `setup()`):
---   :Todos      scan the project and jump to the first match
---   ]t / [t     next / previous task comment
+-- The live grep restricted to the keywords requires fzf-lua. ripgrep is
+-- optional but recommended, since the grep fallback excludes fewer directories.
 --
--- Usage:
---   require("features.todos").setup()
+-- `setup()` registers the `:Todos` command and the navigation keymaps, and must
+-- be called once.
 --
 -- See: lua/plugins/fzf.lua
 -- See: lua/config/options.lua
@@ -29,18 +25,15 @@
 
 local M = {}
 
--- Word boundary at both ends (`\b...\b` in ripgrep/POSIX grep syntax).
 ---@type string
 local RG_PATTERN = [[\b(TODO|FIXME|HACK|BUG|XXX)\b]]
 
--- Marker stored in quickfix properties (w:quickfix_title) when the list was
--- produced by a TODO scan, so jump() can tell it apart from other lists.
+---Title stored in the quickfix list, used to recognize lists made by a scan.
 ---@type string
 local QF_TITLE = "TODO scan"
 
--- Directories that are never worth searching; keeps the scan fast. The globs
--- are single-quoted because 'grepprg' is run through the user's shell (zsh
--- would otherwise expand !** itself and fail).
+-- The globs are single-quoted because 'grepprg' runs through the user's shell,
+-- and zsh would otherwise expand `!**` itself and fail.
 ---@type string
 local RG_GLOBS = "--glob '!**/.git/**' --glob '!**/node_modules/**' --glob '!**/target/**' "
 	.. "--glob '!**/dist/**' --glob '!**/.venv/**' --glob '!**/__pycache__/**' "
@@ -53,8 +46,8 @@ local function is_todo_qf()
 	return info.title == QF_TITLE and #info.items > 0
 end
 
----Run the TODO scan (rg when available, grep otherwise) filling the quickfix
----list, then jump `dir` (1 forwards, -1 backwards) inside it.
+---Scan the project into the quickfix list and jump to its first match, or to
+---its last one when `dir` is -1.
 ---@param dir integer
 local function scan_and_jump(dir)
 	if vim.fn.executable("rg") == 1 then
@@ -66,13 +59,11 @@ local function scan_and_jump(dir)
 		vim.o.grepformat = "%f:%l:%m"
 	end
 
-	-- silent! keeps the "press enter" prompt and hit-errors away; the pattern
-	-- goes in double quotes (single quotes are a mark, not a string, to the Ex
-	-- parser) and the pipes escape as `\|`: :grep ends its arguments at an
-	-- unescaped `|`. rg receives `\|` inside the pattern, still read by it as
-	-- alternation.
+	-- The pattern is in double quotes because single quotes are a mark to the Ex
+	-- parser, and the pipes are escaped because `:grep` ends its arguments at an
+	-- unescaped `|`. ripgrep still reads `\|` as alternation.
 	vim.cmd([[keepjumps silent! grep! "\b(TODO\|FIXME\|HACK\|BUG\|XXX)\b"]])
-	-- restore the user's grepprg from config/options.lua (set on startup)
+	-- Restores the value set in lua/config/options.lua.
 	if vim.fn.executable("rg") == 1 then
 		vim.o.grepprg = "rg --vimgrep"
 	end
@@ -87,9 +78,9 @@ local function scan_and_jump(dir)
 	vim.cmd("normal! zz")
 end
 
----Jump to the next (`dir = 1`) or previous (`dir = -1`) TODO.
----Uses the existing quickfix list when it is a TODO scan, otherwise the list
----belongs to something else and a fresh scan is run.
+---Jump to the next task comment when `dir` is 1, or to the previous one when it
+---is -1. A fresh scan runs unless the current quickfix list is already a TODO
+---scan.
 ---@param dir integer
 function M.jump(dir)
 	if is_todo_qf() then
@@ -104,13 +95,14 @@ function M.jump(dir)
 	scan_and_jump(dir)
 end
 
----fzf-lua live grep restricted to the TODO keywords (replaces :TodoFzfLua).
+---Live grep restricted to the task keywords.
 function M.fzf_search()
 	require("fzf-lua").grep({
 		search = RG_PATTERN,
 		no_esc = true,
 		prompt = "TODO/FIXME> ",
-		silent = true, -- previewer cannot map every ripgrep regex to a vim pattern
+		-- The previewer cannot map every ripgrep regex to a vim pattern.
+		silent = true,
 	})
 end
 

@@ -1,36 +1,31 @@
 -- lua/shared/exports.lua
 
--- Single source of truth for where exported documents go, shared by the
--- pandoc (markdown), vimtex (LaTeX) and tinymist (Typst) setups.
+-- Single source of truth for where exported documents go, shared by the pandoc,
+-- vimtex and tinymist setups.
 --
--- <root>/exports/<reldir>/<name>.pdf     final documents, from any source
--- <root>/.build/<reldir>/<name>/         compilation byproducts (latexmk)
+-- Final documents are written to `<root>/exports/<reldir>/<name>.pdf`, and
+-- compilation byproducts from latexmk go to `<root>/.build/<reldir>/<name>/`.
+-- `<reldir>` is the folder of the note relative to `<root>`, so notes with the
+-- same file name in different folders never overwrite each other. `<root>` is
+-- found through `M.markers`, falling back to the note's own folder. Setting
+-- `vim.g.exports_root` forces one global folder instead.
 --
--- <reldir> is the folder of the note relative to <root>, so notes with the
--- same file name in different folders never overwrite each other. <root> is
--- found through `M.markers`, falling back to the note's own folder. Set
--- `vim.g.exports_root` to force one global folder instead.
+-- Every function takes a `src`, which is a buffer number or a file path. An
+-- unnamed buffer is treated as a file called `scratch` in the current directory.
 --
--- Every function takes a `src`: a buffer number or a file path. An unnamed
--- buffer is treated as a file called `scratch` in the cwd.
---
--- Usage:
---   local exports = require("shared.exports")
---   exports.output_path(0, "pdf")   --> <root>/exports/<reldir>/<name>.pdf
---   exports.build_dir("/a/b/c.tex") --> <root>/.build/<reldir>/c
+-- See: lua/plugins/latex.lua
+-- See: lua/plugins/lsp.lua
 
 local M = {}
 
--- Folder names created under <root>
 ---@type string
 M.exports_dirname = "exports"
 ---@type string
 M.build_dirname = ".build"
 
----Markers that identify the root, searched in order from highest to lowest
----priority. Markers inside the same inner table have equal priority (the
----closest parent with any of them wins). Nested lists need a Neovim whose
----`vim.fs.root` accepts them (0.11+).
+-- Markers are searched in order, from highest to lowest priority. Markers inside
+-- the same inner table have equal priority, and the closest parent with any of
+-- them wins. Nested lists require a Neovim whose `vim.fs.root` accepts them.
 ---@type (string|string[])[]
 M.markers = {
 	".exports-root",
@@ -48,8 +43,7 @@ M.markers = {
 	},
 }
 
----File path of `src`. Buffers without a name resolve to `<cwd>/scratch`.
----@param src integer|string buffer number or file path
+---@param src integer|string Buffer number or file path.
 ---@return string
 local function path_of(src)
 	if type(src) == "number" then
@@ -59,9 +53,9 @@ local function path_of(src)
 	return src
 end
 
----Root folder that holds `exports/` and `.build/` for `src`.
----`vim.g.exports_root`, when set, wins over everything. Otherwise it is the
----closest parent matching `M.markers`, falling back to the folder of `src`.
+---Root folder that holds `exports/` and `.build/` for `src`. `vim.g.exports_root`
+---wins over everything when set. Otherwise it is the closest parent matching
+---`M.markers`, falling back to the folder of `src`.
 ---@param src integer|string
 ---@return string
 function M.root(src)
@@ -72,22 +66,22 @@ function M.root(src)
 	return vim.fs.root(path, M.markers) or vim.fs.dirname(path)
 end
 
----File name of `src` without directory and extension (`/a/note.md` -> `note`).
+---File name of `src` without directory and extension, so `/a/note.md` gives
+---`note`.
 ---@param src integer|string
 ---@return string
 function M.basename(src)
 	return vim.fn.fnamemodify(path_of(src), ":t:r")
 end
 
----Folder for final documents: `<root>/exports`.
 ---@param src integer|string
 ---@return string
 function M.exports_dir(src)
 	return M.root(src) .. "/" .. M.exports_dirname
 end
 
----Folder of the note relative to the root, with a trailing slash ("" if the
----note sits at the root, or outside it).
+---Folder of the note relative to the root, with a trailing slash. It is empty
+---when the note sits at the root or outside it.
 ---@param src integer|string
 ---@return string
 function M.reldir(src)
@@ -100,25 +94,22 @@ function M.reldir(src)
 	return ""
 end
 
----Final document: `<root>/exports/<reldir>/<name>.<ext>`.
+---Path of the final document, `<root>/exports/<reldir>/<name>.<ext>`.
 ---@param src integer|string
----@param ext? string extension without the dot (default `"pdf"`)
+---@param ext? string Extension without the dot, `"pdf"` by default.
 ---@return string
 function M.output_path(src, ext)
 	return M.exports_dir(src) .. "/" .. M.reldir(src) .. M.basename(src) .. "." .. (ext or "pdf")
 end
 
----Output path template for tools that expand file-name variables themselves
----(tinymist), so the actual layout stays in sync with `M.output_path`. The
----pattern uses the variables supported by tinymist (`$root`, `$dir`, `$name`),
----and mirrors `M.output_path`: `<root>/exports/<dir>/<name>`. Use inside an
----`LspAttach`-less setup via `vim.lsp.config(...)` `settings.outputPath`.
+---Output path template for tools that expand file-name variables themselves,
+---such as tinymist. It uses the variables `$root`, `$dir` and `$name` and
+---mirrors `M.output_path`, so the two layouts stay in sync.
 ---@return string
 function M.output_pattern()
 	return ("$root/%s/$dir/$name"):format(M.exports_dirname)
 end
 
----Compilation byproducts folder: `<root>/.build/<reldir>/<name>`.
 ---@param src integer|string
 ---@return string
 function M.build_dir(src)

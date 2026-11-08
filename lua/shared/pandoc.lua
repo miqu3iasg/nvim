@@ -1,40 +1,40 @@
 -- lua/shared/pandoc.lua
 
--- Converts the current markdown buffer to PDF, EPUB, DOCX or HTML by running
--- `pandoc` asynchronously through `vim.system`, so the editor never blocks.
--- The buffer is sent through stdin, so unsaved changes are exported too. The
--- result goes to <repo>/exports/ (see lua/shared/exports.lua) and is opened in
--- zathura (PDF/EPUB) or xdg-open (DOCX/HTML).
+-- Exports the current Markdown buffer to PDF, EPUB, DOCX or HTML by running
+-- `pandoc` asynchronously, so the editor never blocks. The buffer is sent
+-- through stdin, so unsaved changes are exported too. The result goes to the
+-- exports folder and is opened in zathura for PDF and EPUB, or in xdg-open for
+-- DOCX and HTML.
 --
 -- Preview mode builds and opens the document once, then rebuilds it on every
--- `:w`; zathura reloads the file by itself.
+-- save. Zathura reloads the file by itself.
 --
--- Each export loads, in order, the pipeline in ~/.config/nvim/pandoc/
--- defaults.yaml, an optional `defaults.yaml` in the note's folder or a parent
--- folder, the default layout and language in metadata.yaml, and a profile from
--- profiles/<name>.yaml if one is requested (`:Pandoc pdf abnt`). Later files
--- win, and the YAML header of the note overrides all of them.
+-- Each export loads the pipeline in `~/.config/nvim/pandoc/defaults.yaml`, an
+-- optional `defaults.yaml` in the note's folder or a parent folder, the default
+-- layout and language in `metadata.yaml`, and a profile from `profiles/` when
+-- one is requested. Later files win, and the YAML header of the note overrides
+-- all of them.
 --
--- Wikilinks become plain text, and ![[image.png|300]] becomes a real image,
+-- Wikilinks become plain text, and Obsidian image embeds become real images,
 -- looked up in any `attachments/` folder above the note. Citations are
--- disabled, so "@john" is always plain text.
---
--- A second filter (filters/metadata-block.lua) adds a block with the reference
--- fields of the note (file_name, authors, description, source, location,
--- external_urls) below the title. Its labels follow the `lang` of the
--- document.
+-- disabled, so `@john` is always plain text. A second filter adds a block with
+-- the reference fields of the note below the title, with labels that follow the
+-- `lang` of the document.
 --
 -- Nothing is notified on success. Errors and pandoc warnings are shown with
 -- pandoc's own message.
 --
--- Packages on Arch Linux:
+-- On Arch Linux, install the viewer and the export tools with:
 --
--- $ sudo pacman -S pandoc-cli zathura zathura-pdf-mupdf
+-- $ sudo pacman -S pandoc-cli zathura zathura-pdf-mupdf xdg-utils
+--
+-- PDF export through XeTeX needs these TeX Live packages:
 --
 -- $ sudo pacman -S texlive-xetex texlive-latex texlive-latexextra texlive-latexrecommended texlive-fontsrecommended texlive-langportuguese
 --
+-- See: lua/shared/exports.lua
 -- See: https://pandoc.org/MANUAL.html
--- See: https://neovim.io/doc/user/lua.html#vim.system()
+-- See: :help vim.system()
 
 local exports = require("shared.exports")
 
@@ -55,27 +55,24 @@ local M = {}
 M.formats = { "pdf", "epub", "docx", "html" }
 M.viewers = { pdf = "zathura", epub = "zathura", docx = "xdg-open", html = "xdg-open" }
 M.config_dir = vim.fn.stdpath("config") .. "/pandoc"
-
--- Last file built for each buffer
 M.last = {}
 
----@type string?
 local home = vim.uv.os_homedir()
 
----@param msg string Error message to display.
+---@param msg string
 local function notify_error(msg)
 	vim.notify("pandoc: " .. vim.trim(msg), vim.log.levels.ERROR)
 end
 
----@param path string File path to check.
----@return boolean # Whether the file exists and is readable.
+---@param path string
+---@return boolean
 local function readable(path)
 	return vim.fn.filereadable(path) == 1
 end
 
--- Folder of the note, or the cwd for an unnamed buffer
----@param buf integer Buffer number.
----@return string # Directory containing the buffer's file, or the current working directory for an unnamed buffer.
+---Folder of the note, or the current directory for an unnamed buffer.
+---@param buf integer
+---@return string
 local function note_dir(buf)
 	local name = vim.api.nvim_buf_get_name(buf)
 	if name == "" then
@@ -84,10 +81,10 @@ local function note_dir(buf)
 	return vim.fs.dirname(name)
 end
 
--- True when the YAML header of the note defines `key`
----@param buf integer Buffer number containing the Markdown note.
----@param key string YAML frontmatter key to look for.
----@return boolean # Whether the key is defined in the note's YAML frontmatter.
+---Whether the YAML header of the note defines `key`.
+---@param buf integer
+---@param key string
+---@return boolean
 local function frontmatter_has(buf, key)
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, 300, false)
 	if not (lines[1] and lines[1]:match("^%-%-%-%s*$")) then
@@ -104,7 +101,7 @@ local function frontmatter_has(buf, key)
 	return false
 end
 
----@return string[] # Available profile names, without the `.yaml` extension.
+---@return string[] Profile names without the `.yaml` extension.
 local function list_profiles()
 	local names = {}
 	for _, f in ipairs(vim.fn.glob(M.config_dir .. "/profiles/*.yaml", false, true)) do
@@ -113,16 +110,14 @@ local function list_profiles()
 	return names
 end
 
----@type table<string, boolean> recognized image extensions
+---@type table<string, boolean>
 local image_exts = { png = true, jpg = true, jpeg = true, pdf = true, svg = true }
 
--- Obsidian embeds, which pandoc does not parse reliably:
---   ![[img.png]]        ->  ![](img.png)
---   ![[img.png|300]]    ->  ![](img.png){width=300px}
---   ![[img.png|a cap]]  ->  ![a cap](img.png)
---   ![[Other note]]     ->  Other note
----@param text string Markdown source to preprocess.
----@return string # Markdown with Obsidian embeds converted to Pandoc-compatible syntax.
+---Convert Obsidian embeds, which pandoc does not parse reliably. An image embed
+---becomes a Markdown image, where `|300` sets the width and `|text` sets the
+---caption. An embed of another note becomes its plain name.
+---@param text string
+---@return string
 local function preprocess(text)
 	return (
 		text:gsub("!%[%[([^%]\n]-)%]%]", function(inner)
@@ -149,9 +144,10 @@ local function preprocess(text)
 	)
 end
 
--- Folders named `attachments` in the note's folder and in every parent up to $HOME
----@param indir string Directory containing the note.
----@return string # Colon-separated resource path containing the note directory and discovered `attachments/` directories.
+---Colon-separated resource path made of the note's folder and every
+---`attachments/` folder in the parents up to `$HOME`.
+---@param indir string
+---@return string
 local function resource_path(indir)
 	local dirs = { "." }
 	for dir in vim.fs.parents(indir .. "/x") do
@@ -165,9 +161,9 @@ local function resource_path(indir)
 	return table.concat(dirs, ":")
 end
 
----@param opts? PandocBuildOptions Export options.
----@param on_done? fun(output_path: string) Callback invoked after a successful export, receiving the output file path.
----@return nil
+---Export a buffer asynchronously.
+---@param opts? PandocBuildOptions
+---@param on_done? fun(output_path: string) Called after a successful export.
 function M.build(opts, on_done)
 	opts = opts or {}
 	local fmt = (opts.fmt and opts.fmt ~= "") and opts.fmt or "pdf"
@@ -196,7 +192,7 @@ function M.build(opts, on_done)
 	local out = exports.output_path(buf, fmt)
 	vim.fn.mkdir(vim.fs.dirname(out), "p")
 
-	-- Order matters, pandoc applies options as they appear, later ones win
+	-- Pandoc applies options as they appear, so later ones win.
 	local cmd = { "pandoc", "-o", out, "-d", defaults }
 
 	local project = vim.fs.find("defaults.yaml", { path = indir, upward = true, stop = home })[1]
@@ -205,7 +201,7 @@ function M.build(opts, on_done)
 	end
 
 	-- Metadata files lose against the YAML header of the note, so any note can
-	-- override language, margins, font size...
+	-- override language, margins and font size.
 	local meta = M.config_dir .. "/metadata.yaml"
 	if readable(meta) then
 		cmd[#cmd + 1] = "--metadata-file=" .. meta
@@ -214,21 +210,21 @@ function M.build(opts, on_done)
 		cmd[#cmd + 1] = "--metadata-file=" .. profile_file
 	end
 
-	-- Filters run in this order: wikilinks first, so [[links]] inside the
-	-- metadata values are already plain text when the block is built
+	-- The wikilinks filter runs first, so links inside the metadata values are
+	-- already plain text when the metadata block is built.
 	cmd[#cmd + 1] = "--lua-filter=" .. M.config_dir .. "/filters/wikilinks.lua"
 	cmd[#cmd + 1] = "--lua-filter=" .. M.config_dir .. "/filters/metadata-block.lua"
 	cmd[#cmd + 1] = "--resource-path=" .. resource_path(indir)
 
-	-- The buffer goes through stdin, so pandoc does not know the file name;
-	-- always pass the real one (with extension). Command-line metadata wins
-	-- over the YAML header, so this also overrides `file_name` in the note
+	-- The buffer goes through stdin, so pandoc does not know the file name.
+	-- Command-line metadata wins over the YAML header, so this also overrides
+	-- `file_name` in the note.
 	if name ~= "" then
 		cmd[#cmd + 1] = "--metadata=file_name:" .. vim.fs.basename(name)
 	end
 
-	-- EPUB needs a title and HTML a page title; use the file name when the
-	-- note has none
+	-- EPUB needs a title and HTML needs a page title, so the file name is used
+	-- when the note has none.
 	if not frontmatter_has(buf, "title") then
 		if fmt == "epub" then
 			cmd[#cmd + 1] = "--metadata=title:" .. base
@@ -260,8 +256,7 @@ function M.build(opts, on_done)
 	end
 end
 
----@param file string Path to the exported document to open.
----@return nil
+---@param file string
 function M.open(file)
 	local viewer = M.viewers[file:match("%.(%w+)$")] or "xdg-open"
 	local ok, err = pcall(vim.system, { viewer, file }, { detach = true })
@@ -270,9 +265,10 @@ function M.open(file)
 	end
 end
 
--- preview: build and open once; rebuild on every :w (zathura reloads by itself)
----@param opts? PandocBuildOptions Export options used for the initial build and subsequent rebuilds.
----@return nil
+---Toggle the preview of the current buffer. Turning it on builds and opens the
+---document once and rebuilds it on every save, and turning it off removes the
+---rebuild.
+---@param opts? PandocBuildOptions
 function M.preview(opts)
 	opts = vim.deepcopy(opts or {})
 	local buf = vim.api.nvim_get_current_buf()
@@ -298,18 +294,19 @@ function M.preview(opts)
 	M.build(opts, M.open)
 end
 
----@return nil
+---Register the buffer-local commands and keymaps. Meant to be called from the
+---Markdown ftplugin.
 function M.setup()
-	---@param a { fargs: string[] } Command arguments received by the user command.
-	---@return PandocBuildOptions # Export options parsed from the command arguments.
+	---@param a { fargs: string[] }
+	---@return PandocBuildOptions
 	local function parse(a)
 		return { fmt = a.fargs[1], profile = a.fargs[2] }
 	end
 
-	-- :Pandoc [format] [profile]
-	---@param lead string Current argument prefix being completed.
-	---@param line string Full command line entered by the user.
-	---@return string[] # Completion candidates matching the current prefix.
+	---Complete the format first and the profile second.
+	---@param lead string
+	---@param line string
+	---@return string[]
 	local function complete(lead, line)
 		local args = vim.split(line, "%s+", { trimempty = true })
 		local index = #args + (line:match("%s$") and 1 or 0)
@@ -327,9 +324,6 @@ function M.setup()
 		M.preview(parse(a))
 	end, { nargs = "*", complete = complete })
 
-	---@param lhs string Local keymap suffix, appended to `<localleader>`.
-	---@param rhs string|fun() Mapping action.
-	---@param desc string Human-readable description of the mapping.
 	local map = function(lhs, rhs, desc)
 		vim.keymap.set("n", "<localleader>" .. lhs, rhs, { buffer = true, desc = "Pandoc: " .. desc })
 	end

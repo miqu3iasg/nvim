@@ -1,21 +1,23 @@
 -- lua/plugins/completions.lua
 
--- Completion without any completion plugin: native LSP completion
--- (`vim.lsp.completion.enable`, autotrigger only on the filetypes listed in
--- TRIGGER_FILETYPES) plus LuaSnip for snippets.
+-- Completion without a completion plugin, using native LSP completion and
+-- LuaSnip for snippets. The menu has the LSP as its only source, so snippets
+-- sent by language servers show up there, but LuaSnip's own snippets do not.
+-- Those are expanded by trigger, autosnippet or through the snippet keymaps
+-- below.
 --
--- The menu has the LSP as its only source. Snippets sent by language servers
--- show up there, but LuaSnip's own snippets do not: those are expanded by
--- trigger, autosnippet or <Tab> (see the keymaps below). Outside
--- TRIGGER_FILETYPES completion is manual with <C-y>, and <C-x><C-o> opens the
--- LSP omnifunc (VimTeX also hooks in through it).
+-- The menu opens automatically only on the filetypes listed in
+-- `TRIGGER_FILETYPES`. On every other filetype completion is manual, and the
+-- LSP omnifunc is also available, which VimTeX hooks into as well.
 --
--- Snippet definitions live under lua/snippets/ and are loaded lazily by
--- filetype.
+-- LuaSnip must be declared in `pack.lua` and installed through the plugin
+-- manager. Snippet definitions live under `lua/snippets/` and are loaded lazily
+-- by filetype.
 --
--- Completion depends on the language servers and formatters configured in
--- lua/plugins/lsp.lua and lua/plugins/formatting.lua. Mason installs the
--- external tools; the LSP configuration decides how Neovim starts them.
+-- Completion depends on the language servers configured in
+-- `lua/plugins/lsp.lua`. Language servers and formatters are installed through
+-- Mason, according to the languages in use, with `:Mason` or `:MasonInstall`
+-- followed by package names.
 --
 -- On Arch Linux, install the Tree-sitter CLI and the system dependencies with:
 --
@@ -27,20 +29,16 @@
 -- :TSInstall c java python lua scheme racket sql markdown javascript typescript
 -- :TSInstall html css json jsonc yaml toml bash latex typst
 --
--- Language servers and formatters are installed through Mason (:Mason, or
--- :MasonInstall followed by package names), according to the languages you use.
---
+-- See: lua/plugins/lsp.lua
+-- See: lua/plugins/formatting.lua
 -- See: https://github.com/L3MON4D3/LuaSnip
 -- See: https://github.com/nvim-treesitter/nvim-treesitter
 -- See: https://github.com/mason-org/mason.nvim
--- See: :h vim.lsp.completion
+-- See: :help vim.lsp.completion
 
--- FIXME: there's a bug in completion popups. I tested open it in a java buffer hitting
--- <C-y>, but I got this error message: "E764: Option 'omnifunc' is not set"
-
--- Modules under lua/snippets/, required lazily the first time a buffer of that
--- filetype is opened. Keys are filetypes, values are Lua module names.
--- `common` is loaded with the first filetype that inherits it.
+-- Keys are filetypes and values are modules under `lua/snippets/`, required the
+-- first time a buffer of that filetype is opened. `common` is loaded by the
+-- filetypes that inherit it.
 ---@type table<string, string>
 local snippet_modules = {
 	tex = "snippets.latex",
@@ -54,7 +52,6 @@ local snippet_modules = {
 	common = "snippets.common",
 }
 
--- Filetypes that reuse the snippets of another filetype.
 ---@type table<string, string>
 local aliases = {
 	scheme = "lisp",
@@ -62,7 +59,6 @@ local aliases = {
 	plsql = "sql",
 }
 
--- Filetypes that also inherit the "common" snippets.
 ---@type table<string, boolean>
 local common_filetypes = {
 	python = true,
@@ -84,10 +80,6 @@ local common_filetypes = {
 	css = true,
 }
 
--- LSP Completion (native)
-
--- Filetypes where the completion menu opens automatically. Every other
--- filetype completes on demand with <C-y>.
 ---@type table<string, boolean>
 local TRIGGER_FILETYPES = {
 	javascript = true,
@@ -105,15 +97,14 @@ local TRIGGER_FILETYPES = {
 	toml = true,
 }
 
--- Buffers that already got completion configured (per-buffer state survives
--- the client id changing, and keeps the map from growing unbounded).
+-- Tracked per buffer, so it survives the client id changing.
 ---@type table<integer, boolean>
 local completion_bufs = {}
 
----Enable native LSP completion on `buf` when the client supports it, the
----filetype is in TRIGGER_FILETYPES, and no feature guard turned completion
----off for the buffer. The bigfile check re-uses the same heuristic so huge
----files never get an autotrigger.
+---Enable native LSP completion on `buf` when the client supports it and the
+---buffer is not guarded against it. Enabling it is what sets the buffer's
+---`omnifunc`, so it happens for every filetype, and only the automatic popup is
+---restricted to `TRIGGER_FILETYPES`. Huge files never get completion.
 ---@param client vim.lsp.Client
 ---@param buf integer
 local function maybe_enable(client, buf)
@@ -128,7 +119,9 @@ local function maybe_enable(client, buf)
 	end
 
 	completion_bufs[buf] = true
-	vim.lsp.completion.enable(true, client.id, buf, { autotrigger = true })
+
+	local autotrigger = TRIGGER_FILETYPES[vim.bo[buf].filetype] == true
+	vim.lsp.completion.enable(true, client.id, buf, { autotrigger = autotrigger })
 end
 
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -142,19 +135,17 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
--- Buffers attached before this file ran (e.g. restored sessions) missed their
--- LspAttach event.
+-- Buffers attached before this file ran, such as restored sessions, missed
+-- their LspAttach event.
 for _, client in ipairs(vim.lsp.get_clients({ bufnr = -1 })) do
 	for _, buf in ipairs(client.attached_buffers) do
 		maybe_enable(client, buf)
 	end
 end
 
--- Markdown is prose: it is deliberately not in TRIGGER_FILETYPES. Obsidian's
--- completion triggers through its LSP separately, so note-link completion
--- works when typing [[.
-
--- LuaSnip Setup
+-- Markdown is prose, so it is deliberately not in `TRIGGER_FILETYPES`.
+-- Obsidian's completion triggers through its LSP separately, so note-link
+-- completion works when typing `[[`.
 
 local luasnip = require("luasnip")
 
@@ -166,7 +157,6 @@ luasnip.setup({
 	delete_check_events = "TextChanged",
 })
 
--- `filetype_extend` is cheap, so it stays eager
 for ft in pairs(common_filetypes) do
 	luasnip.filetype_extend(ft, { "common" })
 end
@@ -175,17 +165,14 @@ for ft, base in pairs(aliases) do
 	luasnip.filetype_extend(ft, { base })
 end
 
--- Lazy Snippet Loading
-
--- Buffers whose filetype already went through the lazy loader, so the
--- snippets module is required only once per filetype.
+-- Each snippet module is required only once.
 ---@type table<string, boolean>
 local loaded = {}
 
---- Requires one snippet module and registers its snippets for the filetype.
---- Failures are reported with `vim.notify` instead of raising an error, so a
---- broken snippet file never blocks completion.
----@param name string Filetype key into `snippet_modules` (after alias resolution).
+---Require one snippet module and register its snippets. Failures are reported
+---with `vim.notify` instead of raised, so a broken snippet file never blocks
+---completion.
+---@param name string Key of `snippet_modules`, after alias resolution.
 local function load(name)
 	local module = snippet_modules[name]
 
@@ -202,9 +189,9 @@ local function load(name)
 	end
 end
 
---- Entry point for the lazy snippet loader. Resolves aliases first, then
---- additionally loads the shared `common` snippets when the filetype opts in.
----@param ft string Filetype of the buffer that triggered the load.
+---Load the snippets of a filetype, resolving aliases first and adding the
+---`common` snippets when the filetype inherits them.
+---@param ft string
 local function load_snippets(ft)
 	load(aliases[ft] or ft)
 	if common_filetypes[ft] then
@@ -219,29 +206,32 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- Buffers opened before this file ran missed their FileType event
+-- Buffers opened before this file ran missed their FileType event.
 for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 	if vim.api.nvim_buf_is_loaded(buf) then
 		load_snippets(vim.bo[buf].filetype)
 	end
 end
 
--- Keymaps (completion and snippets)
-
 local map = vim.keymap.set
 
--- <C-y>: open the LSP/omni completion menu on demand, where no autotrigger
--- exists (vim.lsp.completion is wired to the omni menu in 0.12+).
-map("i", "<C-y>", "<C-x><C-o>", { desc = "Trigger LSP completion" })
+-- Opens the completion menu on demand where there is no autotrigger. It warns
+-- instead of raising E764 when no completion client is attached yet, for
+-- example while jdtls is still starting.
+map("i", "<C-y>", function()
+	if vim.bo.omnifunc == "" then
+		vim.notify("No LSP completion available for this buffer", vim.log.levels.WARN)
+		return ""
+	end
+	return "<C-x><C-o>"
+end, { expr = true, desc = "Trigger LSP completion" })
 
--- <CR>: accept the selected item, or newline when the menu is closed.
 map("i", "<CR>", function()
 	return vim.fn.pumvisible() == 1 and "<C-y>" or "<CR>"
 end, { expr = true, desc = "Accept completion or newline" })
 
--- <C-n>/<C-p>: navigate the popup, or cycle LuaSnip choices when one is
--- active. `vim.schedule` around change_choice avoids a re-entrant jump out of
--- the expr mapping.
+-- The choice change is scheduled to avoid a re-entrant jump out of the expr
+-- mapping.
 local function select_item(dir)
 	return function()
 		if luasnip.choice_active() then
@@ -250,16 +240,14 @@ local function select_item(dir)
 			end)
 			return ""
 		end
-		return vim.fn.pumvisible() == 1 and (dir == 1 and "<C-n>" or "<C-p>") or (dir == 1 and "<C-n>" or "<C-p>")
+		return dir == 1 and "<C-n>" or "<C-p>"
 	end
 end
 
 map("i", "<C-n>", select_item(1), { expr = true, desc = "Next completion item / cycle snippet choice" })
 map("i", "<C-p>", select_item(-1), { expr = true, desc = "Prev completion item / cycle snippet choice" })
 
--- <Tab>: expand a snippet when one matches, otherwise navigate the menu
--- (native "smart tab") / jump to the next placeholder. <S-Tab> jumps back.
--- Kept as one expr mapping so the checks run in order and fall through.
+-- A single expr mapping, so the checks run in order and fall through.
 map("i", "<Tab>", function()
 	if luasnip.expandable() then
 		return "<cmd>lua require('luasnip').expand()<cr>"
@@ -283,7 +271,6 @@ map("i", "<S-Tab>", function()
 	return "<S-Tab>"
 end, { expr = true, desc = "Prev completion item or previous placeholder" })
 
--- <C-q>: unlink the active snippet (delete the active node tree completely).
 map("i", "<C-q>", function()
 	if luasnip.in_snippet() then
 		luasnip.unlink_current()

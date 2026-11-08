@@ -1,43 +1,31 @@
 -- lua/features/compile.lua
 
--- Emacs-like `:Compile`, natively (no plugin). Runs a build command
--- asynchronously, streaming its output into a `*compilation*` buffer in a
--- bottom split. When the command fails, the output is parsed into the quickfix
--- list, so errors are navigated with the usual quickfix motions.
+-- Native, Emacs-like `:Compile` that runs a build command asynchronously and
+-- streams its output into a `*compilation*` buffer in a bottom split. When the
+-- command fails, the output is parsed into the quickfix list.
 --
--- State is kept per working directory: one running process at a time (starting
--- a new compile in the same directory kills the previous one) and one "last
--- command", which `:Recompile` reruns. Commands run through `sh -c`, so shell
--- syntax works.
+-- State is kept per working directory. Starting a new compile in the same
+-- directory kills the previous one, and `:Recompile` reruns the last command.
+-- Commands run through `sh -c`, so shell syntax works. Without arguments,
+-- `:Compile` prompts for a command pre-filled with the default for the current
+-- filetype. Only gcc/clang, javac and Python traceback output is parsed into
+-- quickfix entries. Anything else still shows in the buffer.
 --
--- Without arguments, `:Compile` prompts for a command pre-filled with the
--- default for the current filetype (see `DEFAULT_COMMAND`). Only gcc/clang,
--- javac and Python traceback output is parsed into quickfix; anything else
--- still shows in the buffer but produces no entries (see `ERRORFORMAT`).
+-- The output buffer uses the `qf` filetype so that it gets the same close
+-- behavior as other utility buffers.
 --
--- The `*compilation*` buffer uses the `qf` filetype so that the
--- `cg/close_utility_buffers` autocmd gives it the usual `q`/`<Esc>` close
--- behavior, and the quickfix motions `]q` / `[q` come from the search keymaps.
---
--- Commands:
---   :Compile {cmd}        run {cmd}, or prompt when no argument is given
---   :Recompile            rerun the last command of the current cwd
---   :CompileInterrupt     stop the command of the current cwd
---
--- Usage:
---   require("features.compile").setup()
+-- `setup()` must be called once to register the commands and keymaps.
 --
 -- See: lua/config/autocmds.lua
 -- See: lua/config/keymaps/search.lua
+-- See: :help quickfix
 
 local M = {}
 
--- Name of the output buffer.
 ---@type string
 local BUFFER_NAME = "*compilation*"
 
--- Compilation commands per filetype, as the previous setup had them.
--- The "*" key is the fallback for filetypes without an entry.
+---Default command per filetype. The "*" key is the fallback.
 ---@type table<string, string>
 local DEFAULT_COMMAND = {
 	["*"] = "make -k ",
@@ -49,28 +37,22 @@ local DEFAULT_COMMAND = {
 	go = "go run %",
 }
 
--- 'errorformat' for parsing the output into quickfix entries, buffer-locally
--- on *compilation*. Covers the gcc/clang ("file:line:col: message") and
--- javac ("file:line: message") styles, plus Python tracebacks (each
--- "File ..., line ..., in ..." frame becomes an entry; the indented source
--- lines are context). Non-indented Python exception lines and all other
--- noise (make info, blanks) are ignored with %-G. Unmatched output is
--- dropped, keeping the list clean.
+-- Each Python traceback frame becomes an entry and the indented source lines
+-- are context. Every other line is dropped with `%-G`, which keeps the list
+-- free of make output and blanks.
 ---@type string
 local ERRORFORMAT = table.concat({
 	-- gcc/clang
 	"%f:%l:%c: %m",
-	-- javac, plain "file:line: message"
+	-- javac
 	"%f:%l: %m",
-	-- Python traceback frames (message text is not captured)
+	-- Python traceback frames, without the message text
 	'%A  File "%f"\\, line %l\\, in %.%#',
 	"%-C  %.%#",
 	"--In file included from %.%#",
 	"%-G%.%#",
 }, ",")
 
--- One running process per cwd (starting a new compile of the same directory
--- replaces the previous one) and the last command per cwd for :Recompile.
 ---@type table<string, vim.SystemObj>
 local running = {}
 
@@ -80,9 +62,8 @@ local last_command = {}
 ---@type integer?
 local compilation_buf = nil
 
----Return the default command for the current buffer's filetype, with "%"
----(file name) and "%:r" (name without extension) expanded word by word, like
----compile-mode's bang expansion did.
+---Return the default command for the current filetype, expanding `%` and `%:r`
+---word by word so that the other words are left untouched.
 ---@return string
 local function default_for_ft()
 	local cmd = DEFAULT_COMMAND[vim.bo.filetype] or DEFAULT_COMMAND["*"] or ""
@@ -103,11 +84,8 @@ local function default_for_ft()
 	return table.concat(words, " ")
 end
 
----Create (or reuse) the *compilation* buffer and show it in a bottom split.
----Unlisted, nofile, wiped when hidden and with a buffer-local 'errorformat';
----filetype "qf" so the close_utility_buffers autocmd gives it the usual
----q/<Esc> close behavior.
----@return integer buf
+---Create or reuse the compilation buffer and show it in a bottom split.
+---@return integer
 local function open_window()
 	local buf = compilation_buf
 	if not (buf and vim.api.nvim_buf_is_valid(buf)) then
@@ -122,8 +100,8 @@ local function open_window()
 	vim.bo[buf].buflisted = false
 	vim.bo[buf].errorformat = ERRORFORMAT
 	vim.bo[buf].modifiable = true
-	-- filetype "qf": the close_utility_buffers autocmd then provides the
-	-- q/<Esc> window close behavior and drops it from the buffer list
+	-- The `qf` filetype makes the close_utility_buffers autocmd handle this
+	-- buffer.
 	vim.bo[buf].filetype = "qf"
 
 	vim.cmd("rightbelow 25split")
@@ -132,8 +110,8 @@ local function open_window()
 	return buf
 end
 
----Append lines to the compilation buffer and autoscroll every window showing
----it (like compile-mode's auto_scroll).
+---Append lines to the compilation buffer and scroll every window showing it to
+---the end.
 ---@param buf integer
 ---@param lines string[]
 local function append(buf, lines)
@@ -151,9 +129,8 @@ local function append(buf, lines)
 	end
 end
 
----Called when the job ends. Adds the exit status line, and on failure fills
----the quickfix list from the compilation buffer (:cbuffer uses the buffer's
----local 'errorformat'); navigation is done with ]q / [q.
+---Write the exit status and, on failure, fill the quickfix list from the
+---compilation buffer.
 ---@param buf integer
 ---@param code integer
 local function finish(buf, code)
@@ -164,9 +141,8 @@ local function finish(buf, code)
 	append(buf, { ("[Exited %d]"):format(code) })
 
 	if code ~= 0 then
-		-- Parse the compilation buffer into the quickfix list, with the
-		-- compile errorformat given explicitly (the quickfix commands would
-		-- instead use the 'errorformat' of the current window).
+		-- The errorformat is passed explicitly because quickfix commands would
+		-- otherwise use the one from the current window.
 		local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 		pcall(vim.fn.setqflist, {}, " ", {
 			lines = lines,
@@ -176,11 +152,10 @@ local function finish(buf, code)
 	end
 end
 
----Run `cmd` in `cwd`, streaming stdout/stderr into *compilation*.
+---Run `cmd` in `cwd`, streaming stdout and stderr into the compilation buffer.
 ---@param cmd string
 ---@param cwd string
 function M.command(cmd, cwd)
-	-- A new compile of the same cwd replaces the running one
 	local prev = running[cwd]
 	if prev then
 		running[cwd] = nil
@@ -210,7 +185,7 @@ function M.command(cmd, cwd)
 			end
 		end,
 	}, function(res)
-		-- Only the newest process of this cwd owns the state; a replaced
+		-- Only the newest process of this directory owns the state. A replaced
 		-- process just reports its output.
 		if running[cwd] == obj then
 			running[cwd] = nil
@@ -223,8 +198,8 @@ function M.command(cmd, cwd)
 	running[cwd] = obj
 end
 
----Prompt for a compilation command (pre-filled with the current filetype's
----default) and run it.
+---Prompt for a command, pre-filled with the last one or the filetype default,
+---and run it.
 function M.prompt()
 	local cwd = vim.uv.cwd() or "."
 	vim.ui.input({
@@ -237,7 +212,7 @@ function M.prompt()
 	end)
 end
 
----Recompile: rerun the last command of the current cwd, or prompt.
+---Rerun the last command of the current directory, or prompt when there is none.
 function M.recompile()
 	local cwd = vim.uv.cwd() or "."
 	if last_command[cwd] then
@@ -247,7 +222,7 @@ function M.recompile()
 	end
 end
 
----Interrupt the command running in the current directory.
+---Kill the command running in the current directory.
 function M.interrupt()
 	local cwd = vim.uv.cwd() or "."
 	local obj = running[cwd]

@@ -110,8 +110,6 @@ require("conform").setup({
 			prepend_args = { "--base-formatter=gofumpt", "--max-len=100" },
 		},
 
-		-- Markdown
-
 		-- Prettier with 4 columns of indentation (nested lists get 4). It is `prettier`
 		-- and not `prettierd` because prettierd does not accept CLI flags.
 		prettier_md = require("conform.util").merge_formatter_configs(require("conform.formatters.prettier"), {

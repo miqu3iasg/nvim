@@ -1,48 +1,45 @@
 -- lua/plugins/latex.lua
-
--- VimTeX globals and the PDF export hook.
 --
--- This plugin is lazy: the src and its trigger filetypes are declared at the
--- bottom of this file via utils.lazy.setup, which defers the plugin/ scripts
--- until the first tex/latex buffer and calls configure() (below) right
--- before the :packadd (VimTeX reads these globals when it initializes for
--- the buffer).
+-- LaTeX support through VimTeX, covering compilation, PDF viewer sync, motions,
+-- folding and the table of contents, plus a hook that copies the compiled PDF
+-- to `exports/`.
 --
--- The LaTeX writing-mode setup (wrapping, conceal, readable width and
--- <localleader>x compile/view/TOC mappings) lives in after/ftplugin/tex.lua.
+-- VimTeX is loaded lazily. The plugin is declared at the bottom of this file
+-- and its scripts are only loaded on the first tex buffer, right after
+-- `configure()` sets the globals that VimTeX reads when it initializes.
 --
--- This configuration requires a full TeX distribution to compile documents,
--- a PDF viewer with SyncTeX support, and the dependencies required by
--- latexindent for LaTeX indentation and formatting.
---
--- On Arch Linux, install the TeX Live packages and build tools with pacman:
+-- A full TeX distribution is required to compile documents, along with a PDF
+-- viewer with SyncTeX support and the dependencies of latexindent, which handles
+-- indentation and formatting. On Arch Linux, install the TeX Live packages with:
 --
 -- $ sudo pacman -S texlive-basic texlive-bin texlive-latexextra texlive-fontsextra
 --
--- This configuration uses Zathura as the PDF viewer. Install it with its
--- MuPDF backend to enable PDF viewing and SyncTeX integration:
+-- Zathura is the PDF viewer and needs its MuPDF backend for viewing and SyncTeX:
 --
 -- $ sudo pacman -S zathura zathura-pdf-mupdf
 --
 -- latexindent is installed automatically through Mason. It may require
--- `libcrypt.so.1`, which can be missing on systems using libxcrypt.
--- On Arch Linux, install the compatibility library with:
+-- `libcrypt.so.1`, which is missing on systems that use libxcrypt. On Arch
+-- Linux, install the compatibility library with:
 --
 -- $ sudo pacman -S libxcrypt-compat
 --
+-- See: after/ftplugin/tex.lua
+-- See: lua/utils/lazy.lua
+-- See: lua/shared/exports.lua
 -- See: https://github.com/lervag/vimtex
 -- See: https://github.com/cmhughes/latexindent.pl
 -- See: https://github.com/latex3/latex2e
 
 local M = {}
 
--- filetype detection must produce `tex` (not the builtin `plaintex`) for the
--- lazy gate below to fire. VimTeX's own ftdetect/ sets this when it is on the
--- rtp, but as a lazy plugin it is not at detection time - so it is declared
--- here, at registration time, before any buffer opens.
+-- Filetype detection must produce `tex` instead of the builtin `plaintex` for
+-- the lazy loading to fire. VimTeX's own ftdetect sets this, but a lazy plugin
+-- is not on the runtimepath at detection time, so it is set here.
 vim.g.tex_flavor = "latex"
 
--- Triggered only once per session, by utils/lazy before the vimtex packadd.
+---Set the VimTeX globals. Called once per session by `utils.lazy`, before VimTeX
+---is loaded.
 function M.configure()
 	local exports = require("shared.exports")
 
@@ -50,11 +47,8 @@ function M.configure()
 	vim.g.vimtex_compiler_method = "latexmk"
 	vim.g.vimtex_compiler_latexmk = {
 		continuous = 1,
-		-- NOTE: VimTeX renamed `build_dir` to `out_dir` in v2.13; `build_dir` is
-		-- now silently ignored.
-
-		-- Byproducts (and the first PDF) go to <root>/.build/<reldir>/<name>/.
-		-- A function is used because the folder depends on the project.
+		-- Byproducts and the first PDF go to `<root>/.build/<reldir>/<name>/`.
+		-- It is a function because the folder depends on the project.
 		out_dir = function()
 			return exports.build_dir(vim.api.nvim_get_current_buf())
 		end,
@@ -64,25 +58,24 @@ function M.configure()
 			"-synctex=1",
 		},
 	}
-	vim.g.vimtex_quickfix_mode = 0 -- Avoid stealing focus for every warning.
+	-- Avoids stealing focus for every warning.
+	vim.g.vimtex_quickfix_mode = 0
 	vim.g.vimtex_fold_enabled = true
 	vim.g.vimtex_indent_enabled = true
 	vim.g.vimtex_syntax_conceal_disable = true
 
-	-- Use VimTeX's "simple" algorithm (plain citation-key matching) instead
-	-- of the default "smart" search over titles and authors. The documentation
-	-- recommends "simple" when another completion plugin provides the menu.
-	-- See: :h g:vimtex_complete_bib
+	-- Plain citation-key matching, which the VimTeX documentation recommends over
+	-- the default search through titles and authors when another source provides
+	-- the completion menu.
+	-- See: :help g:vimtex_complete_bib
 	vim.g.vimtex_complete_bib = {
 		simple = 1,
 		info_fmt = "@author_all (@year)\n@title",
 	}
 end
 
--- After a successful compilation, copy the PDF from .build/ to exports/.
--- Kept global (registered once at startup): it is cheap and only fires on
--- the VimtexEventCompileSuccess user event, which exists only when vimtex
--- is loaded.
+-- Registered globally at startup because it is cheap and only fires on a user
+-- event that exists while VimTeX is loaded.
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VimtexEventCompileSuccess",
 	group = vim.api.nvim_create_augroup("latex_export_pdf", { clear = true }),
@@ -114,13 +107,7 @@ vim.api.nvim_create_autocmd("User", {
 	end,
 })
 
--- Declares this plugin as lazy (see the pattern in lua/utils/lazy.lua):
--- the module only registers the spec here; configure() runs on the first
--- tex/latex buffer, before the :packadd.
 require("utils.lazy").setup({
-	-- vimtex
-	-- https://github.com/lervag/vimtex
-	-- Full LaTeX support: compilation, PDF viewer sync, motions, folding, and TOC.
 	src = "https://github.com/lervag/vimtex",
 	filetypes = { "tex", "latex" },
 	configure = M.configure,

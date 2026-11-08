@@ -3,8 +3,6 @@
 -- File, directory and path helpers: navigation around the working directory,
 -- copying file paths/URIs, and editing files specific to this repository.
 
--- Helpers
-
 local km = vim.keymap.set
 
 ---Normal-mode mapping shorthand: every mapping carried a description.

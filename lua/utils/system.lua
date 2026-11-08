@@ -1,11 +1,11 @@
 -- lua/utils/system.lua
 
--- Information about the host system
+-- Information about the host system.
 
 local M = {}
 
----Return the name of the operating system Neovim is running on.
----Anything that is neither Windows nor macOS is reported as "linux" (includes BSDs).
+---Return the name of the operating system Neovim is running on. Anything that
+---is neither Windows nor macOS is reported as `"linux"`, which includes the BSDs.
 ---@return "windows"|"mac"|"linux"
 function M.get_os()
 	local os_name = vim.uv.os_uname().sysname

@@ -1,59 +1,53 @@
 -- lua/features/markdown_lists.lua
 
--- Native list editing for Markdown buffers, plus the formatter post-processing
--- that keeps list markers and indentation the way they were written.
+-- Native list editing for Markdown buffers, plus the formatter helpers that
+-- keep list markers and indentation the way they were written.
 --
--- Every list operation works in normal mode (current line, accepts a count) and
--- in visual mode (selected lines). In visual mode the selection stays active, so
--- a mapping can be pressed repeatedly, e.g. to cycle through the list types.
+-- Operations work on the current line in normal mode, accepting a count, and on
+-- the selected lines in visual mode. In visual mode the selection stays active,
+-- so an operation can be repeated, for example to cycle through list types.
 --
--- Settings (all optional):
---   vim.g.markdown_list_bullet     marker of new bullets: "-" (default), "*" or "+"
---   vim.g.markdown_list_delimiter  delimiter of new numbered items: "." (default) or ")"
---   vim.b.markdown_list_bullet     buffer-local version of the bullet setting
---   vim.b.markdown_list_delimiter  buffer-local version of the delimiter setting
+-- The marker of new bullets can be set with `vim.g.markdown_list_bullet` to
+-- `-`, `*` or `+`, and the delimiter of new numbered items with
+-- `vim.g.markdown_list_delimiter` to `.` or `)`. Both have a buffer-local
+-- version in `vim.b` that takes precedence.
 --
--- Usage:
---   local lists = require("features.markdown_lists")
---   vim.keymap.set({ "n", "x" }, "<localleader>lb", lists.action(lists.toggle, "bullet"))
---   vim.keymap.set({ "n", "x" }, "<localleader>ll", lists.action(lists.cycle, 1))
+-- The helpers `bullet_markers`, `restore_bullets` and `tabify` are meant to be
+-- called from formatters, which is why the parsing code relies only on string
+-- operations.
 --
--- The formatter helpers (`bullet_markers`, `restore_bullets`, `tabify`) are used
--- by the markdown formatters in `lua/plugins/formatting.lua`.
+-- See: lua/plugins/formatting.lua
+-- See: lua/after/ftplugin/markdown.lua
 
 local M = {}
 
--- Types
-
----List type of a line.
 ---@alias MarkdownLists.Type
 ---| "none" plain text
 ---| "bullet" `- item`
 ---| "number" `1. item`
 ---| "check" `- [ ] item`
 
----One parsed line. Fields marked with `item` are only set when `kind == "item"`.
+---A parsed line. Only lines with `kind == "item"` have the fields below `text`.
 ---@class MarkdownLists.Line
 ---@field kind "blank"|"hr"|"text"|"item"
----@field indent string leading whitespace
----@field text string content without the list prefix
----@field ordered? boolean `item`: numbered (`1.`) instead of bullet (`-`)
----@field marker? string `item`: `-`, `*` or `+` for bullets; `.` or `)` for numbered items
----@field num? integer `item`: number of a numbered item
----@field box? string `item`: `" "`, `"x"` or `"X"` when the item is a task, `nil` otherwise
+---@field indent string Leading whitespace.
+---@field text string Content without the list prefix.
+---@field ordered? boolean Numbered (`1.`) instead of bullet (`-`).
+---@field marker? string `-`, `*` or `+` for bullets, `.` or `)` for numbered items.
+---@field num? integer Number of a numbered item.
+---@field box? string `" "`, `"x"` or `"X"` for a task item, `nil` otherwise.
 
 ---A line selected for an operation.
 ---@class MarkdownLists.Entry
----@field n integer line number
----@field p MarkdownLists.Line parsed line
----@field line string original text
+---@field n integer Line number.
+---@field p MarkdownLists.Line
+---@field line string Original text.
 
----Signature shared by all list operations.
 ---@alias MarkdownLists.Operation fun(l1: integer, l2: integer, mode: "n"|"x", arg?: any)
 
 ---@class MarkdownLists.Config
----@field bullets string[] bullet markers, in the order of the marker cycle
----@field cycle MarkdownLists.Type[] order of the type cycle
+---@field bullets string[] Bullet markers, in the order of the marker cycle.
+---@field cycle MarkdownLists.Type[] Order of the type cycle.
 
 ---@type MarkdownLists.Config
 M.config = {
@@ -61,21 +55,15 @@ M.config = {
 	cycle = { "bullet", "check", "number", "none" },
 }
 
--- Parsing
--- These functions only use string operations, so they are safe to call from
--- conform.nvim formatters (which may run outside the main loop).
-
----@return string
 local function default_bullet()
 	return vim.b.markdown_list_bullet or vim.g.markdown_list_bullet or M.config.bullets[1]
 end
 
----@return string
 local function default_delimiter()
 	return vim.b.markdown_list_delimiter or vim.g.markdown_list_delimiter or "."
 end
 
----Whether a line is a thematic break (`---`, `***`, `* * *`, `___`).
+---Whether a line is a thematic break such as `---`, `***`, `* * *` or `___`.
 ---@param line string
 ---@return boolean
 local function is_hr(line)
@@ -83,6 +71,8 @@ local function is_hr(line)
 	return #s >= 3 and (s:match("^%-+$") or s:match("^%*+$") or s:match("^_+$")) ~= nil
 end
 
+---Uses only string operations, so it is safe to call from conform.nvim
+---formatters, which may run outside the main loop.
 ---@param line string
 ---@return MarkdownLists.Line
 local function parse(line)
@@ -131,7 +121,7 @@ local function parse(line)
 	}
 end
 
----@param it MarkdownLists.Line a line with `kind == "item"`
+---@param it MarkdownLists.Line A line with `kind == "item"`.
 ---@return string
 local function render(it)
 	local s = it.indent .. (it.ordered and (it.num .. it.marker) or it.marker)
@@ -157,7 +147,7 @@ end
 ---marker and an existing number keeps its value.
 ---@param p MarkdownLists.Line
 ---@param target MarkdownLists.Type
----@return string line
+---@return string
 local function convert(p, target)
 	if target == "none" then
 		return p.indent .. p.text
@@ -178,10 +168,8 @@ local function convert(p, target)
 	return render(it)
 end
 
--- Buffer helpers
-
 ---@param indent string
----@return integer columns
+---@return integer
 local function width(indent)
 	return vim.fn.strdisplaywidth(indent)
 end
@@ -191,15 +179,15 @@ local function buffer_lines()
 	return vim.api.nvim_buf_get_lines(0, 0, -1, false)
 end
 
----@param n integer line number
+---@param n integer
 ---@param text string
 local function set_line(n, text)
 	vim.api.nvim_buf_set_lines(0, n - 1, n, false, { text })
 end
 
----Lines of a range that an operation can change: blank lines and thematic
----breaks are skipped. A single blank line counts as empty text, so that an
----operation can start a list on it.
+---Lines of a range that an operation can change. Blank lines and thematic
+---breaks are skipped, except that a single blank line counts as empty text so
+---an operation can start a list on it.
 ---@param l1 integer
 ---@param l2 integer
 ---@return MarkdownLists.Entry[]
@@ -218,8 +206,8 @@ local function collect(l1, l2)
 	return out
 end
 
----Replace the text of each entry with `fn(parsed_line)`, touching only the
----lines that changed.
+---Replace each entry with the result of `fn`, touching only the lines that
+---changed.
 ---@param entries MarkdownLists.Entry[]
 ---@param fn fun(p: MarkdownLists.Line): string?
 local function write(entries, fn)
@@ -232,9 +220,9 @@ local function write(entries, fn)
 end
 
 ---Line numbers of the sibling items of the item at line `n`, `n` included, in
----order. Siblings share indentation, kind (bullet/numbered) and marker, and are
----contiguous: nested items, continuation lines and blank lines inside the list
----are skipped over.
+---order. Siblings share indentation, kind and marker, and are contiguous.
+---Nested items, continuation lines and blank lines inside the list are skipped
+---over.
 ---@param lines string[]
 ---@param n integer
 ---@return integer[]
@@ -255,7 +243,7 @@ local function siblings(lines, n)
 		while lines[i] do
 			local p = parse(lines[i])
 			if p.kind == "blank" then
-				-- a blank line only continues the list if what follows belongs to it
+				-- A blank line only continues the list if what follows belongs to it.
 				local j = i + dir
 				while lines[j] and lines[j]:match("^%s*$") do
 					j = j + dir
@@ -312,12 +300,10 @@ local function renumber(l1, l2)
 	end
 end
 
--- Operations
-
----Toggle a list type. If every line already has the type the list is removed,
----otherwise all lines are converted to it.
+---Toggle a list type. When every line already has the type the list is
+---removed, otherwise all lines are converted to it.
 ---@type MarkdownLists.Operation
----@param target "bullet"|"number" as `arg`
+---@param target "bullet"|"number" Passed as `arg`.
 function M.toggle(l1, l2, _, target)
 	local entries = collect(l1, l2)
 	if #entries == 0 then
@@ -339,7 +325,7 @@ function M.toggle(l1, l2, _, target)
 	renumber(l1, l2)
 end
 
----Toggle the `[ ]` box of every line, keeping the bullet or number. If every
+---Toggle the `[ ]` box of every line, keeping the bullet or number. When every
 ---line already has a box the boxes are removed, otherwise they are added.
 ---@type MarkdownLists.Operation
 function M.toggle_checklist(l1, l2)
@@ -369,10 +355,10 @@ function M.toggle_checklist(l1, l2)
 	end)
 end
 
----Cycle the list type following `M.config.cycle`. The current type is the one of
----the first line, and every line is converted to the next type.
+---Cycle the list type following `M.config.cycle`. The current type is the one
+---of the first line, and every line is converted to the next type.
 ---@type MarkdownLists.Operation
----@param dir 1|-1 as `arg`: direction of the cycle
+---@param dir 1|-1 Passed as `arg`, the direction of the cycle.
 function M.cycle(l1, l2, _, dir)
 	local entries = collect(l1, l2)
 	if #entries == 0 then
@@ -403,11 +389,12 @@ function M.clear(l1, l2)
 	end)
 end
 
----Cycle the marker: bullets go through `M.config.bullets`, numbered items swap
----`.` and `)`.
----In normal mode without a count the whole list (the sibling items) changes,
----because changing the marker of a single item would split the list in two.
----In visual mode (or with a count) only the selected lines change.
+---Cycle the marker. Bullets go through `M.config.bullets` and numbered items
+---swap `.` and `)`.
+---
+---In normal mode without a count the whole list changes, because changing the
+---marker of a single item would split the list in two. In visual mode, or with a
+---count, only the selected lines change.
 ---@type MarkdownLists.Operation
 function M.cycle_marker(l1, l2, mode)
 	local lines = buffer_lines()
@@ -454,20 +441,20 @@ function M.cycle_marker(l1, l2, mode)
 	end
 end
 
----Renumber the numbered lists touched by the range (1, 2, 3...), starting at the
----number of the first item.
+---Renumber the numbered lists touched by the range, starting at the number of
+---the first item.
 ---@type MarkdownLists.Operation
 function M.renumber(l1, l2)
 	renumber(l1, l2)
 end
 
----Wrap an operation as a keymap callback. In normal mode the range is the current
----line plus `count - 1` lines below it; in visual mode it is the selection, which
----stays active afterwards. In normal mode the cursor keeps its place in the text
----when the list prefix changes size.
+---Wrap an operation as a keymap callback. In normal mode the range is the
+---current line plus `count - 1` lines below it, and the cursor keeps its place
+---in the text when the list prefix changes size. In visual mode the range is the
+---selection, which stays active afterwards.
 ---@param fn MarkdownLists.Operation
----@param arg? any forwarded to `fn` as its last argument
----@return fun() callback
+---@param arg? any Forwarded to `fn` as its last argument.
+---@return fun()
 function M.action(fn, arg)
 	return function()
 		local m = vim.fn.mode()
@@ -496,11 +483,9 @@ function M.action(fn, arg)
 	end
 end
 
--- Formatter post-processing
-
----Index of the last line of the YAML front matter.
+---Index of the last line of the YAML front matter, or `0` when there is none.
 ---@param lines string[]
----@return integer index `0` if there is no front matter
+---@return integer
 local function front_matter_end(lines)
 	if lines[1] and lines[1]:match("^%-%-%-%s*$") then
 		for j = 2, #lines do
@@ -512,7 +497,7 @@ local function front_matter_end(lines)
 	return 0
 end
 
----Opening fence of a fenced code block (the backticks or tildes), if the line is one.
+---Opening fence of a fenced code block, if the line is one.
 ---@param line string
 ---@return string?
 local function fence_open(line)
@@ -528,7 +513,7 @@ local function fence_closes(line, fence)
 	return f ~= nil and f:sub(1, 1) == fence:sub(1, 1) and #f >= #fence and line:match("^%s*[`~]+%s*$") ~= nil
 end
 
----Call `fn` for every real bullet item, skipping the YAML front matter and the
+---Call `fn` for every real bullet item, skipping the YAML front matter and
 ---fenced code blocks.
 ---@param lines string[]
 ---@param fn fun(i: integer, p: MarkdownLists.Line)
@@ -551,8 +536,8 @@ local function walk_bullets(lines, fn)
 	end
 end
 
----Markers (`-`, `*` or `+`) of every bullet item, in order. Prettier rewrites
----`*` and `+` as `-`, so they are saved before formatting and put back after.
+---Markers of every bullet item, in order. Prettier rewrites `*` and `+` as `-`,
+---so they are saved before formatting and put back afterwards.
 ---@param lines string[]
 ---@return string[]
 function M.bullet_markers(lines)
@@ -563,12 +548,12 @@ function M.bullet_markers(lines)
 	return out
 end
 
----Put the markers saved by `bullet_markers` back. If the number of bullets
----changed while formatting nothing is restored, since the items can no longer be
----matched one to one.
----@param lines string[] formatted lines (modified in place)
+---Put the markers saved by `bullet_markers` back. When the number of bullets
+---changed during formatting nothing is restored, since the items can no longer
+---be matched one to one.
+---@param lines string[] Formatted lines, modified in place.
 ---@param markers? string[]
----@return string[] lines
+---@return string[]
 function M.restore_bullets(lines, markers)
 	if not markers or #markers == 0 then
 		return lines
@@ -592,12 +577,12 @@ function M.restore_bullets(lines, markers)
 	return lines
 end
 
----Replace each group of `ts` leading spaces of the list lines with a tab, so the
----indentation mixes tabs and spaces (the remainder stays as spaces). The YAML
----front matter (where tabs are invalid) and the fenced code blocks are left alone.
----@param lines string[] modified in place
----@param ts? integer columns per tab, 4 by default
----@return string[] lines
+---Replace each group of `ts` leading spaces in list lines with a tab, leaving
+---the remainder as spaces. The YAML front matter, where tabs are invalid, and
+---fenced code blocks are left alone.
+---@param lines string[] Modified in place.
+---@param ts? integer Columns per tab, 4 by default.
+---@return string[]
 function M.tabify(lines, ts)
 	ts = ts or 4
 	local fence, in_list = nil, false

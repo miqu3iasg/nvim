@@ -1,5 +1,18 @@
 -- after/ftplugin/markdown.lua
 
+-- Configures Markdown buffers for prose writing, with buffer-local keymaps for
+-- lists, checkboxes and inline formatting. Pandoc integration is loaded from a
+-- shared module.
+--
+-- `:PasteImage` is provided by img-clip.nvim, which must be installed through
+-- the plugin manager and relies on a clipboard utility such as wl-clipboard or
+-- xclip.
+--
+-- See: ~/.config/nvim/pandoc
+-- See: lua/shared/pandoc.lua
+-- See: lua/features/markdown_lists.lua
+-- See: https://github.com/HakonHarnes/img-clip.nvim
+
 local opt = vim.opt_local
 
 opt.wrap = true
@@ -14,17 +27,19 @@ opt.formatoptions:remove({ "t", "l" })
 opt.formatoptions:append("n")
 opt.formatoptions:append({ "r", "o" })
 opt.suffixesadd:append(".md")
--- See: lua/plugins/formatting.lua:113
+-- See: lua/plugins/formatting.lua
 opt.expandtab = vim.g.markdown_use_tabs == false
 opt.tabstop = 4
 opt.shiftwidth = 4
 opt.softtabstop = -1
 
--- Setup Pandoc configuration
--- See: ~/.config/nvim/pandoc
--- See: ~/.config/nvim/lua/shared/pandoc.lua
 require("shared.pandoc").setup()
 
+---@param mode string|string[]
+---@param lhs string
+---@param rhs string|fun()
+---@param desc string
+---@param opts? table Extra mapping options merged over the defaults.
 local function map(mode, lhs, rhs, desc, opts)
 	vim.keymap.set(
 		mode,
@@ -38,17 +53,14 @@ local function map(mode, lhs, rhs, desc, opts)
 	)
 end
 
--- Spell
 map("n", "<localleader>ss", "<cmd>setlocal spell!<cr>", "Toggle spell check")
 map("i", "<C-s>", "<c-g>u<Esc>[s1z=`]a<c-g>u", "Fix previous spelling mistake")
 
--- View
 map("n", "<localleader>sc", function()
 	vim.opt_local.conceallevel = vim.opt_local.conceallevel:get() == 0 and 2 or 0
 	vim.notify("conceallevel = " .. vim.opt_local.conceallevel:get())
 end, "Toggle conceal level")
 
--- Lists and checkboxes
 local function parse_item(line)
 	local indent, marker, rest = line:match("^(%s*)([-*+])%s+(.*)$")
 	if not indent then
@@ -85,11 +97,9 @@ end, { range = true })
 
 map({ "n", "x" }, "<localleader>lt", ":ToggleCheckbox<CR>", "Toggle checkbox")
 
--- Lists
--- See: lua/features/markdown_lists.lua
--- Normal mode acts on the current line (and accepts a count, e.g. `3<localleader>lb`).
--- Visual mode acts on the selected lines and keeps the selection, so a mapping can be
--- repeated, e.g. to cycle the list type
+-- Normal mode acts on the current line and accepts a count. Visual mode acts on
+-- the selected lines and keeps the selection, so a mapping can be repeated to
+-- cycle the list type.
 local lists = require("features.markdown_lists")
 
 map({ "n", "x" }, "<localleader>lb", lists.action(lists.toggle, "bullet"), "Toggle bullet list")
@@ -101,17 +111,15 @@ map({ "n", "x" }, "<localleader>lm", lists.action(lists.cycle_marker), "Cycle ma
 map({ "n", "x" }, "<localleader>lr", lists.action(lists.renumber), "Renumber ordered list")
 map({ "n", "x" }, "<localleader>lx", lists.action(lists.clear), "Remove list formatting")
 
--- Typing
 map("i", ",", ",<C-g>u", "Break undo sequence at comma")
 map("i", ".", ".<C-g>u", "Break undo sequence at period")
 map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", "Move down by visual line", { expr = true })
 map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", "Move up by visual line", { expr = true })
 
--- Editing
----Keys that append `text` after the cursor and move `back` characters to the left.
+---Keys that append `text` after the cursor and move `back` characters left.
 ---@param text string
 ---@param back integer
----@return string keys
+---@return string
 local function insert(text, back)
 	return "a" .. text .. ("<Left>"):rep(back)
 end
@@ -119,7 +127,7 @@ end
 ---Keys that replace the visual selection with itself between `open` and `close`.
 ---@param open string
 ---@param close string
----@return string keys
+---@return string
 local function wrap(open, close)
 	return '"zc' .. open .. "<C-r>z" .. close .. "<Esc>"
 end
@@ -136,14 +144,15 @@ map("n", "<localleader>ii", "<cmd>PasteImage<cr>", "Paste image from clipboard")
 map("n", "<localleader>j", "vipJ", "Join paragraph into one line")
 map("x", "<localleader>s", ":sort i<CR>", "Sort lines")
 
----Normal-mode inline formatting. With the cursor on a word, wraps the word between
----`open` and `close`; when `toggle` is set and the word is already wrapped, removes
----them instead. Anywhere else, inserts the empty pair and starts insert mode inside it.
+---Wrap the word under the cursor between `open` and `close`. When `toggle` is
+---set and the word is already wrapped, remove the pair instead. Away from a
+---word, insert the empty pair and start insert mode inside it.
 ---@param open string
 ---@param close string
----@param toggle boolean whether applying it again removes the wrapping
----@param insert_back? integer after wrapping, start insert mode this many characters
----before the end of `close` (e.g. 1 puts the cursor inside the `()` of a link)
+---@param toggle boolean Whether applying it again removes the wrapping.
+---@param insert_back? integer After wrapping, start insert mode this many
+---characters before the end of `close`. For example, 1 puts the cursor inside
+---the `()` of a link.
 local function format_word(open, close, toggle, insert_back)
 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 	local line = vim.api.nvim_get_current_line()
@@ -154,7 +163,7 @@ local function format_word(open, close, toggle, insert_back)
 		return
 	end
 
-	-- the word (run of 'iskeyword' characters) that contains the cursor
+	-- The word is the run of 'iskeyword' characters that contains the cursor.
 	local _, s, e = unpack(vim.fn.matchstrpos(line, [[\k*\%]] .. (col + 1) .. [[c\k*]]))
 	local before = s >= #open and line:sub(s - #open + 1, s) == open
 	local after = line:sub(e + 1, e + #close) == close
@@ -169,7 +178,6 @@ local function format_word(open, close, toggle, insert_back)
 	vim.api.nvim_buf_set_text(0, row - 1, e, row - 1, e, { close })
 	vim.api.nvim_buf_set_text(0, row - 1, s, row - 1, s, { open })
 	if insert_back then
-		-- e.g. link `[word]()`: insert mode with the cursor inside the `()`
 		vim.api.nvim_win_set_cursor(0, { row, e + #open + #close - insert_back })
 		vim.cmd.startinsert()
 	else
@@ -177,13 +185,6 @@ local function format_word(open, close, toggle, insert_back)
 	end
 end
 
----Map `lhs` in normal mode to `format_word` with the given pair.
----@param lhs string
----@param desc string
----@param open string
----@param close string
----@param toggle boolean
----@param insert_back? integer
 local function word_map(lhs, desc, open, close, toggle, insert_back)
 	map("n", lhs, function()
 		format_word(open, close, toggle, insert_back)

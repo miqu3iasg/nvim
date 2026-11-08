@@ -1,46 +1,43 @@
 -- lua/plugins/lsp.lua
 
--- This configuration enables LSP support for frontend development (HTML, CSS,
--- Tailwind CSS, Emmet and TypeScript/JavaScript), LaTeX, Typst and Markdown.
--- Backend language servers are intentionally excluded. Java's `jdtls` is
--- installed through Mason but started separately by another part of the config.
+-- Language servers for frontend development (HTML, CSS, Tailwind CSS, Emmet and
+-- TypeScript/JavaScript), LaTeX, Typst and Markdown. Backend language servers
+-- are intentionally excluded. Java's `jdtls` is installed through Mason but
+-- started separately by the Java ftplugin.
 --
--- Mason manages the language servers, but some of them rely on external
--- runtimes and command-line tools. On Arch Linux, install Node.js and npm for
--- the JavaScript-based servers, a JDK for Java, and the Typst CLI and typstyle
--- for Typst compilation and formatting:
+-- nvim-lspconfig, mason.nvim, mason-lspconfig.nvim and lazydev.nvim must be
+-- installed through the plugin manager. Mason manages the language servers, but
+-- some of them rely on external runtimes and command-line tools. On Arch Linux,
+-- install Node.js and npm for the JavaScript-based servers, a JDK for Java, and
+-- the Typst CLI and typstyle for Typst compilation and formatting:
 --
 -- $ sudo pacman -S nodejs npm jdk-openjdk typst typstyle
 --
--- Texlab provides LaTeX language-server features. A TeX Live installation is
--- also needed to compile LaTeX documents; the following packages provide the
--- core distribution, LaTeX packages and additional build utilities:
+-- Texlab provides the LaTeX language-server features, but compiling LaTeX
+-- documents needs a TeX Live installation. These packages provide the core
+-- distribution, LaTeX packages and additional build utilities:
 --
 -- $ sudo pacman -S texlive-basic texlive-latex texlive-latexextra texlive-binextra
 --
--- Install the language servers through Mason. The configuration below
--- automatically requests their installation at startup, but they can also
--- be installed manually with the following command inside Neovim:
+-- The configuration requests the installation of the language servers at
+-- startup. They can also be installed manually from Neovim:
 --
 -- :MasonInstall css-lsp emmet-language-server eslint-lsp html-lsp marksman tailwindcss-language-server texlab tinymist vtsls jdtls
 --
--- Marksman handles Markdown navigation, document symbols and diagnostics.
--- Tinymist provides Typst language support and uses `typstyle` for formatting;
--- its PDF export also requires the `typst` executable. Texlab provides LaTeX
--- language support, while the actual compilation depends on the installed TeX
--- tools and packages.
+-- Tinymist uses `typstyle` for formatting, and its PDF export also requires the
+-- `typst` executable. Mason only installs the servers, so each one is still
+-- configured individually in this file, and only the servers in `servers` are
+-- enabled.
 --
--- The LSP servers are configured individually below. `vim.lsp.enable(servers)`
--- enables the servers listed in `servers`, while `jdtls` is deliberately
--- excluded because it is started elsewhere. Mason installation alone does
--- not replace the server-specific configuration in this file.
---
+-- See: lua/shared/exports.lua
 -- See: https://github.com/mason-org/mason.nvim
 -- See: https://github.com/mason-org/mason-lspconfig.nvim
 -- See: https://github.com/neovim/nvim-lspconfig
+-- See: https://github.com/folke/lazydev.nvim
 -- See: https://github.com/latex-lsp/texlab
 -- See: https://github.com/Myriad-Dreamin/tinymist
 -- See: https://github.com/artempyanykh/marksman
+-- See: :help lsp
 
 local servers = {
 	"cssls",
@@ -56,7 +53,7 @@ local servers = {
 
 require("mason").setup()
 
--- Only used to install servers, so it can wait until startup is done
+-- Only used to install servers, so it can wait until startup is done.
 vim.schedule(function()
 	require("mason-lspconfig").setup({
 		automatic_enable = false,
@@ -64,7 +61,7 @@ vim.schedule(function()
 	})
 end)
 
--- Needed for .lua files and configurations
+-- Provides the Neovim runtime types to Lua files.
 require("lazydev").setup({
 	library = {
 		{ path = "${3rd}/luv/library", words = { "vim%.uv" } },
@@ -72,14 +69,14 @@ require("lazydev").setup({
 	},
 })
 
--- Applied to every server. Disabling dynamic file watching avoids the
--- server registering thousands of watchers in large projects
+-- Disabling dynamic file watching avoids servers registering thousands of
+-- watchers in large projects.
 vim.lsp.config("*", {
 	capabilities = vim.lsp.protocol.make_client_capabilities(),
 	workspace = { didChangeWatchedFiles = { dynamicRegistration = false } },
 })
 
--- Validation only produces diagnostics, so it is disabled
+-- Validation only produces diagnostics, so it is disabled.
 vim.lsp.config("cssls", {
 	settings = {
 		css = { validate = false },
@@ -92,12 +89,11 @@ vim.lsp.config("html", {
 	filetypes = { "templ", "html", "php" },
 })
 
--- Emmet only where markup lives
 vim.lsp.config("emmet_language_server", {
 	filetypes = { "templ", "html", "css", "scss", "php", "javascriptreact", "typescriptreact" },
 })
 
--- Notes: any folder with a README is a workspace, falling back to the file's dir
+-- Any folder with a README is a workspace, falling back to the file's directory.
 vim.lsp.config("marksman", {
 	root_dir = function(bufnr, on_dir)
 		local root = vim.fs.root(bufnr, { ".git", "README.md", "README.markdown", ".marksman.toml" })
@@ -105,13 +101,13 @@ vim.lsp.config("marksman", {
 	end,
 })
 
--- vtsls replaces ts_ls. Never enable both, or every diagnostic and
--- completion shows up twice
+-- vtsls replaces ts_ls. Never enable both, or every diagnostic and completion
+-- shows up twice.
 local ts_shared = {
 	updateImportsOnFileMove = { enabled = "always" },
 	suggest = { completeFunctionCalls = true },
 	preferences = {
-		-- Use "non-relative" if the project relies on path aliases (@/...)
+		-- Use "non-relative" if the project relies on path aliases (@/...).
 		importModuleSpecifier = "shortest",
 		preferTypeOnlyAutoImports = true,
 	},
@@ -138,13 +134,14 @@ vim.lsp.config("vtsls", {
 	},
 })
 
--- Formatting stays with conform/prettier, so the server's formatter is off
+-- Formatting stays with conform and prettier, so the server's formatter is off.
 vim.lsp.config("eslint", {
 	settings = { format = false, run = "onSave" },
 })
 
--- Run `LspEslintFixAll` before conform formats. The autocmd is created on
--- attach so it is registered before conform's. Same toggles as <leader>uf
+-- Runs `LspEslintFixAll` before conform formats. The autocmd is created on
+-- attach so that it is registered before conform's, and it respects the
+-- autoformat toggle.
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("EslintFixOnSave", { clear = true }),
 	callback = function(args)
@@ -153,7 +150,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			return
 		end
 		vim.api.nvim_create_autocmd("BufWritePre", {
-			-- one group per buffer: re-attaching replaces the autocmd instead of stacking it
+			-- One group per buffer, so re-attaching replaces the autocmd instead
+			-- of stacking it.
 			group = vim.api.nvim_create_augroup("EslintFix" .. args.buf, { clear = true }),
 			buffer = args.buf,
 			callback = function()
@@ -170,55 +168,38 @@ vim.lsp.config("tailwindcss", {
 	settings = {
 		tailwindCSS = {
 			includeLanguages = { templ = "html" },
-			-- Class detection inside helper calls: cn("..."), cva("..."), etc.
+			-- Detects classes inside helper calls such as `cn("...")`.
 			classFunctions = { "cn", "clsx", "cx", "cva", "tv", "twMerge" },
 		},
 	},
 })
 
--- Fuzzy matching so abbreviations like "thm" and "eqn" find "\theorem" and
--- "\begin{equation}", consistent with blink's other fuzzy sources
+-- Fuzzy matching lets abbreviations such as "thm" and "eqn" find "\theorem" and
+-- "\begin{equation}".
 vim.lsp.config("texlab", {
 	settings = { texlab = { completion = { matcher = "fuzzy-ignore-case" } } },
 })
 
 vim.lsp.config("tinymist", {
-	-- Same root as the other exporters
-	-- See: lua/shared/exports.lua
+	-- Uses the same root as the other exporters.
 	root_dir = function(bufnr, on_dir)
 		on_dir(require("shared.exports").root(bufnr))
 	end,
 	settings = {
 		formatterMode = "typstyle",
 		exportPdf = "onSave",
-		-- Built with shared.exports.output_pattern(); mirrors exports.output_path()
+		-- Mirrors `exports.output_path()`.
 		outputPath = require("shared.exports").output_pattern(),
-		-- Highlighting comes from treesitter only
+		-- Highlighting comes from treesitter only.
 		semanticTokens = "disable",
 		lint = { enabled = false },
 	},
 })
 
--- LSP keymaps, buffer-local and only set once a server attaches.
---
--- Native Neovim LSP/diagnostic keybinds, available without any config
--- once a server attaches. They are intentionally not redefined below:
---
---   K            (n)      vim.lsp.buf.hover()
---   grn          (n)      vim.lsp.buf.rename()
---   gra          (n, x)   vim.lsp.buf.code_action()          [overridden below with fzf]
---   grr          (n)      vim.lsp.buf.references()           [overridden below with fzf]
---   gri          (n)      vim.lsp.buf.implementation()       [overridden below with fzf]
---   grt          (n)      vim.lsp.buf.type_definition()      [overridden below with fzf]
---   gO           (n)      vim.lsp.buf.document_symbol()
---   <C-s>        (i, s)   vim.lsp.buf.signature_help()
---   <C-]>        (n)      go to definition (via tagfunc)
---   <C-w>]       (n)      go to definition in split (via tagfunc)
---   <C-w>d       (n)      open diagnostic float under cursor
---   ]d / [d      (n)      next / previous diagnostic
---   ]D / [D      (n)      last / first diagnostic
---   <C-x><C-o>   (i)      omni-completion (via omnifunc)
---   gq           (n, x)   format with the server (via formatexpr)
+-- Buffer-local mappings set once a server attaches. The native LSP and
+-- diagnostic mappings, such as hover, rename and diagnostic navigation, are
+-- intentionally not redefined, except where fzf-lua replaces them.
+-- See: :help lsp-defaults
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
 	callback = function(ev)
@@ -266,7 +247,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
--- Explicit diagnostics configuration
 vim.diagnostic.config({
 	virtual_text = false,
 	severity_sort = true,
@@ -276,22 +256,16 @@ vim.diagnostic.config({
 
 vim.lsp.enable(servers)
 
--- Global LSP toggle. Only affects the servers listed in `servers`; `jdtls` is
--- started elsewhere and is deliberately left alone.
-
---- Whether the servers in `servers` are currently enabled.
----@type boolean
 local lsp_enabled = true
 
---- Enable or disable every language server in `servers` at once.
+---Enable or disable every language server in `servers` at once. `jdtls` is
+---started elsewhere and is deliberately left alone.
 ---
---- When disabling, `vim.lsp.enable(servers, false)` prevents new clients from
---- starting, and any client that is still alive is stopped explicitly so its
---- diagnostics are cleared. When enabling, `vim.lsp.enable(servers)` starts
---- the servers again and re-attaches them to the already open buffers.
----
----@param enable? boolean Force a state. When omitted, the current state is toggled.
----@return boolean enabled The new state: `true` if the servers are enabled.
+---Disabling prevents new clients from starting and also stops the ones still
+---alive, so their diagnostics are cleared. Enabling starts the servers again and
+---re-attaches them to the buffers that are already open.
+---@param enable? boolean Forces a state. When omitted, the current state is toggled.
+---@return boolean enabled The new state.
 local function toggle_lsp(enable)
 	if enable == nil then
 		lsp_enabled = not lsp_enabled
@@ -304,7 +278,6 @@ local function toggle_lsp(enable)
 	else
 		vim.lsp.enable(servers, false)
 
-		-- Make sure no managed client stays alive
 		for _, client in ipairs(vim.lsp.get_clients()) do
 			if vim.tbl_contains(servers, client.name) then
 				client:stop()

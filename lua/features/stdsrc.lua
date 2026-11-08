@@ -1,53 +1,40 @@
 -- lua/features/stdsrc.lua
 
--- Language-aware declaration search over the source repository (standard
--- library / API) of a language, built on fzf-lua and ripgrep.
+-- Declaration search over the source repository of a language, such as its
+-- standard library or API, so it can be explored without leaving the file being
+-- edited. The language is detected from the current file, or from the shown
+-- directory in an Oil view.
 --
--- Supported languages, declaration patterns and file filters are defined in
--- the `languages` table below. The directories that hold each language's
--- source code are defined in the `sources` table.
+-- fzf-lua must be installed through the plugin manager. ripgrep must be
+-- installed on the system. On Arch Linux:
 --
--- `M.search_source()` detects the current language (or the language of the
--- directory open in an Oil view), then presents the available search
--- categories and greps the language's source repository, no matter where the
--- current file lives. This allows the standard library to be explored without
--- leaving the file being edited.
+-- $ sudo pacman -S ripgrep
 --
--- `M.setup()` registers the `:StdSrc` command. The module can also be used
--- directly:
+-- The source directories of each language must already exist on the machine and
+-- are listed in the `sources` table. The supported languages, declaration
+-- patterns and file filters are defined in the `languages` table.
 --
--- Usage:
---   local stdsrc = require("features.stdsrc")
---   stdsrc.setup()
---   vim.keymap.set("n", "<leader>fa", stdsrc.search_source)
+-- `setup()` registers the `:StdSrc` command and must be called once.
+--
+-- See: https://github.com/ibhagwan/fzf-lua
+-- See: man:rg
 
 local M = {}
 
--- Languages
-
--- Java fragments shared by several patterns
----@type string
 local JAVA_TYPE_MODS = [=[(?:(?:abstract|final|sealed|non-sealed|static|strictfp)\s+)*]=]
----@type string
 local JAVA_TYPE_REF = [=[[\w.<>\[\],? ]+]=]
----@type string
 local JAVA_PUBLIC_TYPE = [=[^\s*public\s+]=] .. JAVA_TYPE_MODS
 
 ---One entry of the search menu.
 ---@class StdSrc.Pattern
----@field label string text shown in the menu
----@field re string ripgrep regex that matches the declaration
----@field globs? string overrides the language's default `globs` for this entry
+---@field label string Text shown in the menu.
+---@field re string Ripgrep regex that matches the declaration.
+---@field globs? string Overrides the language's default `globs` for this entry.
 
----Search settings for one language.
 ---@class StdSrc.Language
----@field globs? string default file filters (space separated, `!` excludes), applied to every pattern
----@field patterns StdSrc.Pattern[] menu entries, in menu order
+---@field globs? string Default file filters, space separated, where `!` excludes. Applied to every pattern.
+---@field patterns StdSrc.Pattern[] Menu entries, in menu order.
 
--- Per-language regexes (ripgrep syntax) used to find declarations.
--- Each language has a default `globs` string applied to every pattern and an
--- ordered `patterns` list whose order is the order of the menu. A pattern may
--- set its own `globs` to override the language default.
 ---@type table<string, StdSrc.Language>
 local languages = {
 	C = {
@@ -101,8 +88,8 @@ local languages = {
 	},
 
 	Python = {
-		-- `test`/`tests`/`test_*` instead of `*test*`, which would also drop the
-		-- `unittest` package of the standard library
+		-- Excludes `test`, `tests` and `test_*` instead of `*test*`, which would
+		-- also drop the `unittest` package of the standard library.
 		globs = "*.py !test !tests !test_*",
 		patterns = {
 			{ label = "Package (all imports)", re = [=[^\s*(from\s+[\w.]+\s+)?import\s+[\w.*, ()]+]=] },
@@ -138,14 +125,10 @@ local languages = {
 	},
 }
 
--- Sources
-
--- Candidate directories holding the source code (standard library / API) of
--- each language. The first candidate that exists wins, so list the preferred
--- one first. Entries accept `~`, `$VARS` and glob wildcards (when several
--- directories match, the last one in alphabetical order is used, which is the
--- newest version for `python3.*`).
--- Adjust these to the paths of your machine.
+-- Candidate directories for each language. The first candidate that exists
+-- wins, so the preferred one comes first. Entries accept `~`, `$VARS` and glob
+-- wildcards. When several directories match, the last one in alphabetical order
+-- is used, which is the newest version for `python3.*`.
 ---@type table<string, string[]>
 local sources = {
 	-- stdc (glibc clone) and stdch (headers only)
@@ -154,17 +137,16 @@ local sources = {
 	Java = { "~/.cache/jdk-src/*" },
 	-- stdpy (sysconfig stdlib, e.g. /usr/lib/python3.13)
 	Python = { "/usr/lib/python3.*" },
-	-- The Lua stdlib (~/.local/share/stdsrc/lua) is C code, so it does not fit
-	-- the Lua patterns; the Neovim runtime is the Lua API worth exploring
+	-- The Lua standard library is C code, so it does not fit the Lua patterns.
+	-- The Neovim runtime is the Lua API worth exploring.
 	Lua = { "$VIMRUNTIME/lua" },
 }
 
--- Detection
-
----Return the key of `languages` for a path or file name, judged by the file
----name only (extension or a well-known project file such as `pom.xml`).
+---Return the key of `languages` for a path, judged by the file name only. The
+---name is matched by extension or by a well-known project file such as
+---`pom.xml`.
 ---@param path? string
----@return string? lang_name `nil` if the language is unknown
+---@return string?
 local function detect_language(path)
 	if not path or path == "" then
 		return nil
@@ -181,11 +163,10 @@ local function detect_language(path)
 	end
 end
 
----Return the most frequent recognized language among the files in `dir`.
----Not recursive, and only regular files are counted. Ties are broken
----alphabetically by language name.
+---Return the most frequent recognized language among the regular files in
+---`dir`, without recursing. Ties are broken alphabetically by language name.
 ---@param dir string
----@return string? lang_name `nil` if `dir` is unreadable or has no recognized file
+---@return string?
 local function detect_language_in_dir(dir)
 	local handle = vim.uv.fs_scandir(dir)
 	if not handle then
@@ -213,9 +194,9 @@ local function detect_language_in_dir(dir)
 	return best
 end
 
----Return the language of the current buffer: from the file name, or, in an
----Oil view, the most frequent language among the files of the shown directory.
----@return string? lang_name `nil` if the language is unknown
+---Return the language of the current buffer. In an Oil view it is the most
+---frequent language among the files of the shown directory.
+---@return string?
 local function detect_current_language()
 	local path = vim.api.nvim_buf_get_name(0)
 	if not vim.startswith(path, "oil://") then
@@ -227,9 +208,9 @@ local function detect_current_language()
 	return oil_dir and detect_language_in_dir(oil_dir) or nil
 end
 
----Return the first existing source directory of a language (see `sources`).
+---Return the first existing source directory of a language.
 ---@param lang_name string
----@return string? dir `nil` if no candidate exists
+---@return string?
 local function get_source_dir(lang_name)
 	for _, candidate in ipairs(sources[lang_name] or {}) do
 		local matches = vim.fn.glob(vim.fs.normalize(candidate), false, true)
@@ -242,15 +223,12 @@ local function get_source_dir(lang_name)
 	return nil
 end
 
--- Search
-
----Run the grep for one menu entry on the files of `dir`, filtered by the
----entry's globs (or the language default).
----The globs are appended to the search as `<regex> -- <globs>`, fzf-lua's
----syntax for passing file filters.
+---Grep one menu entry in `dir`, filtered by the entry's globs or the language
+---default. Globs are appended as `<regex> -- <globs>`, which is the syntax
+---fzf-lua uses for file filters.
 ---@param entry StdSrc.Pattern
 ---@param lang StdSrc.Language
----@param dir string directory to search
+---@param dir string
 local function run_search(entry, lang, dir)
 	local fzf = require("fzf-lua")
 	local search = entry.re
@@ -260,15 +238,14 @@ local function run_search(entry, lang, dir)
 		search = search .. " -- " .. globs
 	end
 
-	-- silent, the previewer cannot convert every regex to a vim pattern and would
-	-- otherwise report "unable to init vim,regex" (fzf-lua issue 1858)
+	-- Silent because the previewer cannot convert every regex to a vim pattern
+	-- and would report "unable to init vim,regex" (fzf-lua issue 1858).
 	fzf.grep({ search = search, no_esc = true, silent = true, cwd = dir })
 end
 
----Show the category menu of a language and grep the chosen one in the
----language's source directory (see `sources`).
----The menu keeps the order defined in `languages` ("Any" always first).
----@param lang_name string key of `languages`
+---Show the category menu of a language and grep the chosen one in its source
+---directory. The menu keeps the order defined in `languages`, with "Any" first.
+---@param lang_name string
 local function show_source_menu(lang_name)
 	local fzf = require("fzf-lua")
 	local lang = languages[lang_name]
@@ -316,14 +293,12 @@ local function show_source_menu(lang_name)
 end
 
 ---Pick a declaration category and grep it in the source repository of the
----current language (see `sources`), from wherever the current file lives.
+---current language, from wherever the current file lives.
 ---
---- * In a regular buffer the language comes from the file name; in an Oil view
----   it is the most frequent language among the files of the shown directory.
---- * When the language cannot be detected, asks which one to explore.
---- * The menu lists "Any" (plain live grep) followed by the language's patterns.
---- * Opening a result edits the file of the source repository; go back with
----   `<C-o>` or `<C-^>`.
+---When the language cannot be detected, it asks which one to explore. The menu
+---lists "Any", a plain live grep, followed by the language's patterns. Opening a
+---result edits the file in the source repository, and `<C-o>` or `<C-^>` goes
+---back.
 function M.search_source()
 	local lang_name = detect_current_language()
 	if lang_name then
@@ -340,9 +315,9 @@ function M.search_source()
 	end)
 end
 
----Register the `:StdSrc` command (see `M.search_source`).
+---Register the `:StdSrc` command.
 function M.setup()
-	-- wrapped so the command's argument table is not forwarded to the functions
+	-- Wrapped so the command's argument table is not forwarded to the function.
 	vim.api.nvim_create_user_command("StdSrc", function()
 		M.search_source()
 	end, {

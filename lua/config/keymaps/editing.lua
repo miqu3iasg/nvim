@@ -3,8 +3,6 @@
 local km = vim.keymap.set
 local substitute = require("utils.substitute")
 
--- Helpers
-
 local function clamp_dest(dest)
 	return math.max(0, math.min(dest, vim.fn.line("$")))
 end
@@ -144,31 +142,11 @@ km("n", "<leader>U", function()
 end, { desc = "undotree" })
 
 -- Insert mode
-
--- Movement
--- <C-a>      Beginning of line (mapped below)
--- <C-e>      End of line (mapped below)
--- <C-f>      Forward char (mapped below)
--- <C-b>      Backward char (mapped below)
--- <C-o>      Execute one Normal mode command
--- <C-t>      Indent current line
--- <C-d>      Delete one shiftwidth of indent
--- <C-l>      Redraw screen / trigger completion (context-dependent)
-
 km("i", "<C-a>", "<Home>", { desc = "Beginning of line" })
 km("i", "<C-e>", "<End>", { desc = "End of line" })
 km("i", "<C-f>", "<Right>", { desc = "Forward char" })
 km("i", "<C-b>", "<Left>", { desc = "Backward char" })
 km("i", "<C-l>", "<C-o>zz", { desc = "Recenter" })
-
--- Deletion
--- <C-h>      Delete character before cursor (Backspace)
--- <C-w>      Delete word before cursor
--- <C-u>      Delete from cursor to beginning of line
--- <C-d>      Delete character under cursor (mapped below)
--- <C-k>      Delete from cursor to end of line (mapped below)
-
--- Killing and Yanking
 km("i", "<C-d>", "<Del>", { desc = "Delete char forward" })
 km("i", "<C-k>", function()
 	return vim.fn.col(".") > #vim.fn.getline(".") and "<Del>" or "<C-g>u<C-o>D"

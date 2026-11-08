@@ -15,12 +15,10 @@ local function km(mode, lhs, rhs, opts)
 	vim.keymap.set(mode, lhs, rhs, opts)
 end
 
--- Buffer Creation and Saving
 km("n", "<leader>bn", "<cmd>enew<CR>", { desc = "New buffer" })
 km("n", "<leader>bw", "<cmd>write ++p<CR>", { desc = "Save buffer" })
 km("n", "<leader>bs", "<cmd>noautocmd write<CR>", { desc = "Save buffer without auto-formatting" })
 
--- Buffer Deletion and Cleanup
 km("n", "<leader>bd", function()
 	local buf = vim.api.nvim_get_current_buf()
 
@@ -46,7 +44,6 @@ km("n", "<leader>bo", function()
 	end)
 end, { desc = "Close other windows and buffers" })
 
--- Buffer Navigation
 km("n", "]b", "<cmd>bnext<CR>", { desc = "Next buffer" })
 km("n", "[b", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
 km("n", "<leader><Space>", "<C-^>", { desc = "Toggle between last two buffers" })

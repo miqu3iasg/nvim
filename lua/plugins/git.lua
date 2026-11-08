@@ -1,32 +1,36 @@
 -- lua/plugins/git.lua
 
--- Git workflow built on vim-fugitive, gitsigns.nvim and, optionally, fzf-lua
--- (its keymaps are registered only when it is available). Git must be
--- installed and the current directory must belong to a repository.
+-- Git workflow inside Neovim, built on vim-fugitive for repository operations,
+-- gitsigns.nvim for hunk-level changes and, optionally, fzf-lua for browsing
+-- branches, commits and diffs. The fzf-lua keymaps are only registered when it
+-- is available.
 --
--- `:GBrowse` depends on vim-rhubarb to build GitHub URLs. Destructive remote
--- operations (force push, rebase, ...) are intentionally left to the terminal.
+-- Git must be installed and the current directory must belong to a repository.
+-- vim-rhubarb is required for `:GBrowse` to build GitHub URLs. Destructive
+-- remote operations, such as force push and rebase, are intentionally left to
+-- the terminal.
 --
 -- On Arch Linux, install Git with:
 --
 -- $ sudo pacman -S git
 --
--- Global configuration (user.name, user.email, ...) lives in ~/.gitconfig and
--- can be inspected with:
+-- The global configuration, such as user name and email, lives in
+-- `~/.gitconfig` and can be inspected with:
 --
 -- $ git config --global --list
 --
+-- See: lua/features/close_view.lua
 -- See: https://git-scm.com/doc
 -- See: https://github.com/tpope/vim-fugitive
 -- See: https://github.com/tpope/vim-rhubarb
 -- See: https://github.com/lewis6991/gitsigns.nvim
 -- See: https://github.com/ibhagwan/fzf-lua
+-- See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fugitive_log.vim
 
 local map = vim.keymap.set
 
 local log_format = "--color=never --date=short --pretty=format:'%h %cd  %s (%an)%d'"
 
----Registers a keymap with a description.
 ---@param mode string|string[]
 ---@param lhs string
 ---@param rhs string|function
@@ -35,9 +39,8 @@ local function gmap(mode, lhs, rhs, desc)
 	map(mode, lhs, rhs, { desc = desc })
 end
 
----Opens the history of the current file, the repository or the function under the cursor.
----Ported from bruhtus' `enable#fugitive_log`.
----See: https://github.com/bruhtus/dotfiles/blob/master/.vim/after/autoload/enable/fugitive_log.vim
+---Open the history of the current file, the repository or the function under
+---the cursor. Ported from bruhtus' `enable#fugitive_log`.
 local function git_log_normal()
 	local choice = vim.fn.confirm(
 		"Current file or All or Specific function git commit(s)?",
@@ -46,21 +49,21 @@ local function git_log_normal()
 	)
 
 	if choice == 2 then
-		-- `--follow` tracks the file across renames
 		vim.cmd("-tab Git log " .. log_format .. " --follow %")
 	elseif choice == 3 then
 		vim.cmd("-tab Git log " .. log_format)
 	elseif choice == 4 then
-		-- Git must recognize functions for this filetype, otherwise nothing matches
+		-- Git must recognize functions for this filetype, otherwise nothing
+		-- matches.
 		local func = vim.fn.expand("<cword>")
 		local file = vim.fn.expand("%:p")
 		vim.cmd(("-tab Git log %s -L :%s:%s"):format(log_format, func, file))
 	end
 end
 
----Opens the history of the selected line range.
+---Open the history of the selected line range.
 local function git_log_visual()
-	-- Leave visual mode so the '< and '> marks match the current selection
+	-- Leaving visual mode makes the '< and '> marks match the current selection.
 	vim.cmd("normal! \27")
 	local first = vim.fn.line("'<")
 	local last = vim.fn.line("'>")
@@ -70,14 +73,12 @@ local function git_log_visual()
 	vim.cmd("redraw!")
 end
 
----Returns the ordered visual selection range for partial hunk operations.
+---Ordered visual selection range, used by the partial hunk operations.
 ---@return integer[] range `{ first, last }`
 local function visual_range()
 	local a, b = vim.fn.line("."), vim.fn.line("v")
 	return { math.min(a, b), math.max(a, b) }
 end
-
--- Fugitive
 
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("GitFugitiveBlame", { clear = true }),
@@ -87,45 +88,36 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- See: lua/features/close_view.lua
 require("features.close_view").setup()
 
--- Status and staging
 gmap("n", "<leader>gg", "<cmd>silent tab Git<cr>", "Git status")
 gmap("n", "<leader>ga", "<cmd>silent Gwrite<cr>", "Stage current file")
 gmap("n", "<leader>gu", "<cmd>Gread<cr>", "Restore file from index (undoable)")
 
--- Commit (`:wq` confirms, `:q` aborts)
 gmap("n", "<leader>gc", "<cmd>Git commit<cr>", "Commit")
 gmap("n", "<leader>gC", "<cmd>Git commit --amend<cr>", "Amend last commit")
 
--- Remote and stash. Force push, rebase and similar are left to the terminal
 gmap("n", "<leader>gp", "<cmd>Git push<cr>", "Push")
 gmap("n", "<leader>gS", "<cmd>Git stash push --include-untracked<cr>", "Stash push (incl. untracked)")
 
--- Log
 gmap("n", "<leader>gl", "<cmd>-tab Git log --color=never --oneline --graph --decorate<cr>", "Git log (oneline)")
 gmap("n", "<leader>gL", "<cmd>-tab Git log --color=never --stat -p --decorate --date=short<cr>", "Git log (expanded)")
 gmap("n", "<leader>go", git_log_normal, "Git log (file/all/function)")
 gmap("x", "<leader>go", git_log_visual, "Git log (selection)")
 
--- Diff and blame
 gmap("n", "<leader>gd", "<cmd>silent Gvdiffsplit<cr>", "Diff against index")
 gmap("n", "<leader>gh", "<cmd>silent Gvdiffsplit HEAD<cr>", "Diff against HEAD")
 gmap("n", "<leader>gb", "<cmd>silent Git blame<cr>", "Git blame")
 gmap("n", "<leader>ge", "<cmd>.Git blame<cr>", "Git blame (line)")
 
--- Browser
 gmap("n", "<leader>gw", "<cmd>GBrowse<cr>", "Open file in browser")
 gmap("x", "<leader>gw", ":GBrowse<cr>", "Open selection in browser")
 
--- Conflicts: //2 is the target (ours), //3 is the merge (theirs).
--- Only the entry point uses <leader>, picking a side stays quick
+-- In the 3-way diff, `//2` is the target (ours) and `//3` is the merge
+-- (theirs). Only the entry point uses the leader, so picking a side stays quick.
 gmap("n", "<leader>gx", "<cmd>Gvdiffsplit!<cr>", "Resolve conflicts (3-way diff)")
 gmap({ "n", "x" }, "gt", "<cmd>diffget //2<cr>", "Conflict: take ours (target)")
 gmap({ "n", "x" }, "gh", "<cmd>diffget //3<cr>", "Conflict: take theirs (merge)")
-
--- Gitsigns
 
 local diff_overlay = false
 
@@ -145,8 +137,8 @@ require("gitsigns").setup({
 	signs = vim.tbl_extend("force", signs, { untracked = { text = "+" } }),
 	signs_staged = signs,
 
-	-- Keymaps are buffer-local so the native `]c` / `[c` keep working outside
-	-- tracked buffers and in diff mode (e.g. `Gvdiffsplit`)
+	-- The keymaps are buffer-local so the native `]c` and `[c` keep working
+	-- outside tracked buffers and in diff mode, such as `Gvdiffsplit`.
 	on_attach = function(bufnr)
 		local gs = require("gitsigns")
 
@@ -154,7 +146,7 @@ require("gitsigns").setup({
 			map(mode, lhs, rhs, { buffer = bufnr, desc = desc })
 		end
 
-		---Navigates hunks, falling back to the native diff motions in diff mode.
+		---Navigate hunks, falling back to the native diff motions in diff mode.
 		---@param direction "next"|"prev"
 		local function nav(direction)
 			return function()
@@ -188,18 +180,13 @@ require("gitsigns").setup({
 			gs.toggle_linehl(diff_overlay)
 		end, "Toggle diff overlay")
 
-		-- Text object: `vih` selects a hunk, `dih` deletes it
 		bmap({ "o", "x" }, "ih", "<cmd>Gitsigns select_hunk<cr>", "Select hunk")
 	end,
 })
 
--- Fzf Integration
-
 if pcall(require, "fzf-lua") then
-	-- <C-a> creates a branch named after the query and switches to it
 	gmap("n", "<leader>gfb", function()
 		require("fzf-lua").git_branches({
-			-- Hint shown at the top of the fzf popup
 			header = "<enter> checkout | <C-a> new branch from query | <C-x> delete | <C-d> force delete",
 			actions = {
 				["ctrl-a"] = {

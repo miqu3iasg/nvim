@@ -1,37 +1,29 @@
 -- lua/features/close_view.lua
 
--- Closes Fugitive views (status, blame, diffs, commit messages, git objects)
--- with `q`, `gq` and `dq`, without ever quitting Neovim. The mappings are
--- buffer-local and installed by the autocmds registered in `setup()`, which
--- must be called once (it is idempotent).
+-- Closes Fugitive views without ever quitting Neovim. The mappings are
+-- buffer-local and installed by autocmds, so `setup()` must be called once.
 --
--- Closing a `gitcommit` buffer discards it, which aborts the commit. When
--- closing a diff, the working copy is kept and the other diff windows are
--- closed. Errors are reported as warnings instead of being raised.
---
--- Requires vim-fugitive.
---
--- Usage:
---   require("features.close_view").setup()
+-- Closing a `gitcommit` buffer discards it, which aborts the commit. Requires
+-- vim-fugitive to be installed.
 --
 -- See: https://github.com/tpope/vim-fugitive
+-- See: :help fugitive
 
 local M = {}
 
----Whether `buf` is a Fugitive virtual buffer (`fugitive://...`), e.g. the index
----or a commit side of a diff, as opposed to the working copy.
+---Whether `buf` is a Fugitive virtual buffer, such as the index or a commit
+---side of a diff, as opposed to the working copy.
 ---@param buf integer
 ---@return boolean
 local function is_fugitive_buf(buf)
 	return vim.api.nvim_buf_get_name(buf):find("^fugitive://") ~= nil
 end
 
----Close a diff, keeping the working copy (the only diff window that is not a
----`fugitive://` buffer) and closing the other diff windows. If every diff window
----is a Fugitive buffer, the current window is kept. Finishes with `diffoff!`.
+---Close a diff, keeping the working copy and closing the other diff windows.
+---When every diff window is a Fugitive buffer, the current window is kept.
 ---Does nothing outside diff mode.
 ---
----Replaces Fugitive's `dq`, which is not mapped in every window.
+---Replaces Fugitive's own `dq`, which is not mapped in every window.
 function M.close_diff()
 	if not vim.wo.diff then
 		return
@@ -60,15 +52,14 @@ end
 
 ---Close the Fugitive view under the cursor without ever quitting Neovim.
 ---
---- * In diff mode: delegates to `close_diff`.
---- * Status and blame: delegates to Fugitive's own `gq` (when mapped), so blame
----   state is restored.
---- * Otherwise: closes the window if there is another window or tab; if it is
----   the last one, switches to the alternate buffer (when it is a regular file),
----   or to an empty buffer.
+---In diff mode it delegates to `close_diff`. On status and blame views it
+---delegates to Fugitive's own `gq` when mapped, so the blame state is restored.
+---Elsewhere it closes the window, or, when it is the last window, switches to
+---the alternate buffer if it is a regular file and to an empty buffer
+---otherwise.
 ---
---- A `gitcommit` buffer is discarded (`!`), which aborts the commit. Errors are
---- reported as warnings instead of being raised.
+---A `gitcommit` buffer is discarded, which aborts the commit. Errors are
+---reported as warnings instead of being raised.
 function M.close_view()
 	if vim.wo.diff then
 		return M.close_diff()
@@ -97,10 +88,9 @@ function M.close_view()
 	end
 end
 
----Install the close mappings on a buffer (buffer-local, silent):
---- * `q` on `fugitive`, `fugitiveblame`, `git` and `gitcommit` buffers;
---- * `gq` and `dq` on read-only buffers, except status and blame, which keep
----   Fugitive's own `gq`.
+---Install the buffer-local close mappings. `q` is mapped on Fugitive, blame,
+---git and commit buffers. `gq` and `dq` are mapped on read-only buffers, except
+---status and blame, which keep Fugitive's own `gq`.
 ---@param buf integer
 function M.map_close(buf)
 	if not vim.api.nvim_buf_is_valid(buf) then
@@ -117,17 +107,13 @@ function M.map_close(buf)
 	end
 end
 
----Register the autocmds that install the mappings. Idempotent (the augroup is
----created with `clear = true`).
----
---- * `FileType`/`BufWinEnter` on Fugitive buffers call `map_close`, scheduled so
----   our maps override the ones Fugitive installs after setting the filetype.
---- * `OptionSet diff` gives the working copy a `dq` once it enters diff mode.
+---Register the autocmds that install the mappings. Safe to call more than once,
+---since the augroup is cleared on every call.
 function M.setup()
 	local group = vim.api.nvim_create_augroup("FugitiveCloseView", { clear = true })
 
-	-- Runs on the next tick so our maps override the ones Fugitive installs
-	-- after setting the filetype
+	-- Scheduled so these mappings override the ones Fugitive installs after
+	-- setting the filetype.
 	vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
 		group = group,
 		pattern = { "fugitive", "fugitiveblame", "git", "gitcommit", "fugitive://*" },
@@ -138,7 +124,6 @@ function M.setup()
 		end,
 	})
 
-	-- Also gives the working copy a `dq` once it enters diff mode
 	vim.api.nvim_create_autocmd("OptionSet", {
 		group = group,
 		pattern = "diff",
