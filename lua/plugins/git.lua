@@ -122,8 +122,8 @@ gmap("x", "<leader>gw", ":GBrowse<cr>", "Open selection in browser")
 -- Conflicts: //2 is the target (ours), //3 is the merge (theirs).
 -- Only the entry point uses <leader>, picking a side stays quick
 gmap("n", "<leader>gx", "<cmd>Gvdiffsplit!<cr>", "Resolve conflicts (3-way diff)")
-gmap({ "n", "x" }, "<leader>do", "<cmd>diffget //2<cr>", "Conflict: take ours (target)")
-gmap({ "n", "x" }, "<leader>dt", "<cmd>diffget //3<cr>", "Conflict: take theirs (merge)")
+gmap({ "n", "x" }, "gt", "<cmd>diffget //2<cr>", "Conflict: take ours (target)")
+gmap({ "n", "x" }, "gh", "<cmd>diffget //3<cr>", "Conflict: take theirs (merge)")
 
 -- Gitsigns
 

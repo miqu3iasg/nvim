@@ -159,7 +159,7 @@ km("i", "<C-a>", "<Home>", { desc = "Beginning of line" })
 km("i", "<C-e>", "<End>", { desc = "End of line" })
 km("i", "<C-f>", "<Right>", { desc = "Forward char" })
 km("i", "<C-b>", "<Left>", { desc = "Backward char" })
-km("i", "<C-c>", "<C-o>zz", { desc = "Recenter" })
+km("i", "<C-l>", "<C-o>zz", { desc = "Recenter" })
 
 -- Deletion
 -- <C-h>      Delete character before cursor (Backspace)

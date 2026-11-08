@@ -91,6 +91,8 @@ require("colorizer").setup({
 require("features.todos").setup()
 
 -- Flash
+-- TODO: this plugin adds a backdrod while I'm using the keys f/F/t/T, and I don't want it.
+-- I need to remove it
 local flash = require("flash")
 flash.setup({
 	prompt = {
